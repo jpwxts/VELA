@@ -1,0 +1,48 @@
+{
+  "grid_m": 5000,
+  "cell_area_km2": 25.0,
+  "modis_pixel_km2": 1.0,
+  "viirs_pixel_km2": 0.140625,
+  "min_shared_coverage": 0.5,
+  "pair_tolerance_minutes": 30,
+  "daytime_solar_zenith_max_deg": 85.0,
+  "daytime_local_hour_min": 9.0,
+  "daytime_local_hour_max": 16.0,
+  "aqua_local_hour": 13.5,
+  "seed": 42,
+  "overlap_years": [2013, 2024],
+  "train_years": [2013, 2020],
+  "tune_years": [2021, 2022],
+  "test_years": [2023, 2024],
+  "firms_max_day_range": 5,
+  "max_request_span_degrees": 30,
+  "min_usable_cell_days_per_week": 20,
+  "unusual_quantile": 0.9,
+  "min_weeks_for_threshold": 4,
+  "min_train_positives": 30,
+  "min_train_years": 3,
+  "min_train_regions": 2,
+  "min_tune_weeks": 4,
+  "supported_platform": "Suomi-NPP",
+  "supported_sensor": "VIIRS",
+  "platform_transfer": {
+    "noaa20_firms_start": "2018-04-01",
+    "noaa21_firms_start": "2023-01-01",
+    "products": {
+      "VJ114IMG": {"short_name": "VJ114IMG", "version": "002", "role": "fire", "platform": "NOAA-20"},
+      "VJ103IMG": {"short_name": "VJ103IMG", "version": "2.1", "role": "geolocation", "platform": "NOAA-20"},
+      "VJ214IMG": {"short_name": "VJ214IMG", "version": "002", "role": "fire", "platform": "NOAA-21"},
+      "VJ203IMG": {"short_name": "VJ203IMG", "version": "002", "role": "geolocation", "platform": "NOAA-21"}
+    }
+  },
+  "products": {
+    "MYD14": {"short_name": "MYD14", "version": "061", "role": "fire", "platform": "Aqua"},
+    "MYD03": {"short_name": "MYD03", "version": "6.1", "role": "geolocation", "platform": "Aqua"},
+    "VNP14IMG": {"short_name": "VNP14IMG", "version": "002", "role": "fire", "platform": "Suomi-NPP"},
+    "VNP03IMG": {"short_name": "VNP03IMG", "version": "002", "role": "geolocation", "platform": "Suomi-NPP"}
+  },
+  "smoke_weeks": [
+    {"region_id": "cerrado", "start": "2019-08-19", "end": "2019-08-25"},
+    {"region_id": "cerrado", "start": "2019-09-02", "end": "2019-09-08"}
+  ]
+}

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vela — Check my land</title>
+  <link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="/static/styles.css?v=panel-tabs-5">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <p class="eyebrow">NASA Space Apps · MODIS and VIIRS</p>
+      <h1>Vela</h1>
+    </div>
+    <p class="question">What should I watch on my land?</p>
+  </header>
+
+  <section id="view-hotspots" class="view on hotspot-view">
+    <aside class="side-panel" aria-label="Land check">
+      <div class="panel-block">
+        <label for="search">Find a place</label>
+        <div class="row">
+          <input id="search" type="search" placeholder="City, park, forest, or farm" autocomplete="off">
+          <button id="search-button" type="button">Find</button>
+        </div>
+        <ul id="places" class="places"></ul>
+        <button id="try-example" type="button" class="example-button">
+          Competition example · California foothills · saved dated forecast
+        </button>
+        <button id="try-zambia" type="button" class="example-button" hidden>
+          Saved weekly example · Zambia woodland · 2021
+        </button>
+        <div class="row">
+          <button id="draw" type="button" class="ghost">Draw my land</button>
+          <button id="finish-draw" type="button" class="ghost" hidden>Finish boundary</button>
+          <button id="clear-area" type="button" class="ghost">Clear</button>
+        </div>
+        <p id="area-label" class="quiet">Search or draw a plot boundary, then check your land.</p>
+        <button id="confirm" type="button" class="primary">Check my land</button>
+        <button id="return-selection" type="button" class="ghost" hidden>Return to my selection</button>
+      </div>
+
+      <details class="satellite-details advanced-details">
+        <summary>Advanced controls</summary>
+        <label for="day">Satellite observation date</label>
+        <input id="day" type="date">
+        <p id="day-words" class="date-words">Choose a date.</p>
+        <p class="quiet date-note">Heat detections use this UTC observation day. Forecasts use the latest available GWIS outlook.</p>
+        <fieldset>
+          <legend>Satellites</legend>
+          <label><input type="checkbox" value="Aqua" checked> Aqua</label>
+          <label><input type="checkbox" value="Suomi-NPP" checked> Suomi-NPP</label>
+          <label><input type="checkbox" value="NOAA-20" checked> NOAA-20</label>
+          <label><input type="checkbox" value="NOAA-21" checked> NOAA-21</label>
+          <label><input type="checkbox" value="Terra"> Terra (optional)</label>
+        </fieldset>
+      </details>
+
+      <div id="land-result" class="land-result" aria-live="polite">
+        <p id="fixture-banner" class="fixture-banner" hidden></p>
+        <p id="separation-note" class="quiet separation-note" hidden></p>
+
+        <section id="heat-block" class="result-block" hidden>
+          <h2 class="block-title">Recent satellite heat</h2>
+          <p id="heat-lead" class="result-support"></p>
+          <div id="heat-feeds" class="feed-breakdown-host" aria-label="Satellite feed breakdown"></div>
+          <div id="heat-inside" class="heat-list"></div>
+          <div id="heat-nearby" class="heat-list"></div>
+          <button type="button" id="see-where" class="filter-button" hidden>Open land panel</button>
+          <p id="incident-line" class="wildfire-line"></p>
+        </section>
+
+        <div id="public-result" class="public-result" hidden>
+          <p id="result-lead" class="result-lead"></p>
+          <p id="result-multi" class="result-multi"></p>
+          <p id="result-support" class="quiet result-support"></p>
+          <div id="result-filter" class="result-filter" hidden></div>
+          <p id="result-status" class="quiet" hidden></p>
+        </div>
+      </div>
+    </aside>
+
+    <div class="map-shell">
+      <div id="map" role="application" aria-label="Map for selecting land and reviewing heat detections"></div>
+      <label class="map-toggle"><input id="show-individuals" type="checkbox"> Show individual detections</label>
+      <p id="map-hint" class="map-hint">Draw your land, then tap Check my land.</p>
+      <article id="area-panel" class="area-panel sheet land-details" hidden tabindex="-1" aria-live="polite">
+        <button type="button" id="sheet-close" class="sheet-close ghost" aria-label="Close details">Close</button>
+
+        <header class="selection-banner">
+          <p id="selection-place" class="area-place-label">Selected land</p>
+          <p id="selection-boundary" class="quiet">Draw or select land to explore weather, weekly trends, and research.</p>
+        </header>
+
+        <div class="panel-tablist-wrap">
+          <div id="panel-tabs" class="panel-tabs" role="tablist" aria-label="Land exploration">
+            <button type="button" class="panel-tab on" role="tab" id="tab-where" data-panel-tab="where" aria-selected="true" aria-controls="pane-where">Where is this?</button>
+            <button type="button" class="panel-tab" role="tab" id="tab-weather" data-panel-tab="weather" aria-selected="false" aria-controls="pane-weather" tabindex="-1">Weather outlook</button>
+            <button type="button" class="panel-tab" role="tab" id="tab-weekly" data-panel-tab="weekly" aria-selected="false" aria-controls="pane-weekly" tabindex="-1">Weekly trends</button>
+            <button type="button" class="panel-tab" role="tab" id="tab-research" data-panel-tab="research" aria-selected="false" aria-controls="pane-research" tabindex="-1">Research</button>
+          </div>
+        </div>
+
+        <section id="pane-where" class="panel-pane" role="tabpanel" aria-labelledby="tab-where">
+          <section id="where-block" class="where-block" aria-live="polite">
+            <p id="area-place" class="quiet" hidden></p>
+            <p id="area-place-meta" class="quiet" hidden></p>
+            <div id="coords-row" class="coords-row" hidden>
+              <code id="area-coords"></code>
+              <button type="button" id="copy-coords" class="ghost replay-btn">Copy</button>
+            </div>
+            <p id="place-attribution" class="place-attribution quiet" hidden></p>
+          </section>
+          <p id="area-sentence" class="area-sentence"></p>
+          <p id="area-when" class="quiet"></p>
+          <p id="area-latest" class="quiet"></p>
+          <p id="area-square-note" class="secondary-note">5 km × 5 km observation area</p>
+          <p id="area-readings" class="quiet"></p>
+
+          <section id="replay-block" class="panel-section">
+            <div class="section-head">
+              <h3>Replay observations</h3>
+              <div class="replay-controls" role="group" aria-label="Replay controls">
+                <button type="button" id="replay-prev" class="ghost replay-btn" aria-label="Previous pass">Prev</button>
+                <button type="button" id="replay-play" class="filter-button replay-btn">Replay</button>
+                <button type="button" id="replay-next" class="ghost replay-btn" aria-label="Next pass">Next</button>
+              </div>
+            </div>
+            <p id="replay-gap" class="quiet" hidden></p>
+            <div id="area-timeline" class="area-timeline" role="listbox" aria-label="Observation passes"></div>
+          </section>
+
+          <section id="unusual-block" class="panel-section">
+            <h3>Is this unusual here?</h3>
+            <p id="unusual-text" class="quiet">Checking comparable fire-calendar history…</p>
+            <p id="unusual-years" class="quiet"></p>
+            <button type="button" id="view-fire-calendar" class="filter-button" hidden>View fire calendar</button>
+          </section>
+
+          <section id="area-weather-block" class="panel-section">
+            <h3>Upcoming fire weather</h3>
+            <p id="area-weather-note" class="quiet"></p>
+            <p id="area-weather-headline" class="area-weather-headline"></p>
+            <p id="area-weather-driver" class="quiet"></p>
+            <p id="area-weather-scope" class="quiet"></p>
+            <button type="button" id="open-weather-tab" class="filter-button">Open weather outlook</button>
+          </section>
+
+          <p id="wildfire-line" class="wildfire-line"><strong>Wildfire report</strong> · Looking up…</p>
+          <details id="other-sats">
+            <summary>Satellite details for this square</summary>
+            <ul id="other-sats-list"></ul>
+          </details>
+          <p id="coverage-note" class="quiet" hidden></p>
+          <details id="area-members">
+            <summary>View individual detections</summary>
+            <div id="area-members-body"></div>
+          </details>
+          <div id="area-points" class="area-points" hidden></div>
+          <button type="button" id="show-detected-areas" class="filter-button" hidden>Show detected areas</button>
+        </section>
+
+        <section id="pane-weather" class="panel-pane" role="tabpanel" aria-labelledby="tab-weather" hidden>
+          <section class="preparedness outlook-pane" aria-live="polite">
+            <p id="weather-location" class="quiet">Confirm land to load a seven-day outlook near the center of your plot.</p>
+            <button type="button" id="weather-retry" class="filter-button" hidden>Retry forecast</button>
+            <p id="weather-fixture-banner" class="fixture-banner" hidden></p>
+            <p id="weather-headline" class="result-lead">Waiting for a selected plot.</p>
+            <p id="weather-explanation" class="quiet"></p>
+            <p id="weather-coverage" class="quiet"></p>
+            <p id="weather-status" class="stamp"></p>
+            <div id="weather-days" class="day-strip" role="list"></div>
+            <article id="weather-detail" class="day-detail" hidden></article>
+            <details id="weather-meta">
+              <summary>Forecast details</summary>
+              <div id="weather-meta-body"></div>
+            </details>
+          </section>
+        </section>
+
+        <section id="pane-weekly" class="panel-pane" role="tabpanel" aria-labelledby="tab-weekly" hidden>
+          <section class="calendar" aria-live="polite">
+            <p id="weekly-finding" class="result-lead" hidden></p>
+            <p id="region-label" class="quiet">Confirm land to load its calendar.</p>
+            <p id="metric" class="quiet">Vela divides the area into grid squares. Each square on one day counts once. The weekly percentage estimates how often those squares showed burning activity on the days with usable estimates.</p>
+            <details id="metric-howto" class="metric-howto">
+              <summary>How to read this</summary>
+              <p id="metric-note" class="quiet">A square observed on Monday and Tuesday counts twice, once for each day. The value measures activity frequency; burned area and the number of separate fires are different measurements.</p>
+            </details>
+            <div class="row calendar-controls">
+              <label for="year">Year</label>
+              <input id="year" type="number" min="2013" max="2026" value="2023">
+              <a id="export" class="button ghost" href="#" hidden>Download CSV</a>
+            </div>
+            <div id="weeks" class="weeks" aria-label="Weekly calendar"></div>
+            <div id="weeks-empty" class="weeks-empty" hidden>
+              <p id="weeks-empty-title" class="result-lead"></p>
+              <p id="weeks-empty-body" class="quiet"></p>
+              <p id="weeks-empty-reason" class="quiet"></p>
+              <div id="weeks-empty-actions" class="result-filter"></div>
+            </div>
+            <article id="week-detail" class="week-detail" hidden></article>
+          </section>
+        </section>
+
+        <section id="pane-research" class="panel-pane" role="tabpanel" aria-labelledby="tab-research" hidden>
+          <div class="research-pane">
+            <h2 class="block-title">How did Vela reach this result?</h2>
+            <p id="research-summary" class="quiet">Check your land or select a hotspot to load the records behind this view.</p>
+            <p id="research-performance" class="stamp">Harmonization validation: waiting for a land check.</p>
+
+            <details class="research-q" open>
+              <summary>What did the satellites actually see?</summary>
+              <p id="research-q-see" class="quiet">Satellites report heat detections when their sensors see a hot pixel during a pass. Those readings are evidence of heat, not a wildfire count.</p>
+              <details class="tech-details">
+                <summary>Technical details</summary>
+                <div id="research-feeds"></div>
+                <div id="statuses"></div>
+              </details>
+            </details>
+
+            <details class="research-q">
+              <summary>How does Vela combine readings from different satellites?</summary>
+              <p id="research-q-combine" class="quiet">Vela keeps each satellite’s readings identifiable, then groups nearby detections into 5 km observation areas so you can compare what more than one spacecraft saw.</p>
+              <details class="tech-details">
+                <summary>Technical details</summary>
+                <p class="quiet">Aqua supplies an observation when coverage is eligible; otherwise one VIIRS platform may be selected by coverage and time for weekly estimates. NOAA-20 and NOAA-21 raw observations stay on the map. Their harmonized estimates are calibration pending.</p>
+              </details>
+            </details>
+
+            <details class="research-q">
+              <summary>Where does the weekly estimate come from?</summary>
+              <p id="research-q-weekly" class="quiet">The weekly percentage estimates how often grid squares showed burning activity on days with usable observations or model estimates. Forecast fire danger and official wildfire reports answer different questions and are not folded into that percentage.</p>
+              <details class="tech-details">
+                <summary>Technical details</summary>
+                <p id="metric-research" class="quiet"></p>
+              </details>
+            </details>
+
+            <details class="research-q">
+              <summary>How well has this method been tested?</summary>
+              <p id="research-q-test" class="quiet">Development validation compares estimates against held-out satellite observations in training regions. Independent final testing is recorded separately when completed.</p>
+              <details class="tech-details">
+                <summary>Technical details</summary>
+                <p id="research-validation" class="quiet">Validation status loads with the model report.</p>
+              </details>
+            </details>
+
+            <section class="panel-section">
+              <h3>Explore one grid square</h3>
+              <p class="quiet">Walk through a real cell: what each satellite observed, which estimate contributed, and how it affected the weekly result.</p>
+              <button type="button" id="trace" class="filter-button">Explore one grid square</button>
+              <article id="trace-detail" class="week-detail" hidden></article>
+            </section>
+          </div>
+        </section>
+      </article>
+    </div>
+  </section>
+
+  <script src="/static/vendor/leaflet/leaflet.js"></script>
+  <script src="/static/app.js?v=panel-tabs-5"></script>
+</body>
+</html>

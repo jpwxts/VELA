@@ -1,0 +1,228 @@
+{
+  "budget_bytes": 5000000000,
+  "note": "Week choices use seed 42 and the 2013–2020 training split. Fire counts are not an input. Pantanal and the transfer regions stay out of training.",
+  "batches": [
+    {
+      "id": "A",
+      "rank": 1,
+      "name": "Manifest regions with no usable rows",
+      "adds": "The Australian tropical savanna window already in the manifest, plus the other seasonal weeks of the Zambia woodland window.",
+      "budget_eligible": true,
+      "regions": ["arnhem", "zambia"]
+    },
+    {
+      "id": "B",
+      "rank": 2,
+      "name": "Second continent for landscapes already in the table",
+      "adds": "African tropical savanna, North American boreal forest, and South American mediterranean forest.",
+      "budget_eligible": true,
+      "regions": ["guinea_savanna", "alaska_boreal", "chile_med"]
+    },
+    {
+      "id": "C",
+      "rank": 3,
+      "name": "Landscapes missing from the table",
+      "adds": "Grassland, temperate forest, tropical forest, and a second woodland site independent of Zambia.",
+      "budget_eligible": true,
+      "regions": ["flint_hills", "appalachia", "amazon_frontier", "zimbabwe_woodland"]
+    },
+    {
+      "id": "D",
+      "rank": 4,
+      "name": "Another independent site for each new landscape",
+      "adds": "A second tropical savanna, boreal forest, temperate forest, grassland, and tropical forest site, each on a different landmass from the first new site.",
+      "budget_eligible": true,
+      "regions": ["llanos", "saskatchewan", "se_australia", "kazakh_steppe", "kalimantan"]
+    },
+    {
+      "id": "E",
+      "rank": 5,
+      "name": "Entire regions reserved for geographic testing",
+      "adds": "Held-out mediterranean, boreal, and tropical-forest regions, plus the existing Pantanal wetland. These weeks are searched and are not part of the training budget.",
+      "budget_eligible": false,
+      "regions": ["pantanal", "cape_med", "fennoscandia", "congo_forest"]
+    }
+  ],
+  "regions": [
+    {
+      "id": "guinea_savanna",
+      "name": "Guinean savanna",
+      "landscape": "tropical savanna",
+      "continent": "Africa",
+      "role": "train",
+      "west": -1.5,
+      "south": 8.0,
+      "east": 2.0,
+      "north": 10.5,
+      "quiet_months": [6, 7, 8, 9]
+    },
+    {
+      "id": "alaska_boreal",
+      "name": "Interior Alaska",
+      "landscape": "boreal forest",
+      "continent": "North America",
+      "role": "train",
+      "west": -149.5,
+      "south": 64.5,
+      "east": -146.0,
+      "north": 66.8,
+      "quiet_months": [11, 12, 1, 2, 3]
+    },
+    {
+      "id": "chile_med",
+      "name": "Central Chile",
+      "landscape": "mediterranean forest",
+      "continent": "South America",
+      "role": "train",
+      "west": -72.2,
+      "south": -35.2,
+      "east": -70.2,
+      "north": -33.0,
+      "quiet_months": [6, 7, 8]
+    },
+    {
+      "id": "flint_hills",
+      "name": "Flint Hills",
+      "landscape": "grassland",
+      "continent": "North America",
+      "role": "train",
+      "west": -97.2,
+      "south": 37.2,
+      "east": -95.4,
+      "north": 39.2,
+      "quiet_months": [12, 1, 2, 3]
+    },
+    {
+      "id": "appalachia",
+      "name": "Southern Appalachians",
+      "landscape": "temperate forest",
+      "continent": "North America",
+      "role": "train",
+      "west": -84.0,
+      "south": 35.0,
+      "east": -81.5,
+      "north": 37.0,
+      "quiet_months": [12, 1, 2, 3]
+    },
+    {
+      "id": "amazon_frontier",
+      "name": "Southern Amazon frontier",
+      "landscape": "tropical forest",
+      "continent": "South America",
+      "role": "train",
+      "west": -56.0,
+      "south": -11.0,
+      "east": -52.6,
+      "north": -8.5,
+      "quiet_months": [12, 1, 2, 3]
+    },
+    {
+      "id": "zimbabwe_woodland",
+      "name": "Zimbabwe woodland",
+      "landscape": "woodland",
+      "continent": "Africa",
+      "role": "train",
+      "west": 29.2,
+      "south": -19.2,
+      "east": 32.5,
+      "north": -16.8,
+      "quiet_months": [12, 1, 2, 3]
+    },
+    {
+      "id": "llanos",
+      "name": "Llanos",
+      "landscape": "tropical savanna",
+      "continent": "South America",
+      "role": "train",
+      "west": -71.5,
+      "south": 5.5,
+      "east": -68.0,
+      "north": 8.0,
+      "quiet_months": [6, 7, 8, 9]
+    },
+    {
+      "id": "saskatchewan",
+      "name": "Saskatchewan boreal",
+      "landscape": "boreal forest",
+      "continent": "North America",
+      "role": "train",
+      "west": -106.8,
+      "south": 53.3,
+      "east": -104.0,
+      "north": 55.8,
+      "quiet_months": [11, 12, 1, 2, 3]
+    },
+    {
+      "id": "se_australia",
+      "name": "Southeast Australian forest",
+      "landscape": "temperate forest",
+      "continent": "Australia",
+      "role": "train",
+      "west": 148.5,
+      "south": -37.6,
+      "east": 150.5,
+      "north": -35.6,
+      "quiet_months": [6, 7, 8]
+    },
+    {
+      "id": "kazakh_steppe",
+      "name": "Kazakh steppe",
+      "landscape": "grassland",
+      "continent": "Asia",
+      "role": "train",
+      "west": 62.5,
+      "south": 51.0,
+      "east": 66.0,
+      "north": 53.2,
+      "quiet_months": [12, 1, 2, 3]
+    },
+    {
+      "id": "kalimantan",
+      "name": "Central Kalimantan",
+      "landscape": "tropical forest",
+      "continent": "Asia",
+      "role": "train",
+      "west": 112.8,
+      "south": -2.8,
+      "east": 115.5,
+      "north": -0.5,
+      "quiet_months": [12, 1, 2, 3]
+    },
+    {
+      "id": "cape_med",
+      "name": "Western Cape",
+      "landscape": "mediterranean forest",
+      "continent": "Africa",
+      "role": "transfer",
+      "west": 18.3,
+      "south": -34.6,
+      "east": 20.4,
+      "north": -33.3,
+      "quiet_months": [6, 7, 8]
+    },
+    {
+      "id": "fennoscandia",
+      "name": "Northern Fennoscandia",
+      "landscape": "boreal forest",
+      "continent": "Europe",
+      "role": "transfer",
+      "west": 18.5,
+      "south": 65.5,
+      "east": 22.5,
+      "north": 67.8,
+      "quiet_months": [11, 12, 1, 2, 3]
+    },
+    {
+      "id": "congo_forest",
+      "name": "Northern Congo Basin",
+      "landscape": "tropical forest",
+      "continent": "Africa",
+      "role": "transfer",
+      "west": 16.0,
+      "south": 1.2,
+      "east": 19.2,
+      "north": 3.5,
+      "quiet_months": [6, 7, 8, 9]
+    }
+  ]
+}
