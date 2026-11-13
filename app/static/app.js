@@ -315,6 +315,18 @@ async function loadStatus() {
   }
   const researchMetric = document.querySelector("#metric-research");
   if (researchMetric) researchMetric.textContent = payload.metric;
+  const keyBanner = document.querySelector("#firms-key-banner");
+  if (keyBanner) {
+    if (payload.firms_configured) {
+      keyBanner.hidden = true;
+      keyBanner.textContent = "";
+    } else {
+      keyBanner.hidden = false;
+      keyBanner.innerHTML =
+        "Live satellite search needs a free NASA FIRMS map key. Copy <code>.env.example</code> to <code>.env</code>, add <code>FIRMS_MAP_KEY</code>, restart Vela. "
+        + "Trained tables on GitHub do not replace FIRMS. Until then, use the saved California or Zambia examples.";
+    }
+  }
 }
 
 async function searchPlace() {

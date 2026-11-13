@@ -171,16 +171,24 @@ class FirmsClient:
             "crossed_dateline": west > east,
         }
         if not self.key:
+            message = (
+                "FIRMS_MAP_KEY is not set. Each developer needs a free NASA FIRMS map key "
+                "in their own .env file, then restart Vela. Live satellite search cannot run "
+                "from GitHub-trained tables alone. Saved examples still work without a key."
+            )
             return _with_combined({
                 "configured": False,
                 "date": day,
                 "bbox": box,
                 "total_count": 0,
                 "results": [
-                    _status(
-                        "not_configured",
-                        "FIRMS_MAP_KEY is not set. Add it to the .env file in this project, then restart Vela. The key is not shown here.",
-                    )
+                    {
+                        **_status("not_configured", message),
+                        "platform": name,
+                        "count": 0,
+                        "coverage": "unknown",
+                    }
+                    for name in requested
                 ],
             })
         height = float(north) - float(south)

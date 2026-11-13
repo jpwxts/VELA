@@ -110,11 +110,16 @@ python -c "import sys; print(sys.executable)"
 # should contain anaconda3/envs/vela
 ```
 
-### 2. FIRMS map key
+### 2. FIRMS map key (required for live map search)
+
+**Every developer needs their own free key.** Searching the map calls NASA FIRMS live. The trained models and parquet tables on GitHub do **not** fill satellite detections for an arbitrary place/date. Without `FIRMS_MAP_KEY`, every satellite shows as unavailable / “Map key needed.”
 
 1. Request a free key: [FIRMS map key](https://firms.modaps.eosdis.nasa.gov/api/map_key/)
-2. Put it in `.env` as `FIRMS_MAP_KEY=...` (no quotes)
-3. Never commit `.env` or paste the key into chat
+2. `cp .env.example .env` and set `FIRMS_MAP_KEY=...` (no quotes)
+3. Restart Vela after saving `.env`
+4. Never commit `.env` or paste the key into chat
+
+Until a key is set, use the **saved California** or **Zambia** examples to explore the UI. Weekly trends and Research still use the shared `data/processed` and `data/models` files from the repo.
 
 ### 3. Run the app
 
