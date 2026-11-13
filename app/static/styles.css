@@ -377,6 +377,17 @@ button.ghost, .ghost {
   box-shadow: var(--shadow);
 }
 
+.why-this-day {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fffdf8;
+}
+.why-this-day h3 { margin: 0 0 6px; font-size: 1rem; }
+.why-this-day ul { margin: 6px 0 0; padding-left: 1.1rem; }
+.day-chip.fwi-missing strong { color: var(--quiet); font-weight: 600; }
+
 .legend {
   background: rgba(255, 253, 249, 0.96);
   border-radius: 12px;
@@ -387,7 +398,37 @@ button.ghost, .ghost {
   max-width: 190px;
 }
 
-.legend-note { margin: 6px 0 0; color: var(--quiet); }
+.legend-note { margin: 6px 0 0; color: var(--quiet); font-size: 0.72rem; }
+.legend-row { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+.legend-swatch {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  border: 1px solid rgba(36, 25, 16, 0.35);
+  box-sizing: border-box;
+}
+.legend-swatch-circle { border-radius: 50%; }
+.legend-swatch-square { border-radius: 3px; }
+.legend-swatch.ember { background: var(--ember, #c2410c); }
+.legend-swatch-point {
+  border-radius: 50%;
+  background: #fffdf9;
+  border: 2px solid #1e5a45;
+}
+.legend-swatch-missing {
+  border-radius: 2px;
+  background: repeating-linear-gradient(135deg, #d6d0c8, #d6d0c8 2px, #fffdf9 2px, #fffdf9 5px);
+}
+.legend-toggle {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 0.75rem;
+}
+@media (max-width: 720px) {
+  .legend { max-width: min(220px, 46vw); font-size: 0.72rem; }
+}
 
 .heat-marker {
   display: grid;

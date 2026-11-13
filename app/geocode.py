@@ -32,6 +32,7 @@ SOURCE = {
 
 # Most-specific → broader. Local equivalents worldwide; no single-country terms forced.
 SETTLEMENT_KEYS = (
+    "barangay",
     "neighbourhood",
     "neighborhood",
     "quarter",
@@ -46,6 +47,30 @@ SETTLEMENT_KEYS = (
     "municipality",
     "city_municipality",
     "locality",
+)
+PH_BARANGAY_KEYS = (
+    "barangay",
+    "neighbourhood",
+    "neighborhood",
+    "quarter",
+    "suburb",
+    "village",
+    "hamlet",
+)
+PH_CITY_KEYS = (
+    "city",
+    "municipality",
+    "city_municipality",
+    "town",
+)
+PH_PROVINCE_KEYS = (
+    "province",
+    "state",
+    "county",
+)
+PH_REGION_KEYS = (
+    "region",
+    "state_district",
 )
 ADMIN_KEYS = (
     "county",
@@ -168,6 +193,45 @@ def _first_present(address: dict, keys: tuple[str, ...]) -> str | None:
     return None
 
 
+def _philippines_parts(address: dict) -> dict | None:
+    """Barangay, city/municipality, and province when Nominatim returns them."""
+
+    barangay = _first_present(address, PH_BARANGAY_KEYS)
+    city = _first_present(address, PH_CITY_KEYS)
+    province = _first_present(address, PH_PROVINCE_KEYS)
+    region = _first_present(address, PH_REGION_KEYS)
+    # Avoid repeating a city name as its own province.
+    if city and province and city.casefold() == province.casefold():
+        province = None
+    # If OSM omitted province but the city name encodes it (e.g. "Iloilo City").
+    if not province and city and city.lower().endswith(" city"):
+        inferred = city[: -len(" city")].strip()
+        if inferred and (not region or inferred.casefold() != region.casefold()):
+            province = inferred
+    if not any((barangay, city, province)):
+        return None
+    label_parts = []
+    if barangay:
+        label_parts.append(barangay if barangay.lower().startswith("barangay") else f"Barangay {barangay}")
+    if city:
+        label_parts.append(city)
+    if province and (not city or province.casefold() != city.casefold()):
+        label_parts.append(province)
+    elif region and (not city or region.casefold() != city.casefold()):
+        # Region only when province is missing; still label it as regional context.
+        label_parts.append(region)
+    return {
+        "barangay": barangay,
+        "municipality": city,
+        "city": city,
+        "province": province,
+        "region": region,
+        "primary": barangay or city or province,
+        "label": ", ".join(_unique_parts(label_parts)),
+        "hierarchy_verified": bool(barangay or city) and bool(province or city),
+    }
+
+
 def _hierarchy_parts(address: dict) -> tuple[str | None, list[str], str | None]:
     """Return (primary, context_parts, feature_name) from an OSM address dict."""
 
@@ -256,6 +320,31 @@ def format_place_result(
     osm_class = (payload.get("class") or "").lower()
     osm_type = (payload.get("type") or "").lower()
     named = (payload.get("name") or "").strip() or primary
+    country_code = str(address.get("country_code") or "").lower()
+    base["country_code"] = country_code or None
+    base["country"] = address.get("country")
+    ph_parts = _philippines_parts(address) if country_code == "ph" else None
+    if ph_parts:
+        base.update(ph_parts)
+        if ph_parts.get("label"):
+            # Prefer verified barangay → city/municipality → province wording for PH.
+            primary = ph_parts.get("primary") or primary
+            context_parts = [
+                part
+                for part in (
+                    ph_parts.get("municipality") or ph_parts.get("city"),
+                    ph_parts.get("province"),
+                    address.get("country"),
+                )
+                if part
+            ]
+            base["primary"] = primary
+            base["context"] = ", ".join(_unique_parts(context_parts)) or None
+            base["label"] = ph_parts["label"]
+            base["relation"] = "inside" if inside_bbox or distance < 3.0 else "near"
+            base["distance_km"] = round(distance, 1) if distance >= 0.1 else 0.0
+            base["timezone"] = "Asia/Manila"
+            return base
 
     # Named natural / park / island features containing the point.
     feature_classes = {"natural", "leisure", "boundary", "landuse", "waterway", "place"}

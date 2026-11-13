@@ -231,15 +231,28 @@ def annotate_forecast_days(forecast: dict) -> dict:
     annotated["danger_class_source"] = GWIS_CLASS_SOURCE
     annotated["grid_resolution_km"] = GWIS_GRID_RESOLUTION_KM
     point = dict(annotated.get("point") or {})
-    point["label"] = "Forecast near the center of your plot."
+    point["label"] = point.get("label") or "Weather near the center of your selection."
     annotated["point"] = point
     annotated["coverage"] = {
         "mode": "center_point",
         "text": (
-            f"Forecast near the center of your plot. "
+            f"Weather near the center of your selection. "
             f"GWIS ECMWF Fire Weather Index cells are about {GWIS_GRID_RESOLUTION_KM:.0f} km across."
         ),
     }
+    if annotated.get("regional_fwi_reference") is None:
+        from vela.preparedness import regional_fwi_reference
+
+        key = annotated.get("region_key") or ""
+        parts = key.split(",")
+        if len(parts) == 4:
+            try:
+                west, south, east, north = (float(part) for part in parts)
+            except ValueError:
+                west = None
+            else:
+                annotated["regional_fwi_reference"] = regional_fwi_reference(west, south, east, north)
+    annotated["why_this_day"] = why_this_day_copy(annotated)
     weather_ok = any(_weather_day_has_values(day) for day in days)
     values_ok = any(_forecast_day_has_values(day) for day in days)
     annotated["weather_available"] = weather_ok
@@ -358,15 +371,22 @@ def land_day_explanation(day: dict) -> str:
     elif level:
         parts.append(f"GWIS places this day in the {level} fire-danger class.")
     else:
-        parts.append("Fire danger is unavailable for this date.")
+        parts.append("Fire-danger rating unavailable for this day.")
 
     humidity = day.get("relative_humidity_min_percent") or {}
-    wind = day.get("wind_speed_max_m_s") or {}
+    wind = day.get("wind_speed_max_km_h") or {}
+    if wind.get("value") is None:
+        from vela.preparedness import _ms_to_kmh_field
+
+        wind = _ms_to_kmh_field(day.get("wind_speed_max_m_s") or {})
     rain = day.get("forecast_rain_mm") or {}
+    direction = day.get("wind_direction_text")
     if humidity.get("status") == "measured" and humidity.get("value") is not None:
         parts.append(f"Minimum relative humidity is forecast at {humidity['value']:.0f}%.")
     if wind.get("status") == "measured" and wind.get("value") is not None:
-        parts.append(f"Maximum wind speed is forecast at {wind['value']:.1f} m/s.")
+        parts.append(f"Sustained wind is forecast at {wind['value']:.1f} km/h.")
+    if direction:
+        parts.append(f"Wind is {direction}.")
     if rain.get("status") in {"measured", "quiet"} and rain.get("value") is not None:
         if float(rain["value"]) == 0:
             parts.append("Forecast rainfall is 0 mm.")
@@ -375,6 +395,91 @@ def land_day_explanation(day: dict) -> str:
     elif rain.get("status") == "missing":
         parts.append("Forecast rainfall is missing.")
     return " ".join(parts)
+
+
+def why_this_day_copy(forecast: dict) -> dict:
+    """Plain-English lead for the selected/peak day without wildfire probabilities."""
+
+    days = forecast.get("days") or []
+    peak = forecast.get("peak_day")
+    selected = peak or (days[0] if days else None)
+    if not selected:
+        return {
+            "lead": "No forecast day is available for this selection yet.",
+            "differences": [],
+            "missing_note": None,
+        }
+    level = selected.get("danger_level")
+    weekday = format_weekday_safe(selected.get("valid_date") or "")
+    if level:
+        lead = f"{weekday} has the highest available fire-danger rating near this land: {level}."
+        ties = forecast.get("peak_ties") or []
+        if ties:
+            lead = (
+                f"{weekday} ties for the highest available fire-danger rating near this land "
+                f"({level}), along with {', '.join(format_weekday_safe(day) for day in ties)}."
+            )
+    else:
+        lead = (
+            f"{weekday} is the day shown first because a fire-danger rating is unavailable "
+            "for this outlook. Weather values below still come from the forecast."
+        )
+
+    differences = []
+    wind = selected.get("wind_speed_max_km_h") or {}
+    if wind.get("value") is None:
+        from vela.preparedness import _ms_to_kmh_field
+
+        wind = _ms_to_kmh_field(selected.get("wind_speed_max_m_s") or {})
+    rain = selected.get("forecast_rain_mm") or {}
+    other_winds = []
+    other_rains = []
+    for day in days:
+        if day.get("valid_date") == selected.get("valid_date"):
+            continue
+        other = day.get("wind_speed_max_km_h") or {}
+        if other.get("value") is None:
+            from vela.preparedness import _ms_to_kmh_field
+
+            other = _ms_to_kmh_field(day.get("wind_speed_max_m_s") or {})
+        if other.get("value") is not None:
+            other_winds.append(float(other["value"]))
+        other_rain = day.get("forecast_rain_mm") or {}
+        if other_rain.get("value") is not None:
+            other_rains.append(float(other_rain["value"]))
+    if wind.get("value") is not None and other_winds:
+        avg = sum(other_winds) / len(other_winds)
+        delta = float(wind["value"]) - avg
+        if abs(delta) >= 3:
+            differences.append(
+                f"Sustained wind is about {abs(delta):.0f} km/h "
+                f"{'stronger' if delta > 0 else 'lighter'} than the other forecast days."
+            )
+    if rain.get("value") is not None and other_rains:
+        avg = sum(other_rains) / len(other_rains)
+        delta = float(rain["value"]) - avg
+        if float(rain["value"]) == 0 and avg > 0.2:
+            differences.append("Forecast rainfall is 0 mm while other days show some rain.")
+        elif abs(delta) >= 1:
+            differences.append(
+                f"Forecast rainfall is about {abs(delta):.1f} mm "
+                f"{'wetter' if delta > 0 else 'drier'} than the other forecast days."
+            )
+    missing = forecast.get("missing_days") or []
+    missing_note = None
+    if missing:
+        missing_note = (
+            "Fire-danger ratings are missing for "
+            + ", ".join(format_weekday_safe(day) for day in missing)
+            + ", so the comparison only uses days with a published rating."
+        )
+    ranking = (selected.get("fire_danger") or {}).get("ranking")
+    if ranking is not None:
+        differences.append(
+            f"Among local history for this grid cell, today's GWIS ranking is {float(ranking):.0f} "
+            "on a 0–100 scale (higher means more unusual for this place and season)."
+        )
+    return {"lead": lead, "differences": differences[:2], "missing_note": missing_note}
 
 
 def _detection_inside_or_on_boundary(lon: float, lat: float, ring: list[list[float]]) -> bool:

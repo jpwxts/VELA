@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Vela — Check my land</title>
   <link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">
-  <link rel="stylesheet" href="/static/styles.css?v=panel-tabs-5">
+  <link rel="stylesheet" href="/static/styles.css?v=ph-weather-1">
 </head>
 <body>
   <header class="top">
@@ -163,13 +163,22 @@
 
         <section id="pane-weather" class="panel-pane" role="tabpanel" aria-labelledby="tab-weather" hidden>
           <section class="preparedness outlook-pane" aria-live="polite">
+            <p id="weather-place" class="result-lead" hidden></p>
             <p id="weather-location" class="quiet">Confirm land to load a seven-day outlook near the center of your plot.</p>
             <button type="button" id="weather-retry" class="filter-button" hidden>Retry forecast</button>
             <p id="weather-fixture-banner" class="fixture-banner" hidden></p>
+            <p id="weather-date-note" class="stamp" hidden></p>
+            <section id="why-this-day" class="why-this-day" hidden>
+              <h3>Why this day?</h3>
+              <p id="why-this-day-lead" class="result-lead"></p>
+              <ul id="why-this-day-points"></ul>
+              <p id="why-this-day-missing" class="quiet"></p>
+            </section>
             <p id="weather-headline" class="result-lead">Waiting for a selected plot.</p>
             <p id="weather-explanation" class="quiet"></p>
             <p id="weather-coverage" class="quiet"></p>
             <p id="weather-status" class="stamp"></p>
+            <p id="weather-regional-ref" class="quiet" hidden></p>
             <div id="weather-days" class="day-strip" role="list"></div>
             <article id="weather-detail" class="day-detail" hidden></article>
             <details id="weather-meta">
@@ -211,38 +220,32 @@
             <p id="research-performance" class="stamp">Harmonization validation: waiting for a land check.</p>
 
             <details class="research-q" open>
-              <summary>What did the satellites actually see?</summary>
+              <summary>What did the satellite see?</summary>
               <p id="research-q-see" class="quiet">Satellites report heat detections when their sensors see a hot pixel during a pass. Those readings are evidence of heat, not a wildfire count.</p>
               <details class="tech-details">
                 <summary>Technical details</summary>
                 <div id="research-feeds"></div>
                 <div id="statuses"></div>
+                <p class="quiet">Vela keeps each satellite’s readings identifiable, then groups nearby detections into 5 km observation areas so you can compare what more than one spacecraft saw.</p>
               </details>
             </details>
 
             <details class="research-q">
-              <summary>How does Vela combine readings from different satellites?</summary>
-              <p id="research-q-combine" class="quiet">Vela keeps each satellite’s readings identifiable, then groups nearby detections into 5 km observation areas so you can compare what more than one spacecraft saw.</p>
+              <summary>How is fire danger calculated?</summary>
+              <p id="research-q-combine" class="quiet">Fire danger here is a published weather-based index for the forecast day, separate from satellite heat detections. It is not a wildfire probability.</p>
               <details class="tech-details">
                 <summary>Technical details</summary>
-                <p class="quiet">Aqua supplies an observation when coverage is eligible; otherwise one VIIRS platform may be selected by coverage and time for weekly estimates. NOAA-20 and NOAA-21 raw observations stay on the map. Their harmonized estimates are calibration pending.</p>
-              </details>
-            </details>
-
-            <details class="research-q">
-              <summary>Where does the weekly estimate come from?</summary>
-              <p id="research-q-weekly" class="quiet">The weekly percentage estimates how often grid squares showed burning activity on days with usable observations or model estimates. Forecast fire danger and official wildfire reports answer different questions and are not folded into that percentage.</p>
-              <details class="tech-details">
-                <summary>Technical details</summary>
+                <p id="research-q-fwi" class="quiet">Vela reads the Copernicus GWIS ECMWF Fire Weather Index at the forecast point when the WMS layer returns a number. For Southeast Asia, the ASMC / Malaysian Meteorological Department Fire Weather Index map is linked as a regional reference only; Vela never infers a rating from map colors.</p>
                 <p id="metric-research" class="quiet"></p>
               </details>
             </details>
 
             <details class="research-q">
-              <summary>How well has this method been tested?</summary>
-              <p id="research-q-test" class="quiet">Development validation compares estimates against held-out satellite observations in training regions. Independent final testing is recorded separately when completed.</p>
+              <summary>What would confirm a wildfire?</summary>
+              <p id="research-q-weekly" class="quiet">An official wildfire or fire report, on-the-ground confirmation, or a responsible agency bulletin confirms a wildfire. Satellite heat and fire-danger ratings alone do not.</p>
               <details class="tech-details">
                 <summary>Technical details</summary>
+                <p id="research-q-test" class="quiet">Weekly activity estimates measure how often grid squares showed burning activity on days with usable observations or model estimates. Development validation compares those estimates with held-out satellite observations; independent final testing is recorded separately when completed.</p>
                 <p id="research-validation" class="quiet">Validation status loads with the model report.</p>
               </details>
             </details>
@@ -260,6 +263,6 @@
   </section>
 
   <script src="/static/vendor/leaflet/leaflet.js"></script>
-  <script src="/static/app.js?v=panel-tabs-5"></script>
+  <script src="/static/app.js?v=ph-weather-2"></script>
 </body>
 </html>

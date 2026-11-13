@@ -1,42 +1,122 @@
-# Vela — The Fire Time Machine
+# Vela — Check my land
 
-Vela is a local map for the NASA Space Apps challenge “Harmonization of MODIS and VIIRS Hot Spots.” You pick any area and a date. The app asks NASA FIRMS for hotspot detections and, once real swaths have been processed, compares Suomi-NPP VIIRS with what Aqua MODIS saw.
+**Vela** is a map-first web app for the [NASA Space Apps](https://www.spaceappschallenge.org/) challenge *Harmonization of MODIS and VIIRS Hot Spots*.
 
-This copy was set up on an Apple M1 Mac, macOS 15.7.4, with 8 GB of memory. About 44 GB was free after installation. Anaconda 23.9 was already installed, but its solver did not finish the scientific packages. Miniforge for Apple Silicon was installed at `~/miniforge3` and used to create the `vela` environment inside Anaconda, at `~/anaconda3/envs/vela` (about 1 GB). The Python 3.14 app that came with the Mac is not used. Do not download every year in the sample manifest onto this Mac.
+You draw or search for a plot of land, pick a date, and explore four questions in one panel—without leaving the map:
 
-## 1. Create the environment
+| Tab | Question it answers |
+| --- | --- |
+| **Where is this?** | What heat did the satellites see on this land, grouped in 5 km squares? |
+| **Weather outlook** | Which day has the highest fire danger near this land, and why? |
+| **Weekly trends** | When was burning activity highest on this land? |
+| **Research** | How did Vela reach this result? |
 
-The environment is already created on this Mac. In a new terminal, activate it:
+Vela keeps **satellite heat**, **fire-danger weather**, **weekly activity estimates**, and **official wildfire reports** as separate answers. It never turns FWI, hotspot counts, MODIS confidence, or the harmonization model into a wildfire probability.
+
+---
+
+## What the map does
+
+### Draw, search, check
+
+1. Search a place (worldwide OpenStreetMap Nominatim) or **Draw my land**.
+2. Choose a satellite observation date.
+3. Tap **Check my land**.
+
+FIRMS detections are clipped to your actual drawn boundary. Switching tabs preserves the polygon, zoom, selected square, date, satellite filters, and trends year.
+
+For Philippine selections, place labels prefer **barangay → city/municipality → province**, and forecast dates use **Asia/Manila** time.
+
+### Where is this?
+
+- Ember heat markers: **circle = 1 satellite**, **square = 2+ satellites**, with text labels in the legend.
+- Click a square to see satellite names, local observation times (UTC also shown), and every original detection.
+- Replay passes, compare “is this unusual here?”, and open a short weather teaser without losing the map.
+
+### Weather outlook
+
+Leads with **Why this day?** and up to seven forecast days.
+
+For the selected day you see:
+
+- Air temperature (°C)
+- Relative humidity (%)
+- Sustained wind and gusts (**km/h**)
+- Wind direction in plain English (e.g. “from the northeast”)
+- Forecast and recent rainfall (mm), with accumulation periods labeled
+- Published **Fire Weather Index** when available, or **Fire-danger rating unavailable for this day**
+- Source, valid date, and archive/update time when supplied
+
+Point forecasts are labeled **Weather near the center of your selection.** Historical hotspot dates stay explicitly separate from current forecast dates.
+
+**Fire danger sources**
+
+| Source | How Vela uses it |
+| --- | --- |
+| [Open-Meteo](https://open-meteo.com/) | Live weather values |
+| [GWIS / Copernicus ECMWF FWI](https://gwis.jrc.ec.europa.eu/) | Numeric fire-danger index at the forecast point |
+| [ASMC Fire Weather Index map](https://asmc.asean.org/asmc-fire-fwi/) | Regional map reference for Southeast Asia / Philippines only — **never** inferred from image colors |
+
+### Weekly trends
+
+- Plain-language finding for the selected year (highest week, ties, or single available week).
+- Compact calendar with readable ranges such as **19–25 July**.
+- Complete vs partial vs unavailable weeks are visually distinct.
+- Empty land/year states explain *why* (not processed, insufficient coverage, or failed request) and offer **View satellite readings** or **Choose an available year** when another year exists.
+
+The weekly percentage estimates how often 5 km grid squares showed burning activity on days with usable estimates. It is **not** burned area and **not** a count of separate fires.
+
+### Research
+
+Three expandable questions a first-time visitor can follow:
+
+1. **What did the satellite see?**
+2. **How is fire danger calculated?**
+3. **What would confirm a wildfire?**
+
+Technical details (instruments, coverage rules, validation) sit under each answer. **Explore one grid square** walks through a real cell: what each satellite observed → what contributed → how it affects the weekly result.
+
+---
+
+## Honest limits
+
+- Empty FIRMS results mean **no detections returned**, not a confirmed clear day. Coverage can still be unknown.
+- Missing weather or FWI is labeled missing; a measured **0 mm** of rain is a quiet observation, not a gap.
+- NOAA-20 and NOAA-21 raw heat stay on the map; harmonized estimates remain **calibration pending** until a measured transfer result exists.
+- An unavailable satellite must not hide other satellites’ results. A weather failure must not erase heat markers.
+
+Science rules for masks, pairing, coverage, and the model live in [`docs/METHOD.md`](docs/METHOD.md).
+
+---
+
+## Quick start
+
+### 1. Environment
 
 ```bash
-source "$HOME/anaconda3/etc/profile.d/conda.sh"
-cd ~/Desktop/MODISVIIRS
-conda activate vela
-python -c "import sys; print(sys.executable)"
-```
-
-The printed path must contain `anaconda3/envs/vela`. If `conda activate vela` says the environment does not exist, use Miniforge’s conda instead:
-
-```bash
-source "$HOME/miniforge3/etc/profile.d/conda.sh"
-conda activate /Users/florlyn/anaconda3/envs/vela
-```
-
-To recreate the environment on another day:
-
-```bash
+# Apple Silicon / conda-forge (example path used in development)
 source "$HOME/miniforge3/etc/profile.d/conda.sh"
 mamba env create -f environment.yml -p "$HOME/anaconda3/envs/vela"
-```
+conda activate "$HOME/anaconda3/envs/vela"
 
-```bash
 cp .env.example .env
 python -m scripts.check_setup
 ```
 
-## 2. Start the map
+Confirm the interpreter:
 
-Leave the environment active and run:
+```bash
+python -c "import sys; print(sys.executable)"
+# should contain anaconda3/envs/vela
+```
+
+### 2. FIRMS map key
+
+1. Request a free key: [FIRMS map key](https://firms.modaps.eosdis.nasa.gov/api/map_key/)
+2. Put it in `.env` as `FIRMS_MAP_KEY=...` (no quotes)
+3. Never commit `.env` or paste the key into chat
+
+### 3. Run the app
 
 ```bash
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
@@ -44,113 +124,105 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 Open [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
-Search for a place or draw a rectangle, choose a date, then press **Use this area and date**. Moving the map does not call NASA. FIRMS returns detections only, so an empty result is labeled “No hotspots returned” and “Coverage unknown.” It is not a confirmed clear day. Standard-processing products are used for historical dates. A near-real-time product is used only when the date is outside the standard range and inside the near-real-time range. One request covers one day because the FIRMS area API allows a window of 1 to 5 days.
-
-The map key is read from `.env` on your Mac. It is not put in the page, in Git, or in the app log.
-
-### Map key
-
-1. Open [the FIRMS map-key page](https://firms.modaps.eosdis.nasa.gov/api/map_key/) and request a free key.
-2. When the email arrives, open `.env` in this folder.
-3. Put the key after `FIRMS_MAP_KEY=` with no quotes.
-4. Save. In the terminal where Vela is running, press Control-C, then start the app again with the command above.
-
-Do not paste the key into chat.
-
-## 3. Earthdata login
-
-Swath files need a free [Earthdata Login](https://urs.earthdata.nasa.gov/users/new). In a terminal where `vela` is active, run:
+### 4. Optional: Earthdata (swath files & training)
 
 ```bash
 earthaccess login
 ```
 
-Type the username and password in that terminal. If a browser asks you to authorize access, choose Authorize. Do not paste the password into chat.
+Needed only for granule download, smoke tests, and model-table builds—not for everyday FIRMS map checks.
 
-## 4. Search the catalog
+---
 
-This does not download files. It prints unique files, candidate daytime passes, estimated transfer size, and how many files have an unknown size. If the first configured week has no pair, it tries the next week in `config/settings.json`.
+## Try these flows in the UI
 
-```bash
-python -m scripts.catalog_search
+| Example | What to expect |
+| --- | --- |
+| **Competition example · California foothills** | Saved dated forecast + heat demo |
+| **Saved weekly example · Zambia woodland · 2021** | One published week (~19–25 July) with estimates |
+| Draw a plot in **Iloilo, Philippines** | Barangay/city/province place line, PH-time forecast dates, GWIS FWI when available, ASMC map link |
+| Draw land with **no weekly history** | Clear empty state + path back to satellite readings |
+
+---
+
+## Project layout
+
+```text
+app/                 FastAPI server, FIRMS client, geocode, static UI
+  static/            Single-page map (Leaflet) + panel tabs
+vela/                Science & serving: grid, pairing, land check, preparedness, calendar
+scripts/             Catalog, ingest, train, expansion, validation helpers
+config/              Regions, settings, global plans
+docs/                METHOD.md and validation notes
+tests/               Pytest coverage for geocode, land check, preparedness, core rules
+data/                Local only (gitignored): raw granules, parquet tables, models, fixtures
 ```
 
-## 5. Read one real pass
+| Path | Role |
+| --- | --- |
+| `config/settings.json` | Grid, years, pair tolerance, smoke-test weeks |
+| `config/regions.json` | Sample landscapes (Pantanal reserved) |
+| `docs/METHOD.md` | Mask tables, 30-minute match, coverage rule, model splits |
+| `data/processed/paired_cells.parquet` | Usable cell-days (after ingest) |
+| `data/models/` | Pilot models and selection reports (local) |
 
-After Earthdata login:
+---
 
-```bash
-python -m scripts.smoke_test
-python -m scripts.verify_readers --modis data/raw/<region>/<date>/MYD14....hdf --viirs data/raw/<region>/<date>/VNP14IMG....nc
-```
-
-Use the two fire-mask paths printed by the smoke test. The check has to read the mask arrays. Importing the libraries is not enough. In the app, **Show traced cell** lists one VIIRS-only cell and one MODIS-only cell from that pass.
-
-To add the other daytime pairs from the saved catalog, without downloading files already on disk:
-
-```bash
-python -m scripts.process_matched_passes
-```
-
-## 6. Sample, then a bounded training run
-
-The manifest is written before any download. It uses random seed 42, whole weeks from 2013 through 2024, several landscapes, quiet-season weeks, and keeps the Pantanal window out of model development.
+## Data pipeline (optional)
 
 ```bash
-python -m scripts.make_manifest
-python -m scripts.train_models
-```
-
-`train_models` is safe to run before data exists. It prints the positives, years, and regions that are still missing, and it does not invent a score. After a real `paired_cells.parquet` exists:
-
-```bash
+python -m scripts.catalog_search          # search only; no download
+python -m scripts.smoke_test              # one real pass after Earthdata login
+python -m scripts.process_matched_passes  # process pairs already on disk
+python -m scripts.make_manifest           # sample weeks (seed 42)
 python -m scripts.build_table
-python -m scripts.train_models
-```
-
-To search, optionally download one pass, and then train:
-
-```bash
-python -m scripts.run_bounded
-python -m scripts.run_bounded --download
-```
-
-Bulk retrieval is a separate command. It prints the estimate and downloads only when you add `--download`:
-
-```bash
-python -m scripts.bulk_acquire --limit-weeks 1 --region cerrado
-python -m scripts.bulk_acquire --limit-weeks 1 --region cerrado --download
-```
-
-## 7. Held-out demo
-
-Training years are 2013–2020. Tuning years are 2021–2022. The final test years are 2023–2024 and are scored once, after the model is chosen. The Pantanal sample window is reserved.
-
-When a trained model and usable held-out observations both exist, open a 2023 or 2024 week and press **Reveal MODIS**. Before that, the panel shows the VIIRS activity and the MODIS-equivalent estimate. Reveal adds the Aqua MODIS rate, the difference in percentage points, and the shared coverage. The frozen harmonized candidates use Suomi-NPP. NOAA-20 and NOAA-21 stay labeled on the map. Their harmonized estimates say calibration pending until a measured transfer result exists. The combined-observations summary sits above the satellite cards and keeps an all-empty query at 0 returned records while coverage is unknown.
-
-The weekly number is the share of usable cell-days with detected activity. It is not a count of wildfires and it is not the percentage of land burned. Weeks without enough shared clear land use a hatched pattern. A hatched week is not a zero.
-
-**Download CSV** saves the selected year. Held-out Aqua MODIS values stay out of that file unless the address includes `include_observed=true`.
-
-## Tests
-
-```bash
+python -m scripts.train_models            # safe before data exists; reports gaps
+python -m scripts.ingest_expansion        # expansion batch → expansion_weeks.json
 python -m pytest
 ```
 
-The synthetic HDF4 and NetCDF files created by the tests are software fixtures. They are not NASA observations and they are not model scores.
+**Model years:** train 2013–2020 · tune 2021–2022 · final test 2023–2024 (once). Pantanal is held out of development.
 
-## Where the science rules live
+---
 
-`docs/METHOD.md` records the mask tables, the 30-minute match, the 5 km grid, and the minimum shared-coverage rule.
+## Architecture (short)
 
-## Useful paths
+```text
+Browser (Leaflet map + land panel)
+        │
+        ▼
+FastAPI (app/main.py)
+  /api/check-land      FIRMS → polygon clip → hotspot areas + forecast
+  /api/preparedness    Open-Meteo + GWIS FWI point forecast
+  /api/calendar*       Weekly activity for the selected land
+  /api/place           Nominatim reverse / search (cached)
+  /api/trace           Example grid-square walkthrough
+        │
+        ▼
+vela/  land_check · preparedness · calendar_metrics · hotspot_areas · serving
+```
 
-| Path | What it is |
-| --- | --- |
-| `config/settings.json` | Grid, years, tolerance, and the two smoke-test weeks |
-| `config/regions.json` | Sample landscapes, including the reserved Pantanal window |
-| `data/manifests/sample_manifest.csv` | Week sample, written before download |
-| `data/processed/paired_cells.parquet` | Usable cell-days |
-| `data/processed/excluded_cells.parquet` | Rows left out, with reasons |
-| `data/models/report.json` | Gaps, or the single test result |
+---
+
+## Team & challenge
+
+Built for **NASA Space Apps 2026** — category *Harmonization of MODIS and VIIRS*.
+
+Repository: [github.com/jpwxts/VELA](https://github.com/jpwxts/VELA)
+
+### Attribution
+
+- NASA FIRMS active fire / hotspot detections  
+- Aqua MODIS & Suomi-NPP / NOAA VIIRS fire masks  
+- OpenStreetMap / Nominatim place data © OpenStreetMap contributors  
+- Open-Meteo forecast API  
+- Copernicus EMS GWIS ECMWF Fire Weather Index  
+- ASMC / Malaysian Meteorological Department FDRS maps (regional reference)
+
+---
+
+## License & privacy
+
+- Keep secrets in `.env` and Earthdata `.netrc` only.  
+- `data/` large products and keys are gitignored.  
+- Preparedness email briefs send only after review, and only if SMTP settings are configured.

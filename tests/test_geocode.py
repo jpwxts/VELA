@@ -55,16 +55,18 @@ def _arnhem_payload():
 
 def _philippines_payload():
     return {
-        "lat": "14.6760",
-        "lon": "121.0437",
-        "name": "Quezon City",
-        "display_name": "Quezon City, Metro Manila, Philippines",
+        "lat": "10.7202",
+        "lon": "122.5621",
+        "name": "Jaro",
+        "display_name": "Jaro, Iloilo City, Iloilo, Western Visayas, Philippines",
         "class": "place",
-        "type": "city",
-        "boundingbox": ["14.58", "14.78", "120.98", "121.12"],
+        "type": "suburb",
+        "boundingbox": ["10.70", "10.74", "122.54", "122.58"],
         "address": {
-            "city": "Quezon City",
-            "region": "Metro Manila",
+            "suburb": "Jaro",
+            "city": "Iloilo City",
+            "province": "Iloilo",
+            "region": "Western Visayas",
             "country": "Philippines",
             "country_code": "ph",
         },
@@ -199,19 +201,24 @@ def test_reverse_lookup_uses_cache(tmp_path):
         calls["n"] += 1
         return _philippines_payload()
 
-    first = reverse_lookup(14.676, 121.0437, cache=cache, getter=getter)
-    second = reverse_lookup(14.6761, 121.0438, cache=cache, getter=getter)
-    assert first["name"] == "Quezon City"
-    assert second["name"] == "Quezon City"
+    first = reverse_lookup(10.7202, 122.5621, cache=cache, getter=getter)
+    second = reverse_lookup(10.7203, 122.5622, cache=cache, getter=getter)
+    assert first["name"] == "Jaro"
+    assert second["name"] == "Jaro"
     assert calls["n"] == 1
 
 
 def test_identify_point_philippines_label():
     result = identify_point(
-        14.676,
-        121.0437,
+        10.7202,
+        122.5621,
         getter=lambda url, params, headers: _philippines_payload(),
     )
-    assert result["primary"] == "Quezon City"
-    assert "Philippines" in result["label"]
+    assert result["barangay"] == "Jaro"
+    assert result["municipality"] == "Iloilo City"
+    assert result["province"] == "Iloilo"
+    assert result["region"] == "Western Visayas"
+    assert result["primary"] == "Jaro"
+    assert result["label"] == "Barangay Jaro, Iloilo City, Iloilo"
+    assert result["timezone"] == "Asia/Manila"
     assert result["relation"] == "inside"

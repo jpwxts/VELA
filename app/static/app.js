@@ -10,6 +10,7 @@ const state = {
   polygonLayer: null,
   draftLayer: null,
   forecastMarker: null,
+  showForecastPoint: true,
   areaLayers: [],
   individualMarkers: [],
   selectedSquare: null,
@@ -76,16 +77,24 @@ L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/
   maxZoom: 12,
 }).addTo(map);
 
-const legend = L.control({ position: "topright" });
+const legend = L.control({ position: "bottomleft" });
 legend.onAdd = () => {
   const node = L.DomUtil.create("div", "legend");
   node.innerHTML = `
-    <div><span class="heat-wave" style="width:14px;height:14px;display:inline-grid;place-items:center;vertical-align:-2px;margin-right:6px;border-radius:50%"><span class="heat-wave-icon" aria-hidden="true">♨</span></span>Heat · 1 sat</div>
-    <div style="margin-top:4px"><span class="heat-wave" style="width:14px;height:14px;display:inline-grid;place-items:center;vertical-align:-2px;margin-right:6px;border-radius:4px;background:#c2410c"><span class="heat-wave-icon" aria-hidden="true">♨</span></span>Heat · 2+ sats</div>
-    <p class="legend-note">Grouped in 5 km squares. Not a wildfire count.</p>`;
+    <div class="legend-row"><span class="legend-swatch legend-swatch-circle ember" aria-hidden="true"></span><span>Observed heat · 1 satellite</span></div>
+    <div class="legend-row"><span class="legend-swatch legend-swatch-square ember" aria-hidden="true"></span><span>Observed heat · 2+ satellites</span></div>
+    <div class="legend-row"><span class="legend-swatch legend-swatch-point" aria-hidden="true"></span><span>Weather / fire-danger point</span></div>
+    <div class="legend-row"><span class="legend-swatch legend-swatch-missing" aria-hidden="true"></span><span>Missing or unavailable data</span></div>
+    <label class="legend-toggle"><input type="checkbox" id="toggle-forecast-point" checked> Show forecast point</label>
+    <p class="legend-note">Ember markers are observed heat. Forecast danger is a separate point when only a center forecast exists.</p>`;
+  L.DomEvent.disableClickPropagation(node);
   return node;
 };
 legend.addTo(map);
+document.querySelector("#toggle-forecast-point")?.addEventListener("change", (event) => {
+  state.showForecastPoint = Boolean(event.target.checked);
+  syncForecastMarkerVisibility();
+});
 
 const dayInput = document.querySelector("#day");
 const today = new Date();
@@ -640,8 +649,12 @@ function renderLandCheck(payload) {
       weight: 2,
       fillColor: "#fffdf9",
       fillOpacity: 1,
-    }).addTo(map);
-    state.forecastMarker.bindTooltip("Forecast near the center of your plot", { permanent: false });
+    });
+    state.forecastMarker.bindTooltip(
+      point.label || "Weather near the center of your selection.",
+      { permanent: false }
+    );
+    if (state.showForecastPoint !== false) state.forecastMarker.addTo(map);
   }
   const researchPerf = document.querySelector("#research-performance");
   if (researchPerf) {
@@ -739,30 +752,79 @@ function renderHeatGroup(title, rows, nearby = false) {
       </li>`).join("")}</ul>`;
 }
 
-function formatShortForecastDay(day) {
+function forecastTimezone(forecast) {
+  if (state.lastPlace?.country_code === "ph" || state.lastPlace?.timezone === "Asia/Manila") {
+    return "Asia/Manila";
+  }
+  if (forecast?.point?.timezone === "Asia/Manila") return "Asia/Manila";
+  return forecast?.point?.timezone || "UTC";
+}
+
+function formatDetectionLocalTime(spot) {
+  const date = spot.acq_date;
+  const time = spot.acq_time || spot.acq_time_raw;
+  if (!date || !time) return "—";
+  const stamp = `${date}T${String(time).length === 4 ? `${time.slice(0, 2)}:${time.slice(2)}:00` : time}Z`;
+  const parsed = new Date(stamp);
+  if (Number.isNaN(parsed.getTime())) return `${time} UTC`;
+  const tz = forecastTimezone(state.forecast);
+  try {
+    return new Intl.DateTimeFormat("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: tz,
+    }).format(parsed) + (tz === "Asia/Manila" ? " PH time" : ` ${tz}`);
+  } catch (_error) {
+    return `${time} UTC`;
+  }
+}
+
+function formatShortForecastDay(day, timeZone = "UTC") {
   if (!day) return "—";
   const [year, month, dayNumber] = String(day).split("-").map(Number);
   if (!year || !month || !dayNumber) return String(day);
-  const date = new Date(Date.UTC(year, month - 1, dayNumber));
+  const date = new Date(Date.UTC(year, month - 1, dayNumber, 12));
   return new Intl.DateTimeFormat("en-GB", {
     weekday: "short",
     day: "numeric",
     month: "short",
-    timeZone: "UTC",
+    timeZone: timeZone || "UTC",
   }).format(date);
 }
 
-function fieldLine(label, field, unit) {
+function fieldLine(label, field, unit, period) {
   if (!field || field.status === "missing" || field.value == null) {
-    return `<li><strong>${escapeHtml(label)}</strong> · missing</li>`;
+    return `<li><strong>${escapeHtml(label)}</strong> · missing${period ? ` <span class="quiet">(${escapeHtml(period)})</span>` : ""}</li>`;
   }
   const value = Number(field.value);
   const text = Number.isInteger(value) ? String(value) : value.toFixed(1);
-  return `<li><strong>${escapeHtml(label)}</strong> · ${text} ${escapeHtml(unit)}</li>`;
+  const zeroNote = field.status === "quiet" && value === 0 ? " (measured zero)" : "";
+  return `<li><strong>${escapeHtml(label)}</strong> · ${text} ${escapeHtml(unit)}${zeroNote}${
+    period ? ` <span class="quiet">· ${escapeHtml(period)}</span>` : ""
+  }</li>`;
+}
+
+function windKmhField(day) {
+  if (day?.wind_speed_max_km_h?.value != null) return day.wind_speed_max_km_h;
+  const ms = day?.wind_speed_max_m_s;
+  if (!ms || ms.value == null || ms.status === "missing") return { status: "missing", value: null };
+  return { status: ms.status, value: Number((Number(ms.value) * 3.6).toFixed(1)) };
+}
+
+function gustKmhField(day) {
+  if (day?.wind_gust_max_km_h?.value != null) return day.wind_gust_max_km_h;
+  const ms = day?.wind_gust_max_m_s;
+  if (!ms || ms.value == null || ms.status === "missing") return { status: "missing", value: null };
+  return { status: ms.status, value: Number((Number(ms.value) * 3.6).toFixed(1)) };
 }
 
 function dayCardSummary(day) {
   if (day.danger_level) return day.danger_level;
+  const fire = day.fire_danger || {};
+  if (fire.status === "unavailable" || fire.status === "missing" || fire.fwi == null) {
+    return "FWI unavailable";
+  }
   const temp = day.temperature_max_c || {};
   if (temp.status !== "missing" && temp.value != null) {
     return `${Number(temp.value).toFixed(0)}°C`;
@@ -771,7 +833,7 @@ function dayCardSummary(day) {
   if (rain.status !== "missing" && rain.value != null) {
     return `${Number(rain.value).toFixed(1)} mm`;
   }
-  return "No values";
+  return "Weather only";
 }
 
 function renderOutlook(forecast, selectors) {
@@ -784,9 +846,13 @@ function renderOutlook(forecast, selectors) {
   const meta = document.querySelector(selectors.meta);
   const retry = selectors.retry ? document.querySelector(selectors.retry) : null;
   const fixtureBanner = selectors.fixtureBanner ? document.querySelector(selectors.fixtureBanner) : null;
+  const placeNode = document.querySelector("#weather-place");
+  const dateNote = document.querySelector("#weather-date-note");
+  const regional = document.querySelector("#weather-regional-ref");
 
   state.forecast = forecast || null;
   const point = forecast?.point || {};
+  const tz = forecastTimezone(forecast);
   const valuesAvailable = forecast?.values_available !== false && (forecast?.days || []).some((day) => {
     const fire = day.fire_danger || {};
     return (
@@ -798,12 +864,53 @@ function renderOutlook(forecast, selectors) {
     );
   });
 
+  if (placeNode) {
+    const placeLabel =
+      state.lastPlace?.label
+      || state.placeName
+      || state.landLabel
+      || document.querySelector("#selection-place")?.textContent
+      || "";
+    placeNode.hidden = !placeLabel || placeLabel === "Selected land";
+    placeNode.textContent = placeLabel;
+  }
+
   if (fixtureBanner) {
     if (forecast?.fixture?.label || forecast?.saved) {
       fixtureBanner.hidden = false;
       fixtureBanner.textContent = forecast.fixture?.label || "Saved weather fixture";
     } else {
       fixtureBanner.hidden = true;
+    }
+  }
+
+  if (dateNote) {
+    const obs = document.querySelector("#day")?.value || "";
+    const first = forecast?.days?.[0]?.valid_date;
+    const last = forecast?.days?.[forecast.days.length - 1]?.valid_date;
+    if (first && last) {
+      dateNote.hidden = false;
+      let text = `Forecast dates (local ${tz}): ${formatShortForecastDay(first, tz)} – ${formatShortForecastDay(last, tz)}.`;
+      if (obs && first && obs < first) {
+        text += ` Historical hotspot date under review: ${formatObservationDay(obs)} (separate from this outlook).`;
+      }
+      dateNote.textContent = text;
+    } else {
+      dateNote.hidden = true;
+      dateNote.textContent = "";
+    }
+  }
+
+  if (regional) {
+    const ref = forecast?.regional_fwi_reference;
+    if (ref?.url) {
+      regional.hidden = false;
+      regional.innerHTML =
+        `Regional reference (not a numeric Vela reading): <a href="${escapeHtml(ref.url)}" target="_blank" rel="noopener">${escapeHtml(ref.name || "ASMC FWI map")}</a>. `
+        + `${escapeHtml(ref.note || "Vela does not infer ratings from map colors.")}`;
+    } else {
+      regional.hidden = true;
+      regional.textContent = "";
     }
   }
 
@@ -814,36 +921,17 @@ function renderOutlook(forecast, selectors) {
     status.textContent = "";
     daysHost.innerHTML = "";
     detail.hidden = true;
+    renderWhyThisDay(null);
     if (meta) meta.innerHTML = "";
     if (retry) retry.hidden = false;
     return;
   }
 
-  if (!valuesAvailable) {
-    headline.textContent = "Forecast values unavailable";
-    explanation.textContent =
-      forecast.headline_explanation ||
-      "Dates were returned, but temperature, rainfall, wind, and fire-danger measurements are missing.";
-    coverage.textContent = forecast.coverage?.text || "";
-    status.textContent = forecast.forecast_status?.text || "";
-    daysHost.innerHTML = (forecast.days || [])
-      .map(
-        (day) =>
-          `<button type="button" class="day-chip" disabled><strong>No values</strong><span>${escapeHtml(formatShortForecastDay(day.valid_date))}</span></button>`
-      )
-      .join("");
-    detail.hidden = true;
-    if (retry) retry.hidden = false;
-    if (meta) {
-      meta.innerHTML = outlookMetaHtml(forecast, point);
-    }
-    return;
-  }
-
-  if (retry) retry.hidden = true;
+  if (retry) retry.hidden = valuesAvailable;
   headline.textContent = forecast.headline || "Weather outlook";
   explanation.textContent = forecast.headline_explanation || "";
-  coverage.textContent = forecast.coverage?.text || "Forecast near the center of your plot.";
+  coverage.textContent =
+    forecast.coverage?.text || point.label || "Weather near the center of your selection.";
   status.textContent = forecast.forecast_status?.text || "";
 
   daysHost.innerHTML = "";
@@ -853,31 +941,59 @@ function renderOutlook(forecast, selectors) {
     button.className = "day-chip";
     button.dataset.date = day.valid_date;
     button.setAttribute("role", "listitem");
-    button.innerHTML = `<strong>${escapeHtml(dayCardSummary(day))}</strong><span>${escapeHtml(formatShortForecastDay(day.valid_date))}</span>`;
+    const summary = valuesAvailable ? dayCardSummary(day) : "No values";
+    button.innerHTML = `<strong>${escapeHtml(summary)}</strong><span>${escapeHtml(
+      formatShortForecastDay(day.valid_date, tz)
+    )}</span>`;
+    if (!valuesAvailable) button.disabled = true;
     if (day.valid_date === forecast.attention_day) button.classList.add("peak");
+    if (!day.danger_level) button.classList.add("fwi-missing");
     button.addEventListener("click", () => showOutlookDay(day, forecast, selectors));
     daysHost.append(button);
   });
 
-  if (meta) meta.innerHTML = outlookMetaHtml(forecast, point);
+  if (meta) meta.innerHTML = outlookMetaHtml(forecast, point, tz);
+  renderWhyThisDay(forecast);
 
   const selected =
     (forecast.days || []).find((day) => day.valid_date === state.selectedForecastDay) ||
     forecast.peak_day ||
     (forecast.days || []).find((day) => day.valid_date === forecast.attention_day) ||
     forecast.days[0];
+  // Always fill the detail card when days exist — a blank card next to the strip is a bug.
   if (selected) showOutlookDay(selected, forecast, selectors);
 }
 
-function outlookMetaHtml(forecast, point) {
+function renderWhyThisDay(forecast) {
+  const block = document.querySelector("#why-this-day");
+  const lead = document.querySelector("#why-this-day-lead");
+  const points = document.querySelector("#why-this-day-points");
+  const missing = document.querySelector("#why-this-day-missing");
+  if (!block || !lead || !points || !missing) return;
+  const why = forecast?.why_this_day;
+  if (!why?.lead) {
+    block.hidden = true;
+    return;
+  }
+  block.hidden = false;
+  lead.textContent = why.lead;
+  points.innerHTML = (why.differences || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  missing.textContent = why.missing_note || "";
+}
+
+function outlookMetaHtml(forecast, point, tz = "UTC") {
+  const ref = forecast?.regional_fwi_reference;
   return `
-    <p><strong>Location</strong> · Forecast near the center of your plot${
+    <p><strong>Location</strong> · ${escapeHtml(point.label || "Weather near the center of your selection.")}${
       point.latitude != null
         ? ` (${Number(point.latitude).toFixed(2)}, ${Number(point.longitude).toFixed(2)})`
         : ""
     }</p>
-    <p><strong>Sources</strong> · Open-Meteo weather · Copernicus GWIS ECMWF Fire Weather Index</p>
-    <p><strong>Units</strong> · °C, %, m/s, mm · FWI is a unitless index · ranking is a local historical percentile</p>
+    <p><strong>Sources</strong> · Open-Meteo weather · Copernicus GWIS ECMWF Fire Weather Index${
+      ref?.url ? ` · regional map reference: ${escapeHtml(ref.name)}` : ""
+    }</p>
+    <p><strong>Units</strong> · °C, %, km/h, mm · FWI is a unitless index · ranking is a local historical percentile</p>
+    <p><strong>Timezone</strong> · ${escapeHtml(tz)}</p>
     <p><strong>Grid</strong> · about ${escapeHtml(String(forecast.grid_resolution_km || 8))} km GWIS cells</p>
     <p><strong>Timing</strong> · ${escapeHtml(forecast.forecast_status?.text || "Issue time unavailable")}</p>
     <p><strong>Class table</strong> · ${escapeHtml(forecast.danger_class_source || "GWIS Fire Danger Classes")}</p>`;
@@ -888,28 +1004,68 @@ function showOutlookDay(day, forecast, selectors) {
   const daysHost = document.querySelector(selectors.days);
   state.selectedForecastDay = day.valid_date;
   detail.hidden = false;
+  const tz = forecastTimezone(forecast);
   const fire = day.fire_danger || {};
-  const fwiText =
-    fire.status === "measured" && fire.fwi != null
-      ? `${Number(fire.fwi).toFixed(1)} (GWIS class: ${day.danger_level || "unclassified"})`
-      : "missing";
-  const rankingText = fire.ranking == null ? "missing" : Number(fire.ranking).toFixed(1);
+  const fwiAvailable = fire.status === "measured" && fire.fwi != null;
+  const fwiText = fwiAvailable
+    ? `${Number(fire.fwi).toFixed(1)} (GWIS class: ${day.danger_level || "unclassified"})`
+    : "Fire-danger rating unavailable for this day";
+  const rankingText =
+    fire.ranking == null
+      ? "not supplied for this day"
+      : `${Number(fire.ranking).toFixed(1)} on the local historical percentile scale (not a wildfire probability)`;
+  const wind = windKmhField(day);
+  const gust = gustKmhField(day);
+  const direction = day.wind_direction_text || null;
+  const recent = forecast?.recent_rain || {};
   detail.innerHTML = `
-    <h3>${escapeHtml(formatShortForecastDay(day.valid_date))}${
+    <h3>${escapeHtml(formatShortForecastDay(day.valid_date, tz))}${
       day.danger_level ? ` · ${escapeHtml(day.danger_level)} fire danger` : ""
     }</h3>
+    <p class="quiet">${escapeHtml(pointLabel(forecast))}</p>
     <p>${escapeHtml(day.explanation || "")}</p>
     <ul class="outlook-measures">
-      ${fieldLine("Maximum temperature", day.temperature_max_c, "°C")}
-      ${fieldLine("Minimum relative humidity", day.relative_humidity_min_percent, "%")}
-      ${fieldLine("Maximum wind speed", day.wind_speed_max_m_s, "m/s")}
-      ${fieldLine("Forecast rainfall", day.forecast_rain_mm, "mm")}
+      ${fieldLine("Air temperature", day.temperature_max_c, "°C", day.temperature_period || "daily maximum")}
+      ${fieldLine("Relative humidity", day.relative_humidity_min_percent, "%", day.humidity_period || "daily minimum")}
+      ${fieldLine("Sustained wind", wind, "km/h", day.wind_period || "daily maximum")}
+      <li><strong>Wind direction</strong> · ${escapeHtml(direction || "missing")}</li>
+      ${fieldLine("Wind gusts", gust, "km/h", day.gust_period || "daily maximum")}
+      ${fieldLine("Forecast rainfall", day.forecast_rain_mm, "mm", day.rain_period || "daily total")}
+      <li><strong>Recent rainfall</strong> · ${
+        recent.millimetres == null
+          ? "missing"
+          : `${Number(recent.millimetres).toFixed(1)} mm${recent.status === "quiet" ? " (measured zero)" : ""}`
+      }${
+        recent.start && recent.end
+          ? ` <span class="quiet">· ${escapeHtml(recent.start)} to ${escapeHtml(recent.end)}</span>`
+          : ""
+      }</li>
       <li><strong>Fire Weather Index</strong> · ${escapeHtml(fwiText)}</li>
       <li><strong>Local historical ranking</strong> · ${escapeHtml(rankingText)}</li>
+      <li><strong>Source</strong> · ${escapeHtml(forecast?.weather_source || "Open-Meteo")} · FWI ${escapeHtml(
+        (fire.source || forecast?.fwi_source || "GWIS").split(".")[0]
+      )}</li>
+      <li><strong>Valid date</strong> · ${escapeHtml(day.valid_date)} (${escapeHtml(tz)})</li>
+      <li><strong>Update / archive time</strong> · ${escapeHtml(
+        fire.issue_time || forecast?.forecast_status?.text || "not supplied"
+      )}</li>
     </ul>`;
   daysHost.querySelectorAll(".day-chip").forEach((node) => {
     node.classList.toggle("on", node.dataset.date === day.valid_date);
   });
+}
+
+function pointLabel(forecast) {
+  return forecast?.point?.label || "Weather near the center of your selection.";
+}
+
+function syncForecastMarkerVisibility() {
+  if (!state.forecastMarker) return;
+  if (state.showForecastPoint === false) {
+    map.removeLayer(state.forecastMarker);
+  } else if (!map.hasLayer(state.forecastMarker)) {
+    state.forecastMarker.addTo(map);
+  }
 }
 
 function forecastHasUsefulValues(forecast) {
@@ -1226,11 +1382,12 @@ function heatIcon(area, selected) {
   const count = Number(area.satellite_count || 1);
   const label = count === 1 ? "1 sat" : `${count} sats`;
   const multi = count > 1;
-  const className = `heat-marker${multi ? " multi" : ""}${selected ? " selected" : ""}`;
-  const aria = `Heat detected by ${count} satellite${count === 1 ? "" : "s"}`;
+  const className = `heat-marker ember${multi ? " multi" : ""}${selected ? " selected" : ""}`;
+  const shape = multi ? "square" : "circle";
+  const aria = `Observed heat detected by ${count} satellite${count === 1 ? "" : "s"}`;
   return L.divIcon({
     className: "heat-div-icon",
-    html: `<div class="${className}" role="img" aria-label="${aria}"><span class="heat-wave"><span class="heat-wave-icon" aria-hidden="true">♨</span></span><span class="sat-badge">${label}</span></div>`,
+    html: `<div class="${className}" data-shape="${shape}" role="img" aria-label="${aria}"><span class="heat-wave"><span class="heat-wave-icon" aria-hidden="true">♨</span></span><span class="sat-badge">${label}</span></div>`,
     iconSize: [46, 46],
     iconAnchor: [23, 23],
   });
@@ -1727,6 +1884,11 @@ function renderPlaceResult(place) {
     attribution.hidden = true;
   }
   updateSelectionBanner();
+  const weatherPlace = document.querySelector("#weather-place");
+  if (weatherPlace && place?.label) {
+    weatherPlace.hidden = false;
+    weatherPlace.textContent = place.label;
+  }
 }
 
 async function copyPlaceCoordinates() {
@@ -1854,14 +2016,14 @@ async function showArea(area) {
   document.querySelector("#area-members-body").innerHTML = `
     <p class="quiet">${members.length} individual detection${members.length === 1 ? "" : "s"} in this square (cell ${escapeHtml(matched.cell_id)}).</p>
     <table class="member-table">
-      <thead><tr><th>Satellite</th><th>Time</th><th>Confidence</th><th>FRP</th><th>Source</th></tr></thead>
+      <thead><tr><th>Satellite</th><th>Local time</th><th>UTC</th><th>Confidence</th><th>FRP</th></tr></thead>
       <tbody>${members.map((spot) => `
         <tr>
           <td>${escapeHtml(spot.platform)}</td>
-          <td>${escapeHtml(spot.acq_time)} UTC</td>
+          <td>${escapeHtml(formatDetectionLocalTime(spot))}</td>
+          <td>${escapeHtml(spot.acq_time || "—")} UTC</td>
           <td>${escapeHtml(spot.confidence || "—")}</td>
           <td>${spot.frp ?? "—"}</td>
-          <td>${escapeHtml(spot.source || "—")}</td>
         </tr>`).join("")}</tbody>
     </table>`;
   document.querySelector("#area-members").open = false;
@@ -2153,17 +2315,23 @@ function renderResearch(payload) {
       : "For this land, no satellite heat readings were retained inside the boundary for the selected day.";
   }
   if (combine) {
-    combine.textContent = areaCount
-      ? `Vela grouped those readings into ${areaCount} five-kilometre observation area${areaCount === 1 ? "" : "s"} so you can see which spacecraft contributed.`
-      : "When readings exist, Vela groups them into 5 km observation areas without mixing forecast danger or agency reports into the count.";
+    combine.textContent =
+      "Fire danger here is a published weather-based index for the forecast day, separate from satellite heat detections. It is not a wildfire probability.";
+  }
+  const fwiNode = document.querySelector("#research-q-fwi");
+  if (fwiNode) {
+    const ref = state.forecast?.regional_fwi_reference;
+    fwiNode.textContent = ref?.url
+      ? `Vela reads the Copernicus GWIS ECMWF Fire Weather Index at the forecast point when available. For this selection, ${ref.name} is linked as a regional reference only; Vela never infers a rating from map colors.`
+      : "Vela reads the Copernicus GWIS ECMWF Fire Weather Index at the forecast point when the WMS layer returns a number. It does not invent a wildfire probability from FWI, satellite counts, or the harmonization model.";
   }
   if (weekly) {
     weekly.textContent =
-      "Weekly trends estimate how often grid squares showed burning activity on days with usable observations or model estimates. Forecast fire danger and official wildfire reports stay separate.";
+      "An official wildfire or fire report, on-the-ground confirmation, or a responsible agency bulletin confirms a wildfire. Satellite heat and fire-danger ratings alone do not.";
   }
   if (test) {
     test.textContent =
-      "Development validation compares estimates with held-out satellite observations in training regions. Independent final testing is shown below when the model report records it.";
+      "Weekly activity estimates measure how often grid squares showed burning activity on days with usable observations or model estimates. Development validation compares those estimates with held-out satellite observations; independent final testing is recorded separately when completed.";
   }
   if (validation) {
     validation.textContent = document.querySelector("#research-performance")?.textContent
@@ -2373,10 +2541,18 @@ function showWeek(week, button) {
     .filter(([, count]) => Number(count) > 0)
     .map(([name, count]) => `${name}: ${count}`)
     .join(" · ");
+  const completeness =
+    week.activity_status === "complete"
+      ? "Complete estimate for this week."
+      : week.activity_status === "partial"
+        ? "Partial estimate — some days in the week lack usable coverage."
+        : "No published weekly estimate for this week.";
   detail.innerHTML = `
     <h3>${escapeHtml(formatWeekRange(week.week_start, week.week_end))}</h3>
-    <p><strong>What did Vela estimate for this week?</strong><br>${escapeHtml(activityText(week))}</p>
-    <p><strong>How much usable evidence contributed?</strong><br>${escapeHtml(coverageSentence(week))}</p>
+    <p class="result-lead">${escapeHtml(completeness)} Measured activity: ${escapeHtml(activityText(week))}.</p>
+    <p><strong>What was measured for this area and week?</strong><br>${escapeHtml(activityText(week))}</p>
+    <p><strong>How much usable coverage was there?</strong><br>${escapeHtml(coverageSentence(week))}</p>
+    <p><strong>Is the estimate complete or partial?</strong><br>${escapeHtml(completeness)}</p>
     <p><strong>Which satellites supplied observations or model estimates?</strong><br>${escapeHtml(methodLines || "No satellite contribution counts were published for this week.")}</p>
     <div class="numbers">
       ${numberBlock("Eligible coverage", String(week.eligible_coverage_cell_days ?? 0))}

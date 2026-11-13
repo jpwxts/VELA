@@ -28,8 +28,23 @@ DAILY_FIELDS = (
     "relative_humidity_2m_min",
     "wind_speed_10m_max",
     "wind_gusts_10m_max",
+    "wind_direction_10m_dominant",
     "precipitation_sum",
 )
+ASMC_FWI_MAP = "https://asmc.asean.org/asmc-fire-fwi/"
+ASMC_FDRS_OVERVIEW = "https://asmc.asean.org/asmc-fire/"
+ASMC_REFERENCE = {
+    "name": "ASMC Fire Weather Index map",
+    "producer": "ASEAN Specialised Meteorological Centre / Malaysian Meteorological Department",
+    "url": ASMC_FWI_MAP,
+    "overview_url": ASMC_FDRS_OVERVIEW,
+    "access": "regional_map_reference",
+    "note": (
+        "ASMC publishes a Southeast Asia Fire Weather Index map (image courtesy of the "
+        "Malaysian Meteorological Department). Vela links that map as a regional reference "
+        "and does not read numbers from map colors."
+    ),
+}
 
 
 def forecast_point(west: float, south: float, east: float, north: float) -> tuple[float, float]:
@@ -87,9 +102,18 @@ def parse_weather(payload: dict) -> dict:
     if len(times) < 2 or len(times) % 2:
         return {"ok": False, "status": "missing", "message": "The weather feed did not return a seven-day window."}
     half = len(times) // 2
+    required = (
+        "temperature_2m_max",
+        "relative_humidity_2m_min",
+        "wind_speed_10m_max",
+        "wind_gusts_10m_max",
+        "precipitation_sum",
+    )
     columns = {name: list(daily.get(name) or []) for name in DAILY_FIELDS}
-    if any(len(values) != len(times) for values in columns.values()):
+    if any(len(columns[name]) != len(times) for name in required):
         return {"ok": False, "status": "missing", "message": "The weather feed left out a daily field."}
+    if len(columns["wind_direction_10m_dominant"]) != len(times):
+        columns["wind_direction_10m_dominant"] = [None] * len(times)
     past = [_rain(columns["precipitation_sum"][index]) for index in range(half)]
     if any(item is None for item in past):
         recent = {"status": "missing", "millimetres": None}
@@ -108,15 +132,31 @@ def parse_weather(payload: dict) -> dict:
         offset = half + index
         values = {name: _number(columns[name][offset]) for name in DAILY_FIELDS}
         valid_day = date.fromisoformat(valid)
+        wind_ms = _field(values["wind_speed_10m_max"])
+        gust_ms = _field(values["wind_gusts_10m_max"])
+        direction = _number(values["wind_direction_10m_dominant"])
         days.append(
             {
                 "valid_date": valid,
                 "lead_days": (valid_day - anchor).days,
                 "temperature_max_c": _field(values["temperature_2m_max"]),
                 "relative_humidity_min_percent": _field(values["relative_humidity_2m_min"]),
-                "wind_speed_max_m_s": _field(values["wind_speed_10m_max"]),
-                "wind_gust_max_m_s": _field(values["wind_gusts_10m_max"]),
+                "wind_speed_max_m_s": wind_ms,
+                "wind_speed_max_km_h": _ms_to_kmh_field(wind_ms),
+                "wind_gust_max_m_s": gust_ms,
+                "wind_gust_max_km_h": _ms_to_kmh_field(gust_ms),
+                "wind_direction_deg": (
+                    {"status": "measured", "value": direction}
+                    if direction is not None
+                    else {"status": "missing", "value": None}
+                ),
+                "wind_direction_text": wind_direction_text(direction),
                 "forecast_rain_mm": _field(values["precipitation_sum"]),
+                "rain_period": "daily total (local calendar day)",
+                "wind_period": "daily maximum sustained 10 m wind",
+                "gust_period": "daily maximum 10 m gust",
+                "temperature_period": "daily maximum 2 m air temperature",
+                "humidity_period": "daily minimum 2 m relative humidity",
                 "verification_status": "pending",
             }
         )
@@ -139,14 +179,47 @@ def parse_weather(payload: dict) -> dict:
     }
 
 
+def wind_direction_text(degrees) -> str | None:
+    """Compass wording such as 'from the northeast' for a meteorological from-direction."""
+
+    if degrees is None:
+        return None
+    try:
+        bearing = float(degrees) % 360
+    except (TypeError, ValueError):
+        return None
+    labels = (
+        "north",
+        "northeast",
+        "east",
+        "southeast",
+        "south",
+        "southwest",
+        "west",
+        "northwest",
+    )
+    index = int((bearing + 22.5) // 45) % 8
+    return f"from the {labels[index]}"
+
+
 def explain_day(day: dict) -> str:
+    wind_kmh = day.get("wind_speed_max_km_h") or _ms_to_kmh_field(day.get("wind_speed_max_m_s") or {})
+    gust_kmh = day.get("wind_gust_max_km_h") or _ms_to_kmh_field(day.get("wind_gust_max_m_s") or {})
     sentences = [
-        _measure("Maximum temperature", day["temperature_max_c"], "°C"),
-        _measure("Minimum relative humidity", day["relative_humidity_min_percent"], "%"),
-        _measure("Maximum wind speed", day["wind_speed_max_m_s"], "m/s"),
-        _measure("Maximum wind gust", day["wind_gust_max_m_s"], "m/s"),
-        _measure("Forecast rainfall", day["forecast_rain_mm"], "mm", quiet_zero=True),
+        _measure("Maximum air temperature", day.get("temperature_max_c") or {}, "°C"),
+        _measure("Minimum relative humidity", day.get("relative_humidity_min_percent") or {}, "%"),
+        _measure("Sustained wind", wind_kmh, "km/h"),
     ]
+    direction = day.get("wind_direction_text") or wind_direction_text(
+        (day.get("wind_direction_deg") or {}).get("value")
+    )
+    if direction:
+        sentences.append(f"Wind is {direction}.")
+    if gust_kmh.get("status") in {"measured", "quiet"} and gust_kmh.get("value") is not None:
+        sentences.append(_measure("Wind gusts", gust_kmh, "km/h"))
+    sentences.append(
+        _measure("Forecast rainfall", day.get("forecast_rain_mm") or {}, "mm", quiet_zero=True)
+    )
     fire = day.get("fire_danger") or {}
     if fire.get("status") == "measured" and fire.get("fwi") is not None:
         sentences.append(f"The published GWIS Fire Weather Index for this date is {fire['fwi']:.1f}.")
@@ -156,7 +229,7 @@ def explain_day(day: dict) -> str:
                 "on the GWIS percentile scale."
             )
     else:
-        sentences.append("Fire danger is unavailable for this date.")
+        sentences.append("Fire-danger rating unavailable for this day.")
     return " ".join(sentences)
 
 
@@ -240,15 +313,18 @@ def build_forecast(west: float, south: float, east: float, north: float, getter,
             "latitude": point_lat,
             "longitude": point_lon,
             "timezone": parsed.get("timezone"),
-            "label": "This marker is the forecast point returned for the center of the selected area.",
+            "label": "Weather near the center of your selection.",
         },
         "weather_source": WEATHER_SOURCE,
+        "fwi_source": FWI_SOURCE,
+        "ranking_source": RANKING_SOURCE,
         "recent_rain": parsed["recent_rain"],
         "forecast_rain": parsed["forecast_rain"],
         "days": parsed["days"],
         "performance": performance,
         "product_issue_time": None,
         "product_issue_status": "missing",
+        "regional_fwi_reference": regional_fwi_reference(west, south, east, north),
     }
 
 
@@ -334,6 +410,40 @@ def _field(value) -> dict:
     return {"status": "measured", "value": value}
 
 
+def _ms_to_kmh_field(field: dict | None) -> dict:
+    if not field or field.get("status") == "missing" or field.get("value") is None:
+        return {"status": "missing", "value": None}
+    return {
+        "status": field.get("status") or "measured",
+        "value": round(float(field["value"]) * 3.6, 1),
+    }
+
+
+def regional_fwi_reference(west: float, south: float, east: float, north: float) -> dict | None:
+    """Documented regional FWI map for selections that overlap Southeast Asia."""
+
+    lat, lon = forecast_point(west, south, east, north)
+    # Rough ASEAN / Philippines window where ASMC FDRS maps are relevant.
+    if 5.0 <= lat <= 21.5 and 116.0 <= lon <= 127.0:
+        return dict(ASMC_REFERENCE)
+    if -11.0 <= lat <= 28.0 and 92.0 <= lon <= 141.0:
+        return dict(ASMC_REFERENCE)
+    return None
+
+
+def request_bytes(url: str, params: dict | None = None) -> tuple[int, bytes]:
+    import httpx
+
+    # GWIS EFFIS WMS currently serves an expired TLS certificate; verify is
+    # disabled only for that known host so FWI GeoTIFF reads can continue.
+    verify = True
+    if "maps.effis.emergency.copernicus.eu" in url:
+        verify = False
+    with httpx.Client(timeout=40.0, follow_redirects=True, verify=verify) as client:
+        response = client.get(url, params=params)
+        return response.status_code, response.content
+
+
 def _measure(label: str, field: dict, unit: str, quiet_zero: bool = False) -> str:
     if not field or field.get("status") == "missing" or field.get("value") is None:
         return f"{label} is missing."
@@ -368,13 +478,4 @@ def load_model_report(path: Path | None = None) -> dict:
     if not report_path.is_file():
         return {}
     return json.loads(report_path.read_text(encoding="utf-8"))
-
-
-def request_bytes(url: str, params: dict | None = None) -> tuple[int, bytes]:
-    import httpx
-
-    with httpx.Client(timeout=40.0, follow_redirects=True) as client:
-        response = client.get(url, params=params)
-        return response.status_code, response.content
-
 
