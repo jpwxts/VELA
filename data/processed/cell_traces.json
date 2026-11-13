@@ -1,0 +1,286 @@
+{
+  "available": true,
+  "source_pass": {
+    "modis_file": "MYD14.A2019232.1725.061.2020304193337.hdf",
+    "viirs_file": "VNP14IMG.A2019232.1706.002.2024095042640.nc",
+    "local_date": "2019-08-20"
+  },
+  "examples": [
+    {
+      "outcome": "viirs_only",
+      "title": "VIIRS only",
+      "cell_id": "-1000:-336",
+      "center_lat": -13.264382909957469,
+      "center_lon": -51.79492863653602,
+      "local_date": "2019-08-20",
+      "region_id": "cerrado",
+      "bounds": {
+        "west": -51.82083905606405,
+        "south": -13.28450324543636,
+        "east": -51.76901821700798,
+        "north": -13.244264197675594
+      },
+      "modis_time_utc": "2019-08-20 17:25 UTC",
+      "modis_time_local": "2019-08-20 13:57 local",
+      "viirs_time_utc": "2019-08-20 17:06 UTC",
+      "viirs_time_local": "2019-08-20 13:38 local",
+      "shared_coverage_fraction": 0.748125,
+      "shared_visible_km2": 18.703125,
+      "cell_area_km2": 25.0,
+      "modis_visible_km2": 20.0,
+      "viirs_visible_km2": 18.703125,
+      "modis_file": "MYD14.A2019232.1725.061.2020304193337.hdf",
+      "viirs_file": "VNP14IMG.A2019232.1706.002.2024095042640.nc",
+      "modis_classes": [
+        {
+          "code": 0,
+          "label": "not processed, missing",
+          "pixels": 0
+        },
+        {
+          "code": 1,
+          "label": "not processed, missing",
+          "pixels": 0
+        },
+        {
+          "code": 2,
+          "label": "not processed for another reason, missing",
+          "pixels": 0
+        },
+        {
+          "code": 3,
+          "label": "water",
+          "pixels": 0
+        },
+        {
+          "code": 4,
+          "label": "cloud",
+          "pixels": 0
+        },
+        {
+          "code": 5,
+          "label": "clear land",
+          "pixels": 20
+        },
+        {
+          "code": 6,
+          "label": "unknown",
+          "pixels": 0
+        },
+        {
+          "code": 7,
+          "label": "fire, low confidence",
+          "pixels": 0
+        },
+        {
+          "code": 8,
+          "label": "fire, nominal confidence",
+          "pixels": 0
+        },
+        {
+          "code": 9,
+          "label": "fire, high confidence",
+          "pixels": 0
+        }
+      ],
+      "viirs_classes": [
+        {
+          "code": 0,
+          "label": "missing",
+          "pixels": 0
+        },
+        {
+          "code": 1,
+          "label": "bow-tie deletion, missing",
+          "pixels": 0
+        },
+        {
+          "code": 2,
+          "label": "sun glint, not clear land",
+          "pixels": 0
+        },
+        {
+          "code": 3,
+          "label": "water",
+          "pixels": 11
+        },
+        {
+          "code": 4,
+          "label": "cloud",
+          "pixels": 11
+        },
+        {
+          "code": 5,
+          "label": "clear land",
+          "pixels": 125
+        },
+        {
+          "code": 6,
+          "label": "unclassified, unknown",
+          "pixels": 0
+        },
+        {
+          "code": 7,
+          "label": "fire, low confidence",
+          "pixels": 0
+        },
+        {
+          "code": 8,
+          "label": "fire, nominal confidence",
+          "pixels": 8
+        },
+        {
+          "code": 9,
+          "label": "fire, high confidence",
+          "pixels": 0
+        }
+      ],
+      "zero_sensor": "modis",
+      "zero_check": {
+        "usable_land": true,
+        "fire_pixels": 0,
+        "clear_land_pixels": 20,
+        "text": "Aqua MODIS classes 7, 8, and 9 contain 0 pixels. Class 5, clear land, contains 20 pixels. The zero comes from usable land, not from missing data."
+      },
+      "data_origin": "nasa"
+    },
+    {
+      "outcome": "modis_only",
+      "title": "MODIS only",
+      "cell_id": "-1009:-368",
+      "center_lat": -14.555481384829175,
+      "center_lon": -52.261316188040595,
+      "local_date": "2019-08-20",
+      "region_id": "cerrado",
+      "bounds": {
+        "west": -52.287226607568634,
+        "south": -14.575711563854446,
+        "east": -52.235405768512564,
+        "north": -14.535253013766354
+      },
+      "modis_time_utc": "2019-08-20 17:25 UTC",
+      "modis_time_local": "2019-08-20 13:55 local",
+      "viirs_time_utc": "2019-08-20 17:06 UTC",
+      "viirs_time_local": "2019-08-20 13:36 local",
+      "shared_coverage_fraction": 0.92,
+      "shared_visible_km2": 23.0,
+      "cell_area_km2": 25.0,
+      "modis_visible_km2": 23.0,
+      "viirs_visible_km2": 23.0625,
+      "modis_file": "MYD14.A2019232.1725.061.2020304193337.hdf",
+      "viirs_file": "VNP14IMG.A2019232.1706.002.2024095042640.nc",
+      "modis_classes": [
+        {
+          "code": 0,
+          "label": "not processed, missing",
+          "pixels": 0
+        },
+        {
+          "code": 1,
+          "label": "not processed, missing",
+          "pixels": 0
+        },
+        {
+          "code": 2,
+          "label": "not processed for another reason, missing",
+          "pixels": 0
+        },
+        {
+          "code": 3,
+          "label": "water",
+          "pixels": 0
+        },
+        {
+          "code": 4,
+          "label": "cloud",
+          "pixels": 0
+        },
+        {
+          "code": 5,
+          "label": "clear land",
+          "pixels": 22
+        },
+        {
+          "code": 6,
+          "label": "unknown",
+          "pixels": 0
+        },
+        {
+          "code": 7,
+          "label": "fire, low confidence",
+          "pixels": 0
+        },
+        {
+          "code": 8,
+          "label": "fire, nominal confidence",
+          "pixels": 0
+        },
+        {
+          "code": 9,
+          "label": "fire, high confidence",
+          "pixels": 1
+        }
+      ],
+      "viirs_classes": [
+        {
+          "code": 0,
+          "label": "missing",
+          "pixels": 0
+        },
+        {
+          "code": 1,
+          "label": "bow-tie deletion, missing",
+          "pixels": 0
+        },
+        {
+          "code": 2,
+          "label": "sun glint, not clear land",
+          "pixels": 0
+        },
+        {
+          "code": 3,
+          "label": "water",
+          "pixels": 2
+        },
+        {
+          "code": 4,
+          "label": "cloud",
+          "pixels": 0
+        },
+        {
+          "code": 5,
+          "label": "clear land",
+          "pixels": 164
+        },
+        {
+          "code": 6,
+          "label": "unclassified, unknown",
+          "pixels": 0
+        },
+        {
+          "code": 7,
+          "label": "fire, low confidence",
+          "pixels": 0
+        },
+        {
+          "code": 8,
+          "label": "fire, nominal confidence",
+          "pixels": 0
+        },
+        {
+          "code": 9,
+          "label": "fire, high confidence",
+          "pixels": 0
+        }
+      ],
+      "zero_sensor": "viirs",
+      "zero_check": {
+        "usable_land": true,
+        "fire_pixels": 0,
+        "clear_land_pixels": 164,
+        "text": "Suomi-NPP VIIRS classes 7, 8, and 9 contain 0 pixels. Class 5, clear land, contains 164 pixels. The zero comes from usable land, not from missing data."
+      },
+      "data_origin": "nasa"
+    }
+  ]
+}

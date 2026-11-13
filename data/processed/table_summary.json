@@ -1,0 +1,7 @@
+{
+  "shards": 61,
+  "eligible": 41456,
+  "excluded": 207117,
+  "paired_cells": "/Users/florlyn/Desktop/MODISVIIRS/data/processed/paired_cells.parquet",
+  "excluded_cells": "/Users/florlyn/Desktop/MODISVIIRS/data/processed/excluded_cells.parquet"
+}

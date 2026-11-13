@@ -1,0 +1,1151 @@
+{
+  "fixture": {
+    "name": "check_land_demo",
+    "label": "Saved competition demo \u00b7 labeled archive, not a live network pull",
+    "forecast_captured_at": "2026-11-11T19:54:16+00:00",
+    "observation_date": "2026-11-10",
+    "notes": "GWIS FWI outlook archived from live WMS; satellite points are labeled demo detections placed inside and nearby the saved polygon."
+  },
+  "label": "Competition example \u00b7 California foothills plot",
+  "polygon": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -121.04,
+          39.55
+        ],
+        [
+          -120.99,
+          39.55
+        ],
+        [
+          -120.985,
+          39.585
+        ],
+        [
+          -121.035,
+          39.588
+        ],
+        [
+          -121.04,
+          39.55
+        ]
+      ]
+    ]
+  },
+  "bbox": {
+    "west": -121.04,
+    "south": 39.55,
+    "east": -120.985,
+    "north": 39.588
+  },
+  "observation_date": "2026-11-10",
+  "forecast": {
+    "ok": true,
+    "issue_id": "gwis-ecmwf|-121.05,39.54,-120.97,39.60|2026-11-11:2026-11-17",
+    "region_key": "-121.05,39.54,-120.97,39.60",
+    "point": {
+      "latitude": 39.56297,
+      "longitude": -121.02996,
+      "timezone": "America/Los_Angeles",
+      "label": "This marker is the forecast point returned for the center of the selected area."
+    },
+    "weather_source": "Open-Meteo forecast API",
+    "recent_rain": {
+      "status": "quiet",
+      "millimetres": 0.0,
+      "days": 7,
+      "start": "2026-11-04",
+      "end": "2026-11-10"
+    },
+    "forecast_rain": {
+      "status": "measured",
+      "millimetres": 74.3
+    },
+    "days": [
+      {
+        "valid_date": "2026-11-11",
+        "lead_days": 0,
+        "temperature_max_c": {
+          "status": "measured",
+          "value": 21.2
+        },
+        "relative_humidity_min_percent": {
+          "status": "measured",
+          "value": 8.0
+        },
+        "wind_speed_max_m_s": {
+          "status": "measured",
+          "value": 4.52
+        },
+        "wind_gust_max_m_s": {
+          "status": "measured",
+          "value": 8.6
+        },
+        "forecast_rain_mm": {
+          "status": "quiet",
+          "value": 0.0
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "measured",
+          "fwi": 31.247310638427734,
+          "ranking": 71.22978210449219,
+          "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+          "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+          "valid_date": "2026-11-11",
+          "issue_time": null
+        }
+      },
+      {
+        "valid_date": "2026-11-12",
+        "lead_days": 1,
+        "temperature_max_c": {
+          "status": "measured",
+          "value": 19.9
+        },
+        "relative_humidity_min_percent": {
+          "status": "measured",
+          "value": 15.0
+        },
+        "wind_speed_max_m_s": {
+          "status": "measured",
+          "value": 5.83
+        },
+        "wind_gust_max_m_s": {
+          "status": "measured",
+          "value": 11.1
+        },
+        "forecast_rain_mm": {
+          "status": "quiet",
+          "value": 0.0
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "measured",
+          "fwi": 36.346893310546875,
+          "ranking": 75.36592864990234,
+          "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+          "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+          "valid_date": "2026-11-12",
+          "issue_time": null
+        }
+      },
+      {
+        "valid_date": "2026-11-13",
+        "lead_days": 2,
+        "temperature_max_c": {
+          "status": "measured",
+          "value": 11.9
+        },
+        "relative_humidity_min_percent": {
+          "status": "measured",
+          "value": 55.0
+        },
+        "wind_speed_max_m_s": {
+          "status": "measured",
+          "value": 7.1
+        },
+        "wind_gust_max_m_s": {
+          "status": "measured",
+          "value": 19.9
+        },
+        "forecast_rain_mm": {
+          "status": "measured",
+          "value": 43.0
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "measured",
+          "fwi": 0.00018806349544320256,
+          "ranking": 5.066633548267419e-07,
+          "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+          "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+          "valid_date": "2026-11-13",
+          "issue_time": null
+        }
+      },
+      {
+        "valid_date": "2026-11-14",
+        "lead_days": 3,
+        "temperature_max_c": {
+          "status": "measured",
+          "value": 11.1
+        },
+        "relative_humidity_min_percent": {
+          "status": "measured",
+          "value": 48.0
+        },
+        "wind_speed_max_m_s": {
+          "status": "measured",
+          "value": 2.28
+        },
+        "wind_gust_max_m_s": {
+          "status": "measured",
+          "value": 7.3
+        },
+        "forecast_rain_mm": {
+          "status": "measured",
+          "value": 1.5
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "measured",
+          "fwi": 2.268783383385653e-08,
+          "ranking": 5.791301140901928e-14,
+          "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+          "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+          "valid_date": "2026-11-14",
+          "issue_time": null
+        }
+      },
+      {
+        "valid_date": "2026-11-15",
+        "lead_days": 4,
+        "temperature_max_c": {
+          "status": "measured",
+          "value": 12.9
+        },
+        "relative_humidity_min_percent": {
+          "status": "measured",
+          "value": 47.0
+        },
+        "wind_speed_max_m_s": {
+          "status": "measured",
+          "value": 3.36
+        },
+        "wind_gust_max_m_s": {
+          "status": "measured",
+          "value": 4.6
+        },
+        "forecast_rain_mm": {
+          "status": "measured",
+          "value": 1.3
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "measured",
+          "fwi": 0.04866605997085571,
+          "ranking": 0.009453462436795235,
+          "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+          "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+          "valid_date": "2026-11-15",
+          "issue_time": null
+        }
+      },
+      {
+        "valid_date": "2026-11-16",
+        "lead_days": 5,
+        "temperature_max_c": {
+          "status": "measured",
+          "value": 7.5
+        },
+        "relative_humidity_min_percent": {
+          "status": "measured",
+          "value": 93.0
+        },
+        "wind_speed_max_m_s": {
+          "status": "measured",
+          "value": 1.72
+        },
+        "wind_gust_max_m_s": {
+          "status": "measured",
+          "value": 2.7
+        },
+        "forecast_rain_mm": {
+          "status": "measured",
+          "value": 25.6
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "measured",
+          "fwi": 3.356483603056404e-06,
+          "ranking": 4.07394618040513e-10,
+          "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+          "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+          "valid_date": "2026-11-16",
+          "issue_time": null
+        }
+      },
+      {
+        "valid_date": "2026-11-17",
+        "lead_days": 6,
+        "temperature_max_c": {
+          "status": "measured",
+          "value": 11.0
+        },
+        "relative_humidity_min_percent": {
+          "status": "measured",
+          "value": 80.0
+        },
+        "wind_speed_max_m_s": {
+          "status": "measured",
+          "value": 2.19
+        },
+        "wind_gust_max_m_s": {
+          "status": "measured",
+          "value": 4.4
+        },
+        "forecast_rain_mm": {
+          "status": "measured",
+          "value": 2.9
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "measured",
+          "fwi": 8.064648682193365e-06,
+          "ranking": 1.922456860370403e-09,
+          "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+          "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+          "valid_date": "2026-11-17",
+          "issue_time": null
+        }
+      }
+    ],
+    "performance": {
+      "status": "pending_verification",
+      "held_out_error_percentage_points": null,
+      "model": null,
+      "text": "Pending verification. No held-out harmonization error has been measured."
+    },
+    "product_issue_time": null,
+    "product_issue_status": "missing",
+    "issued_at": "2026-11-11T19:54:16+00:00",
+    "verification_status": "pending"
+  },
+  "hotspots": {
+    "configured": true,
+    "date": "2026-11-10",
+    "bbox": {
+      "west": -121.05,
+      "south": 39.54,
+      "east": -120.97,
+      "north": 39.6
+    },
+    "total_count": 2,
+    "combined": {
+      "coverage": "unknown"
+    },
+    "results": [
+      {
+        "platform": "Aqua",
+        "status": "no_hotspots",
+        "coverage": "unknown",
+        "count": 0,
+        "product": "MODIS_NRT",
+        "hotspots": []
+      },
+      {
+        "platform": "Suomi-NPP",
+        "status": "product_unavailable",
+        "coverage": "unknown",
+        "count": 0,
+        "product": "VIIRS_SNPP_NRT",
+        "hotspots": []
+      },
+      {
+        "platform": "NOAA-20",
+        "status": "ok",
+        "coverage": "unknown",
+        "count": 1,
+        "product": "VIIRS_NOAA20_NRT",
+        "hotspots": [
+          {
+            "lat": 39.545,
+            "lon": -120.975,
+            "acq_date": "2026-11-10",
+            "acq_time": "09:04",
+            "acq_time_raw": "904",
+            "satellite_code": "N20",
+            "platform": "NOAA-20",
+            "instrument": "VIIRS",
+            "confidence": "n",
+            "frp": 6.0,
+            "brightness": 320.0,
+            "source": "VIIRS_NOAA20_NRT"
+          }
+        ]
+      },
+      {
+        "platform": "NOAA-21",
+        "status": "ok",
+        "coverage": "unknown",
+        "count": 1,
+        "product": "VIIRS_NOAA21_NRT",
+        "hotspots": [
+          {
+            "lat": 39.565,
+            "lon": -121.015,
+            "acq_date": "2026-11-10",
+            "acq_time": "21:12",
+            "acq_time_raw": "2112",
+            "satellite_code": "N21",
+            "platform": "NOAA-21",
+            "instrument": "VIIRS",
+            "confidence": "n",
+            "frp": 8.5,
+            "brightness": 328.0,
+            "source": "VIIRS_NOAA21_NRT"
+          }
+        ]
+      }
+    ]
+  },
+  "land_check": {
+    "ok": true,
+    "label": "Competition example \u00b7 California foothills plot",
+    "polygon": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [
+            -121.04,
+            39.55
+          ],
+          [
+            -120.99,
+            39.55
+          ],
+          [
+            -120.985,
+            39.585
+          ],
+          [
+            -121.035,
+            39.588
+          ],
+          [
+            -121.04,
+            39.55
+          ]
+        ]
+      ]
+    },
+    "bbox": {
+      "west": -121.04,
+      "south": 39.55,
+      "east": -120.985,
+      "north": 39.588
+    },
+    "area_km2": 17.47,
+    "observation_date": "2026-11-10",
+    "forecast": {
+      "ok": true,
+      "issue_id": "gwis-ecmwf|-121.05,39.54,-120.97,39.60|2026-11-11:2026-11-17",
+      "region_key": "-121.05,39.54,-120.97,39.60",
+      "point": {
+        "latitude": 39.56297,
+        "longitude": -121.02996,
+        "timezone": "America/Los_Angeles",
+        "label": "Forecast near the center of your plot."
+      },
+      "weather_source": "Open-Meteo forecast API",
+      "recent_rain": {
+        "status": "quiet",
+        "millimetres": 0.0,
+        "days": 7,
+        "start": "2026-11-04",
+        "end": "2026-11-10"
+      },
+      "forecast_rain": {
+        "status": "measured",
+        "millimetres": 74.3
+      },
+      "days": [
+        {
+          "valid_date": "2026-11-11",
+          "lead_days": 0,
+          "temperature_max_c": {
+            "status": "measured",
+            "value": 21.2
+          },
+          "relative_humidity_min_percent": {
+            "status": "measured",
+            "value": 8.0
+          },
+          "wind_speed_max_m_s": {
+            "status": "measured",
+            "value": 4.52
+          },
+          "wind_gust_max_m_s": {
+            "status": "measured",
+            "value": 8.6
+          },
+          "forecast_rain_mm": {
+            "status": "quiet",
+            "value": 0.0
+          },
+          "verification_status": "pending",
+          "fire_danger": {
+            "status": "measured",
+            "fwi": 31.247310638427734,
+            "ranking": 71.22978210449219,
+            "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+            "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+            "valid_date": "2026-11-11",
+            "issue_time": null,
+            "danger_class": {
+              "level": "High",
+              "basis": "fwi",
+              "ranking_level": "Low",
+              "fwi": 31.247310638427734,
+              "ranking": 71.22978210449219,
+              "source": "Copernicus GWIS Fire Danger Classes (https://gwis.jrc.ec.europa.eu/about-gwis/technical-background/fire-danger-forecast). The headline level uses the published FWI class thresholds. Local historical ranking is shown as context when GWIS returns it.",
+              "status": "measured"
+            }
+          },
+          "danger_level": "High",
+          "danger_rank": 3,
+          "explanation": "GWIS places this day in the High fire-danger class (Fire Weather Index 31.2). The local historical ranking is 71.2 (Low on the ranking scale). Minimum relative humidity is forecast at 8%. Maximum wind speed is forecast at 4.5 m/s. No rainfall is forecast that day."
+        },
+        {
+          "valid_date": "2026-11-12",
+          "lead_days": 1,
+          "temperature_max_c": {
+            "status": "measured",
+            "value": 19.9
+          },
+          "relative_humidity_min_percent": {
+            "status": "measured",
+            "value": 15.0
+          },
+          "wind_speed_max_m_s": {
+            "status": "measured",
+            "value": 5.83
+          },
+          "wind_gust_max_m_s": {
+            "status": "measured",
+            "value": 11.1
+          },
+          "forecast_rain_mm": {
+            "status": "quiet",
+            "value": 0.0
+          },
+          "verification_status": "pending",
+          "fire_danger": {
+            "status": "measured",
+            "fwi": 36.346893310546875,
+            "ranking": 75.36592864990234,
+            "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+            "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+            "valid_date": "2026-11-12",
+            "issue_time": null,
+            "danger_class": {
+              "level": "High",
+              "basis": "fwi",
+              "ranking_level": "Low",
+              "fwi": 36.346893310546875,
+              "ranking": 75.36592864990234,
+              "source": "Copernicus GWIS Fire Danger Classes (https://gwis.jrc.ec.europa.eu/about-gwis/technical-background/fire-danger-forecast). The headline level uses the published FWI class thresholds. Local historical ranking is shown as context when GWIS returns it.",
+              "status": "measured"
+            }
+          },
+          "danger_level": "High",
+          "danger_rank": 3,
+          "explanation": "GWIS places this day in the High fire-danger class (Fire Weather Index 36.3). The local historical ranking is 75.4 (Low on the ranking scale). Minimum relative humidity is forecast at 15%. Maximum wind speed is forecast at 5.8 m/s. No rainfall is forecast that day."
+        },
+        {
+          "valid_date": "2026-11-13",
+          "lead_days": 2,
+          "temperature_max_c": {
+            "status": "measured",
+            "value": 11.9
+          },
+          "relative_humidity_min_percent": {
+            "status": "measured",
+            "value": 55.0
+          },
+          "wind_speed_max_m_s": {
+            "status": "measured",
+            "value": 7.1
+          },
+          "wind_gust_max_m_s": {
+            "status": "measured",
+            "value": 19.9
+          },
+          "forecast_rain_mm": {
+            "status": "measured",
+            "value": 43.0
+          },
+          "verification_status": "pending",
+          "fire_danger": {
+            "status": "measured",
+            "fwi": 0.00018806349544320256,
+            "ranking": 5.066633548267419e-07,
+            "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+            "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+            "valid_date": "2026-11-13",
+            "issue_time": null,
+            "danger_class": {
+              "level": "Low",
+              "basis": "fwi",
+              "ranking_level": "Low",
+              "fwi": 0.00018806349544320256,
+              "ranking": 5.066633548267419e-07,
+              "source": "Copernicus GWIS Fire Danger Classes (https://gwis.jrc.ec.europa.eu/about-gwis/technical-background/fire-danger-forecast). The headline level uses the published FWI class thresholds. Local historical ranking is shown as context when GWIS returns it.",
+              "status": "measured"
+            }
+          },
+          "danger_level": "Low",
+          "danger_rank": 1,
+          "explanation": "GWIS places this day in the Low fire-danger class (Fire Weather Index 0.0). The local historical ranking is 0.0 (Low on the ranking scale). Minimum relative humidity is forecast at 55%. Maximum wind speed is forecast at 7.1 m/s. Forecast rainfall is 43.0 mm."
+        },
+        {
+          "valid_date": "2026-11-14",
+          "lead_days": 3,
+          "temperature_max_c": {
+            "status": "measured",
+            "value": 11.1
+          },
+          "relative_humidity_min_percent": {
+            "status": "measured",
+            "value": 48.0
+          },
+          "wind_speed_max_m_s": {
+            "status": "measured",
+            "value": 2.28
+          },
+          "wind_gust_max_m_s": {
+            "status": "measured",
+            "value": 7.3
+          },
+          "forecast_rain_mm": {
+            "status": "measured",
+            "value": 1.5
+          },
+          "verification_status": "pending",
+          "fire_danger": {
+            "status": "measured",
+            "fwi": 2.268783383385653e-08,
+            "ranking": 5.791301140901928e-14,
+            "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+            "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+            "valid_date": "2026-11-14",
+            "issue_time": null,
+            "danger_class": {
+              "level": "Low",
+              "basis": "fwi",
+              "ranking_level": "Low",
+              "fwi": 2.268783383385653e-08,
+              "ranking": 5.791301140901928e-14,
+              "source": "Copernicus GWIS Fire Danger Classes (https://gwis.jrc.ec.europa.eu/about-gwis/technical-background/fire-danger-forecast). The headline level uses the published FWI class thresholds. Local historical ranking is shown as context when GWIS returns it.",
+              "status": "measured"
+            }
+          },
+          "danger_level": "Low",
+          "danger_rank": 1,
+          "explanation": "GWIS places this day in the Low fire-danger class (Fire Weather Index 0.0). The local historical ranking is 0.0 (Low on the ranking scale). Minimum relative humidity is forecast at 48%. Maximum wind speed is forecast at 2.3 m/s. Forecast rainfall is 1.5 mm."
+        },
+        {
+          "valid_date": "2026-11-15",
+          "lead_days": 4,
+          "temperature_max_c": {
+            "status": "measured",
+            "value": 12.9
+          },
+          "relative_humidity_min_percent": {
+            "status": "measured",
+            "value": 47.0
+          },
+          "wind_speed_max_m_s": {
+            "status": "measured",
+            "value": 3.36
+          },
+          "wind_gust_max_m_s": {
+            "status": "measured",
+            "value": 4.6
+          },
+          "forecast_rain_mm": {
+            "status": "measured",
+            "value": 1.3
+          },
+          "verification_status": "pending",
+          "fire_danger": {
+            "status": "measured",
+            "fwi": 0.04866605997085571,
+            "ranking": 0.009453462436795235,
+            "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+            "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+            "valid_date": "2026-11-15",
+            "issue_time": null,
+            "danger_class": {
+              "level": "Low",
+              "basis": "fwi",
+              "ranking_level": "Low",
+              "fwi": 0.04866605997085571,
+              "ranking": 0.009453462436795235,
+              "source": "Copernicus GWIS Fire Danger Classes (https://gwis.jrc.ec.europa.eu/about-gwis/technical-background/fire-danger-forecast). The headline level uses the published FWI class thresholds. Local historical ranking is shown as context when GWIS returns it.",
+              "status": "measured"
+            }
+          },
+          "danger_level": "Low",
+          "danger_rank": 1,
+          "explanation": "GWIS places this day in the Low fire-danger class (Fire Weather Index 0.0). The local historical ranking is 0.0 (Low on the ranking scale). Minimum relative humidity is forecast at 47%. Maximum wind speed is forecast at 3.4 m/s. Forecast rainfall is 1.3 mm."
+        },
+        {
+          "valid_date": "2026-11-16",
+          "lead_days": 5,
+          "temperature_max_c": {
+            "status": "measured",
+            "value": 7.5
+          },
+          "relative_humidity_min_percent": {
+            "status": "measured",
+            "value": 93.0
+          },
+          "wind_speed_max_m_s": {
+            "status": "measured",
+            "value": 1.72
+          },
+          "wind_gust_max_m_s": {
+            "status": "measured",
+            "value": 2.7
+          },
+          "forecast_rain_mm": {
+            "status": "measured",
+            "value": 25.6
+          },
+          "verification_status": "pending",
+          "fire_danger": {
+            "status": "measured",
+            "fwi": 3.356483603056404e-06,
+            "ranking": 4.07394618040513e-10,
+            "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+            "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+            "valid_date": "2026-11-16",
+            "issue_time": null,
+            "danger_class": {
+              "level": "Low",
+              "basis": "fwi",
+              "ranking_level": "Low",
+              "fwi": 3.356483603056404e-06,
+              "ranking": 4.07394618040513e-10,
+              "source": "Copernicus GWIS Fire Danger Classes (https://gwis.jrc.ec.europa.eu/about-gwis/technical-background/fire-danger-forecast). The headline level uses the published FWI class thresholds. Local historical ranking is shown as context when GWIS returns it.",
+              "status": "measured"
+            }
+          },
+          "danger_level": "Low",
+          "danger_rank": 1,
+          "explanation": "GWIS places this day in the Low fire-danger class (Fire Weather Index 0.0). The local historical ranking is 0.0 (Low on the ranking scale). Minimum relative humidity is forecast at 93%. Maximum wind speed is forecast at 1.7 m/s. Forecast rainfall is 25.6 mm."
+        },
+        {
+          "valid_date": "2026-11-17",
+          "lead_days": 6,
+          "temperature_max_c": {
+            "status": "measured",
+            "value": 11.0
+          },
+          "relative_humidity_min_percent": {
+            "status": "measured",
+            "value": 80.0
+          },
+          "wind_speed_max_m_s": {
+            "status": "measured",
+            "value": 2.19
+          },
+          "wind_gust_max_m_s": {
+            "status": "measured",
+            "value": 4.4
+          },
+          "forecast_rain_mm": {
+            "status": "measured",
+            "value": 2.9
+          },
+          "verification_status": "pending",
+          "fire_danger": {
+            "status": "measured",
+            "fwi": 8.064648682193365e-06,
+            "ranking": 1.922456860370403e-09,
+            "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+            "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+            "valid_date": "2026-11-17",
+            "issue_time": null,
+            "danger_class": {
+              "level": "Low",
+              "basis": "fwi",
+              "ranking_level": "Low",
+              "fwi": 8.064648682193365e-06,
+              "ranking": 1.922456860370403e-09,
+              "source": "Copernicus GWIS Fire Danger Classes (https://gwis.jrc.ec.europa.eu/about-gwis/technical-background/fire-danger-forecast). The headline level uses the published FWI class thresholds. Local historical ranking is shown as context when GWIS returns it.",
+              "status": "measured"
+            }
+          },
+          "danger_level": "Low",
+          "danger_rank": 1,
+          "explanation": "GWIS places this day in the Low fire-danger class (Fire Weather Index 0.0). The local historical ranking is 0.0 (Low on the ranking scale). Minimum relative humidity is forecast at 80%. Maximum wind speed is forecast at 2.2 m/s. Forecast rainfall is 2.9 mm."
+        }
+      ],
+      "performance": {
+        "status": "pending_verification",
+        "held_out_error_percentage_points": null,
+        "model": null,
+        "text": "Pending verification. No held-out harmonization error has been measured."
+      },
+      "product_issue_time": null,
+      "product_issue_status": "missing",
+      "issued_at": "2026-11-11T19:54:16+00:00",
+      "verification_status": "pending",
+      "peak_day": {
+        "valid_date": "2026-11-11",
+        "lead_days": 0,
+        "temperature_max_c": {
+          "status": "measured",
+          "value": 21.2
+        },
+        "relative_humidity_min_percent": {
+          "status": "measured",
+          "value": 8.0
+        },
+        "wind_speed_max_m_s": {
+          "status": "measured",
+          "value": 4.52
+        },
+        "wind_gust_max_m_s": {
+          "status": "measured",
+          "value": 8.6
+        },
+        "forecast_rain_mm": {
+          "status": "quiet",
+          "value": 0.0
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "measured",
+          "fwi": 31.247310638427734,
+          "ranking": 71.22978210449219,
+          "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+          "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+          "valid_date": "2026-11-11",
+          "issue_time": null,
+          "danger_class": {
+            "level": "High",
+            "basis": "fwi",
+            "ranking_level": "Low",
+            "fwi": 31.247310638427734,
+            "ranking": 71.22978210449219,
+            "source": "Copernicus GWIS Fire Danger Classes (https://gwis.jrc.ec.europa.eu/about-gwis/technical-background/fire-danger-forecast). The headline level uses the published FWI class thresholds. Local historical ranking is shown as context when GWIS returns it.",
+            "status": "measured"
+          }
+        },
+        "danger_level": "High",
+        "danger_rank": 3,
+        "explanation": "GWIS places this day in the High fire-danger class (Fire Weather Index 31.2). The local historical ranking is 71.2 (Low on the ranking scale). Minimum relative humidity is forecast at 8%. Maximum wind speed is forecast at 4.5 m/s. No rainfall is forecast that day."
+      },
+      "peak_ties": [
+        "2026-11-12"
+      ],
+      "missing_days": [],
+      "danger_class_source": "Copernicus GWIS Fire Danger Classes (https://gwis.jrc.ec.europa.eu/about-gwis/technical-background/fire-danger-forecast). The headline level uses the published FWI class thresholds. Local historical ranking is shown as context when GWIS returns it.",
+      "grid_resolution_km": 8.0,
+      "coverage": {
+        "mode": "center_point",
+        "text": "Forecast near the center of your plot. GWIS ECMWF Fire Weather Index cells are about 8 km across."
+      },
+      "headline": "High fire danger on Wednesday 11 November 2026",
+      "attention_day": "2026-11-11",
+      "headline_explanation": "GWIS places this day in the High fire-danger class (Fire Weather Index 31.2). The local historical ranking is 71.2 (Low on the ranking scale). Minimum relative humidity is forecast at 8%. Maximum wind speed is forecast at 4.5 m/s. No rainfall is forecast that day.",
+      "forecast_status": {
+        "state": "issued",
+        "text": "Forecast archived at 2026-11-11T19:54:16+00:00 (UTC)."
+      }
+    },
+    "heat": {
+      "status": "inside",
+      "lead": "Satellites detected heat inside your boundary (1 reading).",
+      "inside_count": 1,
+      "nearby_count": 1,
+      "nearby_buffer_km": 5.0,
+      "inside": [
+        {
+          "lat": 39.565,
+          "lon": -121.015,
+          "platform": "NOAA-21",
+          "acq_date": "2026-11-10",
+          "acq_time": "21:12",
+          "confidence": "n",
+          "frp": 8.5,
+          "source": "VIIRS_NOAA21_NRT",
+          "distance_km": 0.0,
+          "relation": "inside"
+        }
+      ],
+      "nearby": [
+        {
+          "lat": 39.545,
+          "lon": -120.975,
+          "platform": "NOAA-20",
+          "acq_date": "2026-11-10",
+          "acq_time": "09:04",
+          "confidence": "n",
+          "frp": 6.0,
+          "source": "VIIRS_NOAA20_NRT",
+          "distance_km": 1.4,
+          "relation": "nearby"
+        }
+      ],
+      "platforms_inside": [
+        "NOAA-21"
+      ],
+      "platforms_nearby": [
+        "NOAA-20"
+      ],
+      "coverage": "unknown",
+      "areas": [
+        {
+          "cell_id": "-2335:932",
+          "observation_day": "2026-11-10",
+          "observation_day_convention": "Observation day is the FIRMS acquisition date in UTC (acq_date). It is not a local calendar day and not a wildfire-incident day.",
+          "center_lat": 39.54777706344712,
+          "center_lon": -120.97574877638152,
+          "bounds": {
+            "west": -121.00165919590957,
+            "south": 39.52250535350537,
+            "east": -120.9498383568535,
+            "north": 39.57305783395154
+          },
+          "area_km2": 25.0,
+          "label": "area with detected heat",
+          "satellite_count": 1,
+          "detection_count": 1,
+          "pass_count": 1,
+          "platforms": [
+            "NOAA-20"
+          ],
+          "by_platform": [
+            {
+              "platform": "NOAA-20",
+              "detection_count": 1,
+              "observation_times_utc": [
+                "09:04"
+              ],
+              "passes": 1
+            }
+          ],
+          "members": [
+            {
+              "lat": 39.545,
+              "lon": -120.975,
+              "acq_date": "2026-11-10",
+              "acq_time": "09:04",
+              "acq_time_raw": "904",
+              "satellite_code": "N20",
+              "platform": "NOAA-20",
+              "instrument": "VIIRS",
+              "confidence": "n",
+              "frp": 6.0,
+              "brightness": 320.0,
+              "source": "VIIRS_NOAA20_NRT",
+              "feed_status": "ok"
+            }
+          ],
+          "multiple_satellites": false
+        },
+        {
+          "cell_id": "-2336:932",
+          "observation_day": "2026-11-10",
+          "observation_day_convention": "Observation day is the FIRMS acquisition date in UTC (acq_date). It is not a local calendar day and not a wildfire-incident day.",
+          "center_lat": 39.54777706344712,
+          "center_lon": -121.0275696154376,
+          "bounds": {
+            "west": -121.05348003496565,
+            "south": 39.52250535350537,
+            "east": -121.00165919590957,
+            "north": 39.57305783395154
+          },
+          "area_km2": 25.0,
+          "label": "area with detected heat",
+          "satellite_count": 1,
+          "detection_count": 1,
+          "pass_count": 1,
+          "platforms": [
+            "NOAA-21"
+          ],
+          "by_platform": [
+            {
+              "platform": "NOAA-21",
+              "detection_count": 1,
+              "observation_times_utc": [
+                "21:12"
+              ],
+              "passes": 1
+            }
+          ],
+          "members": [
+            {
+              "lat": 39.565,
+              "lon": -121.015,
+              "acq_date": "2026-11-10",
+              "acq_time": "21:12",
+              "acq_time_raw": "2112",
+              "satellite_code": "N21",
+              "platform": "NOAA-21",
+              "instrument": "VIIRS",
+              "confidence": "n",
+              "frp": 8.5,
+              "brightness": 328.0,
+              "source": "VIIRS_NOAA21_NRT",
+              "feed_status": "ok"
+            }
+          ],
+          "multiple_satellites": false
+        }
+      ],
+      "hotspot_areas": {
+        "observation_day_convention": "Observation day is the FIRMS acquisition date in UTC (acq_date). It is not a local calendar day and not a wildfire-incident day.",
+        "grid": "5 km equal-area cells",
+        "area_count": 2,
+        "detection_count": 2,
+        "satellite_count": 2,
+        "satellites": [
+          "NOAA-20",
+          "NOAA-21"
+        ],
+        "multiple_satellite_area_count": 0,
+        "one_satellite_area_count": 2,
+        "areas": [
+          {
+            "cell_id": "-2335:932",
+            "observation_day": "2026-11-10",
+            "observation_day_convention": "Observation day is the FIRMS acquisition date in UTC (acq_date). It is not a local calendar day and not a wildfire-incident day.",
+            "center_lat": 39.54777706344712,
+            "center_lon": -120.97574877638152,
+            "bounds": {
+              "west": -121.00165919590957,
+              "south": 39.52250535350537,
+              "east": -120.9498383568535,
+              "north": 39.57305783395154
+            },
+            "area_km2": 25.0,
+            "label": "area with detected heat",
+            "satellite_count": 1,
+            "detection_count": 1,
+            "pass_count": 1,
+            "platforms": [
+              "NOAA-20"
+            ],
+            "by_platform": [
+              {
+                "platform": "NOAA-20",
+                "detection_count": 1,
+                "observation_times_utc": [
+                  "09:04"
+                ],
+                "passes": 1
+              }
+            ],
+            "members": [
+              {
+                "lat": 39.545,
+                "lon": -120.975,
+                "acq_date": "2026-11-10",
+                "acq_time": "09:04",
+                "acq_time_raw": "904",
+                "satellite_code": "N20",
+                "platform": "NOAA-20",
+                "instrument": "VIIRS",
+                "confidence": "n",
+                "frp": 6.0,
+                "brightness": 320.0,
+                "source": "VIIRS_NOAA20_NRT",
+                "feed_status": "ok"
+              }
+            ],
+            "multiple_satellites": false
+          },
+          {
+            "cell_id": "-2336:932",
+            "observation_day": "2026-11-10",
+            "observation_day_convention": "Observation day is the FIRMS acquisition date in UTC (acq_date). It is not a local calendar day and not a wildfire-incident day.",
+            "center_lat": 39.54777706344712,
+            "center_lon": -121.0275696154376,
+            "bounds": {
+              "west": -121.05348003496565,
+              "south": 39.52250535350537,
+              "east": -121.00165919590957,
+              "north": 39.57305783395154
+            },
+            "area_km2": 25.0,
+            "label": "area with detected heat",
+            "satellite_count": 1,
+            "detection_count": 1,
+            "pass_count": 1,
+            "platforms": [
+              "NOAA-21"
+            ],
+            "by_platform": [
+              {
+                "platform": "NOAA-21",
+                "detection_count": 1,
+                "observation_times_utc": [
+                  "21:12"
+                ],
+                "passes": 1
+              }
+            ],
+            "members": [
+              {
+                "lat": 39.565,
+                "lon": -121.015,
+                "acq_date": "2026-11-10",
+                "acq_time": "21:12",
+                "acq_time_raw": "2112",
+                "satellite_code": "N21",
+                "platform": "NOAA-21",
+                "instrument": "VIIRS",
+                "confidence": "n",
+                "frp": 8.5,
+                "brightness": 328.0,
+                "source": "VIIRS_NOAA21_NRT",
+                "feed_status": "ok"
+              }
+            ],
+            "multiple_satellites": false
+          }
+        ],
+        "not_a_wildfire_count": true
+      },
+      "public_result": {
+        "kind": "unknown_with_detections",
+        "text": "Satellites detected heat in 2 areas.",
+        "lead": "Satellites detected heat in 2 areas.",
+        "multi_line": "Each area was reported by one satellite.",
+        "area_count": 2,
+        "detection_count": 2,
+        "satellite_count": 2,
+        "multiple_satellite_area_count": 0,
+        "coverage": "unknown"
+      }
+    },
+    "incident": {
+      "line": "Reported incident \u00b7 Vela has no wildfire-report data for this location.",
+      "status": "unavailable",
+      "text": "Vela has no wildfire-report data for this location.",
+      "source": null,
+      "agency": null,
+      "incident_name": null,
+      "incident_date": null,
+      "url": null,
+      "missing_dependency": "No verified wildfire-incident source is configured for Vela yet (for example an agency incident feed with location and date).",
+      "derived_from_satellites": false
+    },
+    "questions": {
+      "forecast_danger": "High fire danger on Wednesday 11 November 2026",
+      "attention_day": "2026-11-11",
+      "satellite_heat": "Satellites detected heat inside your boundary (1 reading)."
+    },
+    "separation_note": "Forecast fire danger, satellite heat detections, and agency incident reports answer different questions. They are shown together and are not combined into a score.",
+    "center": {
+      "lat": 39.569,
+      "lon": -121.0125
+    },
+    "fixture": {
+      "name": "check_land_demo",
+      "label": "Saved competition demo \u00b7 labeled archive, not a live network pull",
+      "forecast_captured_at": "2026-11-11T19:54:16+00:00",
+      "observation_date": "2026-11-10",
+      "notes": "GWIS FWI outlook archived from live WMS; satellite points are labeled demo detections placed inside and nearby the saved polygon."
+    },
+    "checked_at": "2026-11-11T19:54:44.311421+00:00"
+  }
+}

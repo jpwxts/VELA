@@ -1,0 +1,45 @@
+{
+  "additional_bytes": 0,
+  "passes": [
+    {
+      "modis_fire": "MYD14.A2019232.1725.061.2020304193337",
+      "modis_time": "2019-08-20T17:25:00+00:00",
+      "bytes": 230841168,
+      "bytes_already_on_disk": 230841168,
+      "additional_bytes": 0,
+      "missing_files": []
+    },
+    {
+      "modis_fire": "MYD14.A2019233.1630.061.2020304201527",
+      "modis_time": "2019-08-21T16:30:00+00:00",
+      "bytes": 227188747,
+      "bytes_already_on_disk": 227188747,
+      "additional_bytes": 0,
+      "missing_files": []
+    },
+    {
+      "modis_fire": "MYD14.A2019235.1620.061.2020304214519",
+      "modis_time": "2019-08-23T16:20:00+00:00",
+      "bytes": 205827938,
+      "bytes_already_on_disk": 205827938,
+      "additional_bytes": 0,
+      "missing_files": []
+    },
+    {
+      "modis_fire": "MYD14.A2019235.1755.061.2020304214513",
+      "modis_time": "2019-08-23T17:55:00+00:00",
+      "bytes": 221887572,
+      "bytes_already_on_disk": 221887572,
+      "additional_bytes": 0,
+      "missing_files": []
+    },
+    {
+      "modis_fire": "MYD14.A2019236.1700.061.2020304223052",
+      "modis_time": "2019-08-24T17:00:00+00:00",
+      "bytes": 231880684,
+      "bytes_already_on_disk": 231880684,
+      "additional_bytes": 0,
+      "missing_files": []
+    }
+  ]
+}

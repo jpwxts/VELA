@@ -1,0 +1,47 @@
+{
+  "recorded_before_further_fire_outcomes": true,
+  "rule": "Follow the existing 2021\u20132022 validation_priority order for NOAA-20/Aqua transfer weeks. Do not reorder by fire counts, Aqua rates, or model scores.",
+  "order": [
+    {
+      "region_id": "cerrado",
+      "week_start": "2021-02-22",
+      "week_end": "2021-02-28",
+      "role": "pilot"
+    },
+    {
+      "region_id": "california",
+      "week_start": "2021-03-22",
+      "week_end": "2021-03-28",
+      "role": "next"
+    },
+    {
+      "region_id": "zambia",
+      "week_start": "2021-07-19",
+      "week_end": "2021-07-25",
+      "role": "later"
+    },
+    {
+      "region_id": "yakutia",
+      "week_start": "2021-11-22",
+      "week_end": "2021-11-28",
+      "role": "later"
+    },
+    {
+      "region_id": "arnhem",
+      "week_start": "2022-11-28",
+      "week_end": "2022-12-04",
+      "role": "later"
+    }
+  ],
+  "next": {
+    "region_id": "california",
+    "week_start": "2021-03-22",
+    "week_end": "2021-03-28"
+  },
+  "operational_noaa20": "calibration pending",
+  "suomi_model": "random_forest",
+  "held_out_untouched": [
+    "2023-2024",
+    "pantanal"
+  ]
+}

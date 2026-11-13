@@ -1,0 +1,285 @@
+{
+  "fixture": {
+    "name": "weather_values_missing",
+    "label": "Saved fixture \u00b7 dates without measurements \u00b7 labeled archive"
+  },
+  "bbox": {
+    "west": -66.6,
+    "south": -3.4,
+    "east": -66.3,
+    "north": -3.1
+  },
+  "forecast": {
+    "ok": true,
+    "issue_id": "gwis-ecmwf|-66.60,-3.40,-66.30,-3.10|2026-11-11:2026-11-17",
+    "region_key": "-66.60,-3.40,-66.30,-3.10",
+    "point": {
+      "latitude": -3.2688928,
+      "longitude": -66.44589,
+      "timezone": "America/Manaus",
+      "label": "This marker is the forecast point returned for the center of the selected area."
+    },
+    "weather_source": "Open-Meteo forecast API",
+    "recent_rain": {
+      "status": "measured",
+      "millimetres": 9.6,
+      "days": 7,
+      "start": "2026-11-04",
+      "end": "2026-11-10"
+    },
+    "forecast_rain": {
+      "status": "measured",
+      "millimetres": 27.1
+    },
+    "days": [
+      {
+        "valid_date": "2026-11-11",
+        "lead_days": 0,
+        "temperature_max_c": {
+          "status": "missing",
+          "value": null
+        },
+        "relative_humidity_min_percent": {
+          "status": "missing",
+          "value": null
+        },
+        "wind_speed_max_m_s": {
+          "status": "missing",
+          "value": null
+        },
+        "wind_gust_max_m_s": {
+          "status": "missing",
+          "value": null
+        },
+        "forecast_rain_mm": {
+          "status": "missing",
+          "value": null
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "unavailable",
+          "fwi": null,
+          "ranking": null,
+          "source": "",
+          "ranking_source": "",
+          "valid_date": "2026-11-11",
+          "issue_time": null
+        }
+      },
+      {
+        "valid_date": "2026-11-12",
+        "lead_days": 1,
+        "temperature_max_c": {
+          "status": "missing",
+          "value": null
+        },
+        "relative_humidity_min_percent": {
+          "status": "missing",
+          "value": null
+        },
+        "wind_speed_max_m_s": {
+          "status": "missing",
+          "value": null
+        },
+        "wind_gust_max_m_s": {
+          "status": "missing",
+          "value": null
+        },
+        "forecast_rain_mm": {
+          "status": "missing",
+          "value": null
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "unavailable",
+          "fwi": null,
+          "ranking": null,
+          "source": "",
+          "ranking_source": "",
+          "valid_date": "2026-11-12",
+          "issue_time": null
+        }
+      },
+      {
+        "valid_date": "2026-11-13",
+        "lead_days": 2,
+        "temperature_max_c": {
+          "status": "missing",
+          "value": null
+        },
+        "relative_humidity_min_percent": {
+          "status": "missing",
+          "value": null
+        },
+        "wind_speed_max_m_s": {
+          "status": "missing",
+          "value": null
+        },
+        "wind_gust_max_m_s": {
+          "status": "missing",
+          "value": null
+        },
+        "forecast_rain_mm": {
+          "status": "missing",
+          "value": null
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "unavailable",
+          "fwi": null,
+          "ranking": null,
+          "source": "",
+          "ranking_source": "",
+          "valid_date": "2026-11-13",
+          "issue_time": null
+        }
+      },
+      {
+        "valid_date": "2026-11-14",
+        "lead_days": 3,
+        "temperature_max_c": {
+          "status": "missing",
+          "value": null
+        },
+        "relative_humidity_min_percent": {
+          "status": "missing",
+          "value": null
+        },
+        "wind_speed_max_m_s": {
+          "status": "missing",
+          "value": null
+        },
+        "wind_gust_max_m_s": {
+          "status": "missing",
+          "value": null
+        },
+        "forecast_rain_mm": {
+          "status": "missing",
+          "value": null
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "unavailable",
+          "fwi": null,
+          "ranking": null,
+          "source": "",
+          "ranking_source": "",
+          "valid_date": "2026-11-14",
+          "issue_time": null
+        }
+      },
+      {
+        "valid_date": "2026-11-15",
+        "lead_days": 4,
+        "temperature_max_c": {
+          "status": "missing",
+          "value": null
+        },
+        "relative_humidity_min_percent": {
+          "status": "missing",
+          "value": null
+        },
+        "wind_speed_max_m_s": {
+          "status": "missing",
+          "value": null
+        },
+        "wind_gust_max_m_s": {
+          "status": "missing",
+          "value": null
+        },
+        "forecast_rain_mm": {
+          "status": "missing",
+          "value": null
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "unavailable",
+          "fwi": null,
+          "ranking": null,
+          "source": "",
+          "ranking_source": "",
+          "valid_date": "2026-11-15",
+          "issue_time": null
+        }
+      },
+      {
+        "valid_date": "2026-11-16",
+        "lead_days": 5,
+        "temperature_max_c": {
+          "status": "missing",
+          "value": null
+        },
+        "relative_humidity_min_percent": {
+          "status": "missing",
+          "value": null
+        },
+        "wind_speed_max_m_s": {
+          "status": "missing",
+          "value": null
+        },
+        "wind_gust_max_m_s": {
+          "status": "missing",
+          "value": null
+        },
+        "forecast_rain_mm": {
+          "status": "missing",
+          "value": null
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "unavailable",
+          "fwi": null,
+          "ranking": null,
+          "source": "",
+          "ranking_source": "",
+          "valid_date": "2026-11-16",
+          "issue_time": null
+        }
+      },
+      {
+        "valid_date": "2026-11-17",
+        "lead_days": 6,
+        "temperature_max_c": {
+          "status": "missing",
+          "value": null
+        },
+        "relative_humidity_min_percent": {
+          "status": "missing",
+          "value": null
+        },
+        "wind_speed_max_m_s": {
+          "status": "missing",
+          "value": null
+        },
+        "wind_gust_max_m_s": {
+          "status": "missing",
+          "value": null
+        },
+        "forecast_rain_mm": {
+          "status": "missing",
+          "value": null
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "unavailable",
+          "fwi": null,
+          "ranking": null,
+          "source": "",
+          "ranking_source": "",
+          "valid_date": "2026-11-17",
+          "issue_time": null
+        }
+      }
+    ],
+    "performance": {
+      "status": "pending_verification",
+      "held_out_error_percentage_points": null,
+      "model": null,
+      "text": "Pending verification. No held-out harmonization error has been measured."
+    },
+    "product_issue_time": null,
+    "product_issue_status": "missing",
+    "issued_at": "2026-11-11T19:59:39+00:00",
+    "verification_status": "pending"
+  }
+}

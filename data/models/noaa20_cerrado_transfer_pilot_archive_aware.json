@@ -1,0 +1,58 @@
+{
+  "label": "NOAA-20 transfer pilot archive-aware rerun",
+  "preserves_original_cache_limited_pilot": "/Users/florlyn/Desktop/MODISVIIRS/data/models/noaa20_cerrado_transfer_pilot.json",
+  "original_matched_cell_days": 0,
+  "operational_harmonized_estimate": "calibration pending",
+  "research_status": "transfer pilot evaluated",
+  "region_id": "cerrado",
+  "week_start": "2021-02-22",
+  "week_end": "2021-02-28",
+  "accepted_cached_catalog_pairs": 1,
+  "confirmed_passes": [
+    {
+      "modis_file": "MYD14.A2021057.1610.061.2021058113629.hdf",
+      "viirs_file": "VJ114IMG.A2021057.1548.002.2024156070831.nc",
+      "viirs_platform": "NOAA-20",
+      "delta_minutes": 22.0,
+      "modis_shape": [
+        2030,
+        1354
+      ],
+      "viirs_shape": [
+        6464,
+        6400
+      ],
+      "modis_daytime_check": "solar_zenith",
+      "viirs_daytime_check": "solar_zenith",
+      "modis_pixels_in_area": 906,
+      "viirs_pixels_in_area": 24261
+    }
+  ],
+  "exclusion_counts": {
+    "missing_modis": 184,
+    "insufficient_shared_land": 194
+  },
+  "granule_skips": [],
+  "calibration_activated": false,
+  "selected_suomi_model": "random_forest",
+  "selected_suomi_model_changed": false,
+  "noaa21_status": "calibration pending",
+  "final_test_evaluated": false,
+  "pantanal_opened": false,
+  "matched_cell_days": 0,
+  "aqua_positives": 0,
+  "aqua_zeros": 0,
+  "observed_aqua_rate": null,
+  "raw_noaa20_rate": null,
+  "frozen_model_mean_probability": null,
+  "signed_difference_percentage_points": {
+    "raw_noaa20": null,
+    "frozen_random_forest": null
+  },
+  "absolute_error_percentage_points": {
+    "raw_noaa20": null,
+    "frozen_random_forest": null
+  },
+  "errors_undefined": true,
+  "reason": "Accepted cached Aqua/NOAA-20 catalog pairs still yielded zero jointly eligible cell-days after measured shared visible land."
+}

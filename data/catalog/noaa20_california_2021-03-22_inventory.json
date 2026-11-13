@@ -1,0 +1,219 @@
+{
+  "label": "noaa20-california-inventory",
+  "metadata_only": true,
+  "download_started": false,
+  "download_authorized_this_run": false,
+  "region_id": "california",
+  "week_start": "2021-03-22",
+  "week_end": "2021-03-28",
+  "earthdata_login": true,
+  "query_status": {
+    "MYD14": "ok",
+    "MYD03": "ok",
+    "VJ114IMG": "ok",
+    "VJ103IMG": "ok"
+  },
+  "search_errors": {
+    "MYD14": null,
+    "MYD03": null,
+    "VJ114IMG": null,
+    "VJ103IMG": null
+  },
+  "versions": {
+    "MYD14": "061",
+    "MYD03": "6.1",
+    "VJ114IMG": "002",
+    "VJ103IMG": "2.1"
+  },
+  "files_per_product": {
+    "MYD14": 27,
+    "MYD03": 27,
+    "VJ114IMG": 26,
+    "VJ103IMG": 26
+  },
+  "aqua_complete_pairs": 27,
+  "noaa20_complete_pairs": 26,
+  "aqua_incomplete": 0,
+  "noaa20_incomplete": 0,
+  "candidate_pass_pairs_within_30_minutes": [
+    {
+      "noaa20_stamp": "A2021081.2018",
+      "noaa20_time": "2021-03-22T20:18:00+00:00",
+      "aqua_stamp": "A2021081.2035",
+      "aqua_time": "2021-03-22T20:35:00+00:00",
+      "delta_minutes": 17.0,
+      "aqua_fire": "MYD14.A2021081.2035.061.2021083224310",
+      "aqua_geolocation": "MYD03.A2021081.2035.061.2021082151413.hdf",
+      "noaa20_fire": "VJ114IMG.A2021081.2018.002.2024156161846",
+      "noaa20_geolocation": "VJ103IMG.A2021081.2018.021.2021085044717.nc",
+      "aqua_cache_status": "missing",
+      "noaa20_cache_status": "missing",
+      "aqua_pair_bytes": 42556347,
+      "noaa20_pair_bytes": 177928593,
+      "catalog_footprint_overlap_checked": true,
+      "measured_shared_visible_land": "not_computed_metadata_only"
+    },
+    {
+      "noaa20_stamp": "A2021081.2200",
+      "noaa20_time": "2021-03-22T22:00:00+00:00",
+      "aqua_stamp": "A2021081.2210",
+      "aqua_time": "2021-03-22T22:10:00+00:00",
+      "delta_minutes": 10.0,
+      "aqua_fire": "MYD14.A2021081.2210.061.2021083224924",
+      "aqua_geolocation": "MYD03.A2021081.2210.061.2021082152336.hdf",
+      "noaa20_fire": "VJ114IMG.A2021081.2200.002.2024156161955",
+      "noaa20_geolocation": "VJ103IMG.A2021081.2200.021.2021085044719.nc",
+      "aqua_cache_status": "missing",
+      "noaa20_cache_status": "missing",
+      "aqua_pair_bytes": 27418017,
+      "noaa20_pair_bytes": 143181913,
+      "catalog_footprint_overlap_checked": true,
+      "measured_shared_visible_land": "not_computed_metadata_only"
+    },
+    {
+      "noaa20_stamp": "A2021082.2142",
+      "noaa20_time": "2021-03-23T21:42:00+00:00",
+      "aqua_stamp": "A2021082.2120",
+      "aqua_time": "2021-03-23T21:20:00+00:00",
+      "delta_minutes": 22.0,
+      "aqua_fire": "MYD14.A2021082.2120.061.2021083231709",
+      "aqua_geolocation": "MYD03.A2021082.2120.061.2021083155532.hdf",
+      "noaa20_fire": "VJ114IMG.A2021082.2142.002.2024156163633",
+      "noaa20_geolocation": "VJ103IMG.A2021082.2142.021.2021085050050.nc",
+      "aqua_cache_status": "missing",
+      "noaa20_cache_status": "missing",
+      "aqua_pair_bytes": 38803323,
+      "noaa20_pair_bytes": 157357372,
+      "catalog_footprint_overlap_checked": true,
+      "measured_shared_visible_land": "not_computed_metadata_only"
+    },
+    {
+      "noaa20_stamp": "A2021084.2100",
+      "noaa20_time": "2021-03-25T21:00:00+00:00",
+      "aqua_stamp": "A2021084.2105",
+      "aqua_time": "2021-03-25T21:05:00+00:00",
+      "delta_minutes": 5.0,
+      "aqua_fire": "MYD14.A2021084.2105.061.2021085194547",
+      "aqua_geolocation": "MYD03.A2021084.2105.061.2021085161838.hdf",
+      "noaa20_fire": "VJ114IMG.A2021084.2100.002.2024156172559",
+      "noaa20_geolocation": "VJ103IMG.A2021084.2100.021.2021085140919.nc",
+      "aqua_cache_status": "missing",
+      "noaa20_cache_status": "missing",
+      "aqua_pair_bytes": 38870259,
+      "noaa20_pair_bytes": 160725667,
+      "catalog_footprint_overlap_checked": true,
+      "measured_shared_visible_land": "not_computed_metadata_only"
+    },
+    {
+      "noaa20_stamp": "A2021086.2024",
+      "noaa20_time": "2021-03-27T20:24:00+00:00",
+      "aqua_stamp": "A2021086.2050",
+      "aqua_time": "2021-03-27T20:50:00+00:00",
+      "delta_minutes": 26.0,
+      "aqua_fire": "MYD14.A2021086.2050.061.2021087113449",
+      "aqua_geolocation": "MYD03.A2021086.2050.061.2021087151239.hdf",
+      "noaa20_fire": "VJ114IMG.A2021086.2024.002.2024156175644",
+      "noaa20_geolocation": "VJ103IMG.A2021086.2024.021.2021088021833.nc",
+      "aqua_cache_status": "cached",
+      "noaa20_cache_status": "missing",
+      "aqua_pair_bytes": 36566201,
+      "noaa20_pair_bytes": 176085085,
+      "catalog_footprint_overlap_checked": true,
+      "measured_shared_visible_land": "not_computed_metadata_only"
+    },
+    {
+      "noaa20_stamp": "A2021087.2148",
+      "noaa20_time": "2021-03-28T21:48:00+00:00",
+      "aqua_stamp": "A2021087.2135",
+      "aqua_time": "2021-03-28T21:35:00+00:00",
+      "delta_minutes": 13.0,
+      "aqua_fire": "MYD14.A2021087.2135.061.2021088123320",
+      "aqua_geolocation": "MYD03.A2021087.2135.061.2021088152533.hdf",
+      "noaa20_fire": "VJ114IMG.A2021087.2148.002.2024156182615",
+      "noaa20_geolocation": "VJ103IMG.A2021087.2148.021.2021088022436.nc",
+      "aqua_cache_status": "missing",
+      "noaa20_cache_status": "missing",
+      "aqua_pair_bytes": 32074700,
+      "noaa20_pair_bytes": 153482814,
+      "catalog_footprint_overlap_checked": true,
+      "measured_shared_visible_land": "not_computed_metadata_only"
+    }
+  ],
+  "candidate_pair_count": 6,
+  "missing_files_by_platform": {
+    "Aqua": [
+      {
+        "fire": "MYD14.A2021081.2035.061.2021083224310",
+        "geolocation": "MYD03.A2021081.2035.061.2021082151413.hdf",
+        "pair_bytes": 42556347,
+        "cache_status": "missing"
+      },
+      {
+        "fire": "MYD14.A2021081.2210.061.2021083224924",
+        "geolocation": "MYD03.A2021081.2210.061.2021082152336.hdf",
+        "pair_bytes": 27418017,
+        "cache_status": "missing"
+      },
+      {
+        "fire": "MYD14.A2021082.2120.061.2021083231709",
+        "geolocation": "MYD03.A2021082.2120.061.2021083155532.hdf",
+        "pair_bytes": 38803323,
+        "cache_status": "missing"
+      },
+      {
+        "fire": "MYD14.A2021084.2105.061.2021085194547",
+        "geolocation": "MYD03.A2021084.2105.061.2021085161838.hdf",
+        "pair_bytes": 38870259,
+        "cache_status": "missing"
+      },
+      {
+        "fire": "MYD14.A2021087.2135.061.2021088123320",
+        "geolocation": "MYD03.A2021087.2135.061.2021088152533.hdf",
+        "pair_bytes": 32074700,
+        "cache_status": "missing"
+      }
+    ],
+    "NOAA-20": [
+      {
+        "fire": "VJ114IMG.A2021081.2018.002.2024156161846",
+        "geolocation": "VJ103IMG.A2021081.2018.021.2021085044717.nc",
+        "pair_bytes": 177928593,
+        "cache_status": "missing"
+      },
+      {
+        "fire": "VJ114IMG.A2021081.2200.002.2024156161955",
+        "geolocation": "VJ103IMG.A2021081.2200.021.2021085044719.nc",
+        "pair_bytes": 143181913,
+        "cache_status": "missing"
+      },
+      {
+        "fire": "VJ114IMG.A2021082.2142.002.2024156163633",
+        "geolocation": "VJ103IMG.A2021082.2142.021.2021085050050.nc",
+        "pair_bytes": 157357372,
+        "cache_status": "missing"
+      },
+      {
+        "fire": "VJ114IMG.A2021084.2100.002.2024156172559",
+        "geolocation": "VJ103IMG.A2021084.2100.021.2021085140919.nc",
+        "pair_bytes": 160725667,
+        "cache_status": "missing"
+      },
+      {
+        "fire": "VJ114IMG.A2021086.2024.002.2024156175644",
+        "geolocation": "VJ103IMG.A2021086.2024.021.2021088021833.nc",
+        "pair_bytes": 176085085,
+        "cache_status": "missing"
+      },
+      {
+        "fire": "VJ114IMG.A2021087.2148.002.2024156182615",
+        "geolocation": "VJ103IMG.A2021087.2148.021.2021088022436.nc",
+        "pair_bytes": 153482814,
+        "cache_status": "missing"
+      }
+    ]
+  },
+  "estimated_additional_bytes": 1148484090,
+  "operational_noaa20": "calibration pending",
+  "suomi_model_unchanged": "random_forest",
+  "held_out_untouched": true
+}

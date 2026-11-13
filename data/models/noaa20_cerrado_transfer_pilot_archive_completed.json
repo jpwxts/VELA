@@ -1,0 +1,368 @@
+{
+  "label": "NOAA-20 transfer pilot archive-completed",
+  "preserves_original_cache_limited_pilot": "/Users/florlyn/Desktop/MODISVIIRS/data/models/noaa20_cerrado_transfer_pilot_cache_limited_original.json",
+  "original_result_file": "/Users/florlyn/Desktop/MODISVIIRS/data/models/noaa20_cerrado_transfer_pilot.json",
+  "operational_harmonized_estimate": "calibration pending",
+  "research_status": "transfer pilot evaluated",
+  "region_id": "cerrado",
+  "week_start": "2021-02-22",
+  "week_end": "2021-02-28",
+  "protocol_amendment": "2026-11-12b",
+  "bytes_transferred": 112445976,
+  "estimated_additional_bytes": 112445976,
+  "verification": [
+    {
+      "name": "MYD03.A2021055.1625.061.2021056173622.hdf",
+      "bytes": 34992999,
+      "exists": true,
+      "suffix": ".hdf",
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD03.A2021055.1625.061.2021056173622.hdf"
+    },
+    {
+      "name": "MYD03.A2021057.1750.061.2021058160212.hdf",
+      "bytes": 37364757,
+      "exists": true,
+      "suffix": ".hdf",
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD03.A2021057.1750.061.2021058160212.hdf"
+    },
+    {
+      "name": "MYD03.A2021058.1655.061.2021059163505.hdf",
+      "bytes": 38553080,
+      "exists": true,
+      "suffix": ".hdf",
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD03.A2021058.1655.061.2021059163505.hdf"
+    },
+    {
+      "name": "MYD14.A2021055.1625.061.2021056131716.hdf",
+      "bytes": 548231,
+      "exists": true,
+      "suffix": ".hdf",
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD14.A2021055.1625.061.2021056131716.hdf"
+    },
+    {
+      "name": "MYD14.A2021057.1750.061.2021058113704.hdf",
+      "bytes": 495722,
+      "exists": true,
+      "suffix": ".hdf",
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD14.A2021057.1750.061.2021058113704.hdf"
+    },
+    {
+      "name": "MYD14.A2021058.1655.061.2021059120428.hdf",
+      "bytes": 491187,
+      "exists": true,
+      "suffix": ".hdf",
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD14.A2021058.1655.061.2021059120428.hdf"
+    }
+  ],
+  "resolved_after_download": [
+    {
+      "name": "MYD03.A2021055.1625.061.2021056173622.hdf",
+      "resolved": true,
+      "bytes": 34992999,
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD03.A2021055.1625.061.2021056173622.hdf"
+    },
+    {
+      "name": "MYD03.A2021057.1750.061.2021058160212.hdf",
+      "resolved": true,
+      "bytes": 37364757,
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD03.A2021057.1750.061.2021058160212.hdf"
+    },
+    {
+      "name": "MYD03.A2021058.1655.061.2021059163505.hdf",
+      "resolved": true,
+      "bytes": 38553080,
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD03.A2021058.1655.061.2021059163505.hdf"
+    },
+    {
+      "name": "MYD14.A2021055.1625.061.2021056131716",
+      "resolved": true,
+      "bytes": 548231,
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD14.A2021055.1625.061.2021056131716.hdf"
+    },
+    {
+      "name": "MYD14.A2021057.1750.061.2021058113704",
+      "resolved": true,
+      "bytes": 495722,
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD14.A2021057.1750.061.2021058113704.hdf"
+    },
+    {
+      "name": "MYD14.A2021058.1655.061.2021059120428",
+      "resolved": true,
+      "bytes": 491187,
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD14.A2021058.1655.061.2021059120428.hdf"
+    }
+  ],
+  "all_requested_aqua_resolved": true,
+  "candidate_matches": 5,
+  "candidate_match_details": [
+    {
+      "noaa20_acquisition_time": "2021-02-24T16:24:00+00:00",
+      "noaa20_fire": "VJ114IMG.A2021055.1624.002.2024156061814",
+      "aqua_time": "2021-02-24T16:25:00+00:00",
+      "aqua_stamp": "A2021055.1625",
+      "delta_minutes": 1.0,
+      "paths": [
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD14.A2021055.1625.061.2021056131716.hdf",
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD03.A2021055.1625.061.2021056173622.hdf",
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/noaa20_pilot/2021-02-24/VJ114IMG.A2021055.1624.002.2024156061814.nc",
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/noaa20_pilot/2021-02-24/VJ103IMG.A2021055.1624.021.2021072202142.nc"
+      ]
+    },
+    {
+      "noaa20_acquisition_time": "2021-02-24T16:30:00+00:00",
+      "noaa20_fire": "VJ114IMG.A2021055.1630.002.2024156061827",
+      "aqua_time": "2021-02-24T16:25:00+00:00",
+      "aqua_stamp": "A2021055.1625",
+      "delta_minutes": 5.0,
+      "paths": [
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD14.A2021055.1625.061.2021056131716.hdf",
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD03.A2021055.1625.061.2021056173622.hdf",
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/noaa20_pilot/2021-02-24/VJ114IMG.A2021055.1630.002.2024156061827.nc",
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/noaa20_pilot/2021-02-24/VJ103IMG.A2021055.1630.021.2021072202410.nc"
+      ]
+    },
+    {
+      "noaa20_acquisition_time": "2021-02-26T15:48:00+00:00",
+      "noaa20_fire": "VJ114IMG.A2021057.1548.002.2024156070831",
+      "aqua_time": "2021-02-26T16:10:00+00:00",
+      "aqua_stamp": "A2021057.1610",
+      "delta_minutes": 22.0,
+      "paths": [
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/2021-02-26/MYD14.A2021057.1610.061.2021058113629.hdf",
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/2021-02-26/MYD03.A2021057.1610.061.2021058160203.hdf",
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/noaa20_pilot/2021-02-26/VJ114IMG.A2021057.1548.002.2024156070831.nc",
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/noaa20_pilot/2021-02-26/VJ103IMG.A2021057.1548.021.2021072210850.nc"
+      ]
+    },
+    {
+      "noaa20_acquisition_time": "2021-02-26T17:30:00+00:00",
+      "noaa20_fire": "VJ114IMG.A2021057.1730.002.2024156070912",
+      "aqua_time": "2021-02-26T17:50:00+00:00",
+      "aqua_stamp": "A2021057.1750",
+      "delta_minutes": 20.0,
+      "paths": [
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD14.A2021057.1750.061.2021058113704.hdf",
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD03.A2021057.1750.061.2021058160212.hdf",
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/noaa20_pilot/2021-02-26/VJ114IMG.A2021057.1730.002.2024156070912.nc",
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/noaa20_pilot/2021-02-26/VJ103IMG.A2021057.1730.021.2021072210919.nc"
+      ]
+    },
+    {
+      "noaa20_acquisition_time": "2021-02-27T17:12:00+00:00",
+      "noaa20_fire": "VJ114IMG.A2021058.1712.002.2024156072414",
+      "aqua_time": "2021-02-27T16:55:00+00:00",
+      "aqua_stamp": "A2021058.1655",
+      "delta_minutes": 17.0,
+      "paths": [
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD14.A2021058.1655.061.2021059120428.hdf",
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD03.A2021058.1655.061.2021059163505.hdf",
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/noaa20_pilot/2021-02-27/VJ114IMG.A2021058.1712.002.2024156072414.nc",
+        "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/noaa20_pilot/2021-02-27/VJ103IMG.A2021058.1712.021.2021072212730.nc"
+      ]
+    }
+  ],
+  "matches_with_any_collected_cells": 5,
+  "matches_with_eligible_cells": 2,
+  "match_coverage": [
+    {
+      "noaa20_fire": "VJ114IMG.A2021055.1624.002.2024156061814.nc",
+      "noaa20_acquisition_time": "2021-02-24T16:24:00+00:00",
+      "aqua_stamp": "A2021055.1625",
+      "delta_minutes": 1.0,
+      "status": "processed",
+      "rows": 5313,
+      "eligible_before_choose_one": 0,
+      "eligible_after_choose_one": 0,
+      "has_eligible_cells": false
+    },
+    {
+      "noaa20_fire": "VJ114IMG.A2021055.1630.002.2024156061827.nc",
+      "noaa20_acquisition_time": "2021-02-24T16:30:00+00:00",
+      "aqua_stamp": "A2021055.1625",
+      "delta_minutes": 5.0,
+      "status": "processed",
+      "rows": 5304,
+      "eligible_before_choose_one": 1,
+      "eligible_after_choose_one": 1,
+      "has_eligible_cells": true
+    },
+    {
+      "noaa20_fire": "VJ114IMG.A2021057.1548.002.2024156070831.nc",
+      "noaa20_acquisition_time": "2021-02-26T15:48:00+00:00",
+      "aqua_stamp": "A2021057.1610",
+      "delta_minutes": 22.0,
+      "status": "processed",
+      "rows": 378,
+      "eligible_before_choose_one": 0,
+      "eligible_after_choose_one": 0,
+      "has_eligible_cells": false
+    },
+    {
+      "noaa20_fire": "VJ114IMG.A2021057.1730.002.2024156070912.nc",
+      "noaa20_acquisition_time": "2021-02-26T17:30:00+00:00",
+      "aqua_stamp": "A2021057.1750",
+      "delta_minutes": 20.0,
+      "status": "processed",
+      "rows": 5925,
+      "eligible_before_choose_one": 0,
+      "eligible_after_choose_one": 0,
+      "has_eligible_cells": false
+    },
+    {
+      "noaa20_fire": "VJ114IMG.A2021058.1712.002.2024156072414.nc",
+      "noaa20_acquisition_time": "2021-02-27T17:12:00+00:00",
+      "aqua_stamp": "A2021058.1655",
+      "delta_minutes": 17.0,
+      "status": "processed",
+      "rows": 5925,
+      "eligible_before_choose_one": 15,
+      "eligible_after_choose_one": 15,
+      "has_eligible_cells": true
+    }
+  ],
+  "duplicate_cell_days_resolved": 5070,
+  "final_unique_eligible_cell_days": 16,
+  "confirmed_passes": [
+    {
+      "modis_file": "MYD14.A2021055.1625.061.2021056131716.hdf",
+      "viirs_file": "VJ114IMG.A2021055.1624.002.2024156061814.nc",
+      "viirs_platform": "NOAA-20",
+      "delta_minutes": 1.0,
+      "modis_pixels_in_area": 31742,
+      "viirs_pixels_in_area": 406031,
+      "rows": 5313,
+      "eligible_before_choose_one": 0,
+      "noaa20_acquisition_time": "2021-02-24T16:24:00+00:00"
+    },
+    {
+      "modis_file": "MYD14.A2021055.1625.061.2021056131716.hdf",
+      "viirs_file": "VJ114IMG.A2021055.1630.002.2024156061827.nc",
+      "viirs_platform": "NOAA-20",
+      "delta_minutes": 5.0,
+      "modis_pixels_in_area": 31742,
+      "viirs_pixels_in_area": 398514,
+      "rows": 5304,
+      "eligible_before_choose_one": 1,
+      "noaa20_acquisition_time": "2021-02-24T16:30:00+00:00"
+    },
+    {
+      "modis_file": "MYD14.A2021057.1610.061.2021058113629.hdf",
+      "viirs_file": "VJ114IMG.A2021057.1548.002.2024156070831.nc",
+      "viirs_platform": "NOAA-20",
+      "delta_minutes": 22.0,
+      "modis_pixels_in_area": 906,
+      "viirs_pixels_in_area": 24261,
+      "rows": 378,
+      "eligible_before_choose_one": 0,
+      "noaa20_acquisition_time": "2021-02-26T15:48:00+00:00"
+    },
+    {
+      "modis_file": "MYD14.A2021057.1750.061.2021058113704.hdf",
+      "viirs_file": "VJ114IMG.A2021057.1730.002.2024156070912.nc",
+      "viirs_platform": "NOAA-20",
+      "delta_minutes": 20.0,
+      "modis_pixels_in_area": 11010,
+      "viirs_pixels_in_area": 887746,
+      "rows": 5925,
+      "eligible_before_choose_one": 0,
+      "noaa20_acquisition_time": "2021-02-26T17:30:00+00:00"
+    },
+    {
+      "modis_file": "MYD14.A2021058.1655.061.2021059120428.hdf",
+      "viirs_file": "VJ114IMG.A2021058.1712.002.2024156072414.nc",
+      "viirs_platform": "NOAA-20",
+      "delta_minutes": 17.0,
+      "modis_pixels_in_area": 124788,
+      "viirs_pixels_in_area": 824507,
+      "rows": 5925,
+      "eligible_before_choose_one": 15,
+      "noaa20_acquisition_time": "2021-02-27T17:12:00+00:00"
+    }
+  ],
+  "exclusion_counts": {
+    "insufficient_shared_land": 12550,
+    "missing_viirs": 143,
+    "missing_modis": 5066,
+    "duplicate_pass_not_selected": 5070
+  },
+  "granule_skips": [],
+  "calibration_activated": false,
+  "selected_suomi_model": "random_forest",
+  "selected_suomi_model_changed": false,
+  "noaa21_status": "calibration pending",
+  "final_test_evaluated": false,
+  "pantanal_opened": false,
+  "held_out_untouched": true,
+  "native_detections_preserved": true,
+  "predictions_path": "/Users/florlyn/Desktop/MODISVIIRS/data/processed/noaa20_cerrado_pilot_cells_archive_completed.parquet",
+  "feb24_note": "On 24 February, NOAA-20 16:24 and 16:30 both match Aqua 16:25. Both pairs were processed under NOAA-20-centric pairing; choose_one kept one NOAA-20 contribution per cell-date.",
+  "aqua_positives": 0,
+  "aqua_zeros": 16,
+  "observed_aqua_rate": 0.0,
+  "raw_noaa20_rate": 0.0,
+  "frozen_model_mean_probability": 0.010208219703516243,
+  "signed_difference_percentage_points": {
+    "raw_noaa20": 0.0,
+    "frozen_random_forest": 1.0208219703516244
+  },
+  "absolute_error_percentage_points": {
+    "raw_noaa20": 0.0,
+    "frozen_random_forest": 1.0208219703516244
+  },
+  "errors_undefined": false,
+  "california_inventory": {
+    "file": "/Users/florlyn/Desktop/MODISVIIRS/data/catalog/noaa20_california_2021-03-22_inventory.json",
+    "candidate_pair_count": 6,
+    "estimated_additional_bytes": 1148484090,
+    "download_authorized_this_run": false
+  },
+  "week_order": {
+    "recorded_before_further_fire_outcomes": true,
+    "rule": "Follow the existing 2021\u20132022 validation_priority order for NOAA-20/Aqua transfer weeks. Do not reorder by fire counts, Aqua rates, or model scores.",
+    "order": [
+      {
+        "region_id": "cerrado",
+        "week_start": "2021-02-22",
+        "week_end": "2021-02-28",
+        "role": "pilot"
+      },
+      {
+        "region_id": "california",
+        "week_start": "2021-03-22",
+        "week_end": "2021-03-28",
+        "role": "next"
+      },
+      {
+        "region_id": "zambia",
+        "week_start": "2021-07-19",
+        "week_end": "2021-07-25",
+        "role": "later"
+      },
+      {
+        "region_id": "yakutia",
+        "week_start": "2021-11-22",
+        "week_end": "2021-11-28",
+        "role": "later"
+      },
+      {
+        "region_id": "arnhem",
+        "week_start": "2022-11-28",
+        "week_end": "2022-12-04",
+        "role": "later"
+      }
+    ],
+    "next": {
+      "region_id": "california",
+      "week_start": "2021-03-22",
+      "week_end": "2021-03-28"
+    },
+    "operational_noaa20": "calibration pending",
+    "suomi_model": "random_forest",
+    "held_out_untouched": [
+      "2023-2024",
+      "pantanal"
+    ]
+  },
+  "pairing_mode": "noaa20_centric_best_aqua_within_30_min",
+  "low_activity_interpretation": "Aqua recorded zero positives on the jointly eligible cell-days, so the measured Aqua activity rate is 0%. This week tests transfer under low-activity / clear-zero conditions. Active-fire transfer under high Aqua activity remains unknown."
+}

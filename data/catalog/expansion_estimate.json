@@ -1,0 +1,63 @@
+{
+  "selected_before_catalog_search": true,
+  "fire_counts_used": false,
+  "batch": "/Users/florlyn/Desktop/MODISVIIRS/data/manifests/expansion_batch.csv",
+  "weeks": [
+    {
+      "region_id": "cerrado",
+      "season": "DJF",
+      "year": 2014,
+      "week_start": "2014-01-27",
+      "week_end": "2014-02-02",
+      "unique_files": 80,
+      "candidate_daytime_passes": 5,
+      "catalog_bytes": 4597558719,
+      "matched_pass_bytes": 1097458616,
+      "unknown_size_count": 0
+    },
+    {
+      "region_id": "california",
+      "season": "MAM",
+      "year": 2013,
+      "week_start": "2013-03-11",
+      "week_end": "2013-03-17",
+      "unique_files": 92,
+      "candidate_daytime_passes": 5,
+      "catalog_bytes": 4728602809,
+      "matched_pass_bytes": 943722771,
+      "unknown_size_count": 0
+    },
+    {
+      "region_id": "zambia",
+      "season": "JJA",
+      "year": 2020,
+      "week_start": "2020-08-17",
+      "week_end": "2020-08-23",
+      "unique_files": 40,
+      "candidate_daytime_passes": 0,
+      "catalog_bytes": 3657385757,
+      "matched_pass_bytes": 0,
+      "unknown_size_count": 0
+    },
+    {
+      "region_id": "yakutia",
+      "season": "SON",
+      "year": 2017,
+      "week_start": "2017-09-11",
+      "week_end": "2017-09-17",
+      "unique_files": 180,
+      "candidate_daytime_passes": 12,
+      "catalog_bytes": 11176445235,
+      "matched_pass_bytes": 2797103543,
+      "unknown_size_count": 0
+    }
+  ],
+  "additional_catalog_bytes": 24159992520,
+  "additional_matched_pass_bytes": 4838284930,
+  "unknown_size_count": 0,
+  "current_data_bytes": 1118710383,
+  "peak_disk_bytes_if_matched_passes_downloaded": 5956995313,
+  "peak_disk_bytes_if_every_listed_granule_downloaded": 25278702903,
+  "disk_free_bytes": 44702195712,
+  "download_started": false
+}

@@ -1,0 +1,95 @@
+{
+  "bytes_downloaded": 112445976,
+  "verification": [
+    {
+      "name": "MYD03.A2021055.1625.061.2021056173622.hdf",
+      "bytes": 34992999,
+      "exists": true,
+      "suffix": ".hdf",
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD03.A2021055.1625.061.2021056173622.hdf"
+    },
+    {
+      "name": "MYD03.A2021057.1750.061.2021058160212.hdf",
+      "bytes": 37364757,
+      "exists": true,
+      "suffix": ".hdf",
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD03.A2021057.1750.061.2021058160212.hdf"
+    },
+    {
+      "name": "MYD03.A2021058.1655.061.2021059163505.hdf",
+      "bytes": 38553080,
+      "exists": true,
+      "suffix": ".hdf",
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD03.A2021058.1655.061.2021059163505.hdf"
+    },
+    {
+      "name": "MYD14.A2021055.1625.061.2021056131716.hdf",
+      "bytes": 548231,
+      "exists": true,
+      "suffix": ".hdf",
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD14.A2021055.1625.061.2021056131716.hdf"
+    },
+    {
+      "name": "MYD14.A2021057.1750.061.2021058113704.hdf",
+      "bytes": 495722,
+      "exists": true,
+      "suffix": ".hdf",
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD14.A2021057.1750.061.2021058113704.hdf"
+    },
+    {
+      "name": "MYD14.A2021058.1655.061.2021059120428.hdf",
+      "bytes": 491187,
+      "exists": true,
+      "suffix": ".hdf",
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD14.A2021058.1655.061.2021059120428.hdf"
+    }
+  ],
+  "already_cached_before_download": [],
+  "requested": [
+    "MYD03.A2021055.1625.061.2021056173622.hdf",
+    "MYD03.A2021057.1750.061.2021058160212.hdf",
+    "MYD03.A2021058.1655.061.2021059163505.hdf",
+    "MYD14.A2021055.1625.061.2021056131716",
+    "MYD14.A2021057.1750.061.2021058113704",
+    "MYD14.A2021058.1655.061.2021059120428"
+  ],
+  "resolved_after_download": [
+    {
+      "name": "MYD03.A2021055.1625.061.2021056173622.hdf",
+      "resolved": true,
+      "bytes": 34992999,
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD03.A2021055.1625.061.2021056173622.hdf"
+    },
+    {
+      "name": "MYD03.A2021057.1750.061.2021058160212.hdf",
+      "resolved": true,
+      "bytes": 37364757,
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD03.A2021057.1750.061.2021058160212.hdf"
+    },
+    {
+      "name": "MYD03.A2021058.1655.061.2021059163505.hdf",
+      "resolved": true,
+      "bytes": 38553080,
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD03.A2021058.1655.061.2021059163505.hdf"
+    },
+    {
+      "name": "MYD14.A2021055.1625.061.2021056131716",
+      "resolved": true,
+      "bytes": 548231,
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD14.A2021055.1625.061.2021056131716.hdf"
+    },
+    {
+      "name": "MYD14.A2021057.1750.061.2021058113704",
+      "resolved": true,
+      "bytes": 495722,
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD14.A2021057.1750.061.2021058113704.hdf"
+    },
+    {
+      "name": "MYD14.A2021058.1655.061.2021059120428",
+      "resolved": true,
+      "bytes": 491187,
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/aqua_for_noaa20_pilot/MYD14.A2021058.1655.061.2021059120428.hdf"
+    }
+  ],
+  "all_resolved": true
+}

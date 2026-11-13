@@ -1,0 +1,106 @@
+{
+  "label": "reserve-candidate-inventory",
+  "metadata_only": true,
+  "download_started": false,
+  "fire_counts_used": false,
+  "region_id": "arnhem",
+  "week_start": "2022-11-28",
+  "week_end": "2022-12-04",
+  "season": "DJF",
+  "year": 2022,
+  "source_order": "model_selection.json validation_priority.next_preselected_weeks after Yakutia",
+  "candidate_daytime_passes": 6,
+  "catalog_footprint_overlap_pairs": 6,
+  "measured_shared_visible_land": "not_established",
+  "measured_shared_visible_land_note": "Catalog daytime pairing and footprint overlap are present. Shared visible land is measured only after fire-mask pixels are read.",
+  "unique_matched_files": 20,
+  "cached_files": 0,
+  "missing_files": 20,
+  "unknown_size_files": [],
+  "missing_granules": [
+    {
+      "name": "MYD14.A2022333.0425.061.2022333131052",
+      "bytes": 418074
+    },
+    {
+      "name": "MYD03.A2022333.0425.061.2022333154656.hdf",
+      "bytes": 29701614
+    },
+    {
+      "name": "VNP14IMG.A2022333.0430.002.2024077110618",
+      "bytes": 2519188
+    },
+    {
+      "name": "VNP03IMG.A2022333.0430.002.2022333135512.nc",
+      "bytes": 156642474
+    },
+    {
+      "name": "MYD14.A2022335.0410.061.2022335145638",
+      "bytes": 410932
+    },
+    {
+      "name": "MYD03.A2022335.0410.061.2022335161724.hdf",
+      "bytes": 29922282
+    },
+    {
+      "name": "VNP14IMG.A2022335.0354.002.2024077111948",
+      "bytes": 1484421
+    },
+    {
+      "name": "VNP03IMG.A2022335.0354.002.2022335145723.nc",
+      "bytes": 150914791
+    },
+    {
+      "name": "MYD14.A2022335.0415.061.2022335145632",
+      "bytes": 363768
+    },
+    {
+      "name": "MYD03.A2022335.0415.061.2022335161614.hdf",
+      "bytes": 29139855
+    },
+    {
+      "name": "MYD14.A2022336.0455.061.2022336140946",
+      "bytes": 445262
+    },
+    {
+      "name": "MYD03.A2022336.0455.061.2022336155435.hdf",
+      "bytes": 29613240
+    },
+    {
+      "name": "VNP14IMG.A2022336.0512.002.2024077112623",
+      "bytes": 4137709
+    },
+    {
+      "name": "VNP03IMG.A2022336.0512.002.2022336145356.nc",
+      "bytes": 158165025
+    },
+    {
+      "name": "MYD14.A2022338.0440.061.2022338123653",
+      "bytes": 581264
+    },
+    {
+      "name": "MYD03.A2022338.0440.061.2022338162801.hdf",
+      "bytes": 30937209
+    },
+    {
+      "name": "VNP14IMG.A2022338.0436.002.2024077114525",
+      "bytes": 3535808
+    },
+    {
+      "name": "VNP03IMG.A2022338.0436.002.2022338140842.nc",
+      "bytes": 156315541
+    },
+    {
+      "name": "MYD14.A2022338.0445.061.2022338123653",
+      "bytes": 359819
+    },
+    {
+      "name": "MYD03.A2022338.0445.061.2022338162651.hdf",
+      "bytes": 28746706
+    }
+  ],
+  "estimated_additional_bytes": 814354982,
+  "gross_matched_pass_bytes": 814354982,
+  "next_command_if_download_authorized": "PYTHONUNBUFFERED=1 python -m scripts.ingest_reserve_week --region arnhem --week-start 2022-11-28 --week-end 2022-12-04 --i-authorize-download",
+  "scope_if_download_authorized": "Download only the 20 missing Aqua/Suomi-NPP granules for Arnhem 2022-11-28 to 2022-12-04, process matched daytime passes, and score the frozen candidates. Do not download NOAA-20/21. Do not open 2023\u20132024 or Pantanal."
+}

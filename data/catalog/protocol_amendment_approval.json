@@ -1,0 +1,18 @@
+{
+  "file": "docs/VALIDATION_PROTOCOL_AMENDMENT_2026-11-12.md",
+  "version": "2026-11-12b",
+  "sha256": "2ebd405ccb56f253a7d37d00095cc9444ad7ed1542d8cf8ab4c9d72f68a2a373",
+  "approved_for_run": "arnhem-2022-11-28",
+  "recorded_before_arnhem_processing": true,
+  "checks": {
+    "reserve_order": true,
+    "coverage_eligibility": true,
+    "stopping_rule": true,
+    "reserve_enters_four_week_selection": true,
+    "arnhem_first_after_yakutia": true,
+    "disjoint_from_training_years_regions": true,
+    "disjoint_from_2023_2024_and_pantanal": true,
+    "fire_counts_unused_in_selection": true,
+    "material_gap_closed_before_outcomes": "explicit reserve entry into equal-weight four-week mean; original vs reserve-inclusive labels"
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "completed_pairs": [
+    "VJ114IMG.A2021053.1706.002",
+    "VJ114IMG.A2021054.1648.002",
+    "VJ114IMG.A2021055.1624.002",
+    "VJ114IMG.A2021055.1630.002",
+    "VJ114IMG.A2021056.1606.002",
+    "VJ114IMG.A2021056.1748.002",
+    "VJ114IMG.A2021057.1548.002",
+    "VJ114IMG.A2021057.1730.002",
+    "VJ114IMG.A2021058.1712.002",
+    "VJ114IMG.A2021059.1654.002"
+  ],
+  "bytes_downloaded": 1800954900,
+  "verification": [
+    {
+      "name": "VJ114IMG.A2021053.1706.002.2024156054816.nc",
+      "bytes": 2922175,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021053.1706.021.2021072200249.nc",
+      "bytes": 188124827,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ114IMG.A2021054.1648.002.2024156055249.nc",
+      "bytes": 2946240,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021054.1648.021.2021072195917.nc",
+      "bytes": 184608327,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ114IMG.A2021055.1624.002.2024156061814.nc",
+      "bytes": 1928990,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021055.1624.021.2021072202142.nc",
+      "bytes": 162531415,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ114IMG.A2021055.1630.002.2024156061827.nc",
+      "bytes": 2679416,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021055.1630.021.2021072202410.nc",
+      "bytes": 176161692,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ114IMG.A2021056.1606.002.2024156063825.nc",
+      "bytes": 2010448,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021056.1606.021.2021072210004.nc",
+      "bytes": 161977715,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ114IMG.A2021056.1748.002.2024156064020.nc",
+      "bytes": 2934269,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021056.1748.021.2021072205017.nc",
+      "bytes": 181595843,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ114IMG.A2021057.1548.002.2024156070831.nc",
+      "bytes": 1704996,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021057.1548.021.2021072210850.nc",
+      "bytes": 160177722,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ114IMG.A2021057.1730.002.2024156070912.nc",
+      "bytes": 2645999,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021057.1730.021.2021072210919.nc",
+      "bytes": 187670720,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ114IMG.A2021058.1712.002.2024156072414.nc",
+      "bytes": 2676975,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021058.1712.021.2021072212730.nc",
+      "bytes": 187404795,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ114IMG.A2021059.1654.002.2024156075329.nc",
+      "bytes": 2429275,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021059.1654.021.2021072221142.nc",
+      "bytes": 185823061,
+      "suffix": ".nc",
+      "exists": true
+    }
+  ]
+}

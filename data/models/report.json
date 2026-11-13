@@ -1,0 +1,62 @@
+{
+  "data_origin": "nasa",
+  "table": "/Users/florlyn/Desktop/MODISVIIRS/data/processed/paired_cells.parquet",
+  "feature_columns": [
+    "viirs_hotspot_pixels",
+    "viirs_fire_low",
+    "viirs_fire_nominal",
+    "viirs_fire_high",
+    "viirs_clear_fraction",
+    "viirs_cloud_fraction",
+    "viirs_water_fraction",
+    "viirs_unknown_fraction",
+    "viirs_visible_land_km2",
+    "center_lat",
+    "center_lon",
+    "doy_sin",
+    "doy_cos",
+    "local_hour"
+  ],
+  "split": {
+    "train_years": [
+      2013,
+      2020
+    ],
+    "tune_years": [
+      2021,
+      2022
+    ],
+    "test_years": [
+      2023,
+      2024
+    ]
+  },
+  "reserved_role": "transfer",
+  "gaps": [
+    "Tuning weeks with sufficient coverage: 0; at least 4 are required."
+  ],
+  "chosen_model": null,
+  "validation": {},
+  "temporal_test": null,
+  "transfer_evaluation": null,
+  "thresholds": {},
+  "counts": {
+    "train_rows": 21301,
+    "tune_rows": 0,
+    "test_rows": 0,
+    "transfer_rows": 0,
+    "train_positives": 33,
+    "train_years": [
+      2013,
+      2014,
+      2017,
+      2019
+    ],
+    "train_regions": [
+      "california",
+      "cerrado",
+      "yakutia"
+    ],
+    "sufficient_tune_weeks": 0
+  }
+}

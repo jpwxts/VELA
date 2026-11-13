@@ -1,0 +1,489 @@
+{
+  "label": "logistic candidate audit",
+  "validation_label": "validation",
+  "models_refit": false,
+  "artifacts_replaced": false,
+  "classes": [
+    0,
+    1
+  ],
+  "positive_class": 1,
+  "positive_probability_column": 1,
+  "scoring_uses_column_index_1": true,
+  "feature_names_in_order": [
+    "viirs_hotspot_pixels",
+    "viirs_fire_low",
+    "viirs_fire_nominal",
+    "viirs_fire_high",
+    "viirs_clear_fraction",
+    "viirs_cloud_fraction",
+    "viirs_water_fraction",
+    "viirs_unknown_fraction",
+    "viirs_visible_land_km2",
+    "center_lat",
+    "center_lon",
+    "doy_sin",
+    "doy_cos",
+    "local_hour"
+  ],
+  "artifact_feature_names": [
+    "viirs_hotspot_pixels",
+    "viirs_fire_low",
+    "viirs_fire_nominal",
+    "viirs_fire_high",
+    "viirs_clear_fraction",
+    "viirs_cloud_fraction",
+    "viirs_water_fraction",
+    "viirs_unknown_fraction",
+    "viirs_visible_land_km2",
+    "center_lat",
+    "center_lon",
+    "doy_sin",
+    "doy_cos",
+    "local_hour"
+  ],
+  "feature_order_matches_artifact": true,
+  "pipeline_steps": [
+    "imputer",
+    "scaler",
+    "model"
+  ],
+  "imputer": {
+    "strategy": "median",
+    "statistics": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      20.8125,
+      39.44674443995742,
+      -49.877557591461645,
+      -0.7508642533989489,
+      -0.28726097055059635,
+      13.352222222222222
+    ]
+  },
+  "scaler": {
+    "with_mean": true,
+    "with_std": true,
+    "mean": [
+      0.01159569973240693,
+      0.0028637153185296464,
+      0.008544199802826159,
+      0.00018778461105112436,
+      0.9612670468430782,
+      0.0327820188318635,
+      0.005594073714915354,
+      0.000274860390659374,
+      20.167493603586685,
+      21.668820358930084,
+      -8.21921056909252,
+      -0.19353866814049717,
+      -0.011966762227224113,
+      13.147520943200371
+    ],
+    "scale": [
+      0.27201749017323723,
+      0.09464942848356564,
+      0.19768684340109438,
+      0.013702165813876897,
+      0.07511990158393854,
+      0.07168497923568717,
+      0.023006164436927823,
+      0.008672465098192523,
+      3.2965348716141607,
+      34.79164996740844,
+      96.86687529435642,
+      0.8061691276455546,
+      0.5590088712779121,
+      0.7794876657200476
+    ]
+  },
+  "coefficients": {
+    "viirs_hotspot_pixels": 0.48318771154626017,
+    "viirs_fire_low": 0.07184141703369566,
+    "viirs_fire_nominal": 0.5907160944311367,
+    "viirs_fire_high": 0.5735560032059214,
+    "viirs_clear_fraction": -0.24552357564862895,
+    "viirs_cloud_fraction": -0.30600053867690885,
+    "viirs_water_fraction": 0.3005368121860021,
+    "viirs_unknown_fraction": -0.27124622679794863,
+    "viirs_visible_land_km2": -0.767402028914231,
+    "center_lat": -9.368419650263869,
+    "center_lon": -9.846211123410447,
+    "doy_sin": 5.335726840544983,
+    "doy_cos": -3.7317581712955956,
+    "local_hour": -1.151818919674699
+  },
+  "intercept": -13.709511497333304,
+  "probability_at_training_mean": 1.1118195959517952e-06,
+  "training_rows": 21301,
+  "training_positives": 33,
+  "training_positive_rate": 0.001549223041171776,
+  "class_weight": "balanced",
+  "balanced_weights_from_training_counts": {
+    "0": 0.5007758134286252,
+    "1": 322.74242424242425
+  },
+  "training_class_counts": {
+    "0": 21268,
+    "1": 33
+  },
+  "resampling": null,
+  "duplicate_pipeline_steps": false,
+  "hotspot_pixels_equal_fire_class_sum_on_training_rows": true,
+  "training_feature_ranges": {
+    "viirs_hotspot_pixels": {
+      "min": 0.0,
+      "max": 15.0,
+      "median": 0.0,
+      "missing": 0
+    },
+    "viirs_fire_low": {
+      "min": 0.0,
+      "max": 7.0,
+      "median": 0.0,
+      "missing": 0
+    },
+    "viirs_fire_nominal": {
+      "min": 0.0,
+      "max": 11.0,
+      "median": 0.0,
+      "missing": 0
+    },
+    "viirs_fire_high": {
+      "min": 0.0,
+      "max": 1.0,
+      "median": 0.0,
+      "missing": 0
+    },
+    "viirs_clear_fraction": {
+      "min": 0.5077720207253886,
+      "max": 1.0,
+      "median": 1.0,
+      "missing": 0
+    },
+    "viirs_cloud_fraction": {
+      "min": 0.0,
+      "max": 0.49222797927461137,
+      "median": 0.0,
+      "missing": 0
+    },
+    "viirs_water_fraction": {
+      "min": 0.0,
+      "max": 0.3790849673202614,
+      "median": 0.0,
+      "missing": 0
+    },
+    "viirs_unknown_fraction": {
+      "min": 0.0,
+      "max": 0.42528735632183906,
+      "median": 0.0,
+      "missing": 0
+    },
+    "viirs_visible_land_km2": {
+      "min": 12.515625,
+      "max": 25.0,
+      "median": 20.8125,
+      "missing": 0
+    },
+    "center_lat": {
+      "min": -15.487989217548897,
+      "max": 63.98308697053832,
+      "median": 39.44674443995742,
+      "missing": 0
+    },
+    "center_lon": {
+      "min": -122.78947814334377,
+      "max": 129.99257477213666,
+      "median": -49.877557591461645,
+      "missing": 0
+    },
+    "doy_sin": {
+      "min": -0.9671667297977312,
+      "max": 0.9655071658143364,
+      "median": -0.7508642533989489,
+      "missing": 0
+    },
+    "doy_cos": {
+      "min": -0.6604565640279754,
+      "max": 0.8940611451454876,
+      "median": -0.28726097055059635,
+      "missing": 0
+    },
+    "local_hour": {
+      "min": 11.24472222222222,
+      "max": 14.264444444444445,
+      "median": 13.352222222222222,
+      "missing": 0
+    }
+  },
+  "validation_feature_ranges": {
+    "viirs_hotspot_pixels": {
+      "min": 0.0,
+      "max": 22.0,
+      "median": 0.0,
+      "missing": 0
+    },
+    "viirs_fire_low": {
+      "min": 0.0,
+      "max": 5.0,
+      "median": 0.0,
+      "missing": 0
+    },
+    "viirs_fire_nominal": {
+      "min": 0.0,
+      "max": 17.0,
+      "median": 0.0,
+      "missing": 0
+    },
+    "viirs_fire_high": {
+      "min": 0.0,
+      "max": 4.0,
+      "median": 0.0,
+      "missing": 0
+    },
+    "viirs_clear_fraction": {
+      "min": 0.5056818181818182,
+      "max": 1.0,
+      "median": 0.9819277108433735,
+      "missing": 0
+    },
+    "viirs_cloud_fraction": {
+      "min": 0.0,
+      "max": 0.4943181818181818,
+      "median": 0.009708737864077669,
+      "missing": 0
+    },
+    "viirs_water_fraction": {
+      "min": 0.0,
+      "max": 0.3836477987421384,
+      "median": 0.0,
+      "missing": 0
+    },
+    "viirs_unknown_fraction": {
+      "min": 0.0,
+      "max": 0.3668639053254438,
+      "median": 0.0,
+      "missing": 0
+    },
+    "viirs_visible_land_km2": {
+      "min": 12.515625,
+      "max": 25.0,
+      "median": 20.953125,
+      "missing": 0
+    },
+    "center_lat": {
+      "min": -15.487989217548897,
+      "max": 41.756684167230176,
+      "median": -13.385129369630144,
+      "missing": 0
+    },
+    "center_lon": {
+      "min": -122.78947814334377,
+      "max": 28.993759451867835,
+      "median": -49.514811718069204,
+      "missing": 0
+    },
+    "doy_sin": {
+      "min": -0.3913578365610259,
+      "max": 0.9958270335100595,
+      "median": 0.8009803309782905,
+      "missing": 0
+    },
+    "doy_cos": {
+      "min": -0.9556633054034704,
+      "max": 0.612380204990065,
+      "median": 0.09126072172931188,
+      "missing": 0
+    },
+    "local_hour": {
+      "min": 12.613888888888889,
+      "max": 14.364444444444445,
+      "median": 13.574444444444444,
+      "missing": 0
+    }
+  },
+  "weeks": [
+    {
+      "region_id": "cerrado",
+      "scoring_code_estimate": 0.8606100811486417,
+      "mean_positive_class_probability": 0.8606100811486417,
+      "scoring_column_matches_positive_class": true,
+      "rows": 4964,
+      "zero_viirs_fire_pixel_rows": 4961,
+      "mean_probability_when_zero_viirs_fire_pixels": 0.8605267747006518,
+      "observed_modis_rate": 0.0008058017727639
+    },
+    {
+      "region_id": "california",
+      "scoring_code_estimate": 0.4766547971964293,
+      "mean_positive_class_probability": 0.4766547971964293,
+      "scoring_column_matches_positive_class": true,
+      "rows": 4613,
+      "zero_viirs_fire_pixel_rows": 4603,
+      "mean_probability_when_zero_viirs_fire_pixels": 0.47558884644357646,
+      "observed_modis_rate": 0.0008671146759158899
+    },
+    {
+      "region_id": "zambia",
+      "scoring_code_estimate": 0.13826638538972122,
+      "mean_positive_class_probability": 0.13826638538972122,
+      "scoring_column_matches_positive_class": true,
+      "rows": 7493,
+      "zero_viirs_fire_pixel_rows": 6634,
+      "mean_probability_when_zero_viirs_fire_pixels": 0.04717395507475373,
+      "observed_modis_rate": 0.04217269451488056
+    }
+  ],
+  "cerrado_high_probability_row": {
+    "region_id": "cerrado",
+    "local_date": "2021-02-25",
+    "cell_id": "-986:-387",
+    "viirs_hotspot_pixels": 1.0,
+    "modis_detected": false,
+    "predicted_positive_probability": 0.9986102953285754,
+    "linear_predictor": 6.577273349808264,
+    "sigmoid_of_linear_predictor": 0.9986102953285754,
+    "largest_contributions": [
+      {
+        "feature": "center_lat",
+        "raw": -15.325526397131469,
+        "imputed": -15.325526397131469,
+        "scaled": -1.0633110758103315,
+        "coefficient": -9.368419650263869,
+        "contribution": 9.961544376964724
+      },
+      {
+        "feature": "doy_sin",
+        "raw": 0.8211001178128892,
+        "imputed": 0.8211001178128892,
+        "scaled": 1.2585929566872336,
+        "coefficient": 5.335726840544983,
+        "contribution": 6.715508220316941
+      },
+      {
+        "feature": "center_lon",
+        "raw": -51.069436889751124,
+        "imputed": -51.069436889751124,
+        "scaled": -0.4423620168447316,
+        "coefficient": -9.846211123410447,
+        "contribution": 4.3555898108308755
+      },
+      {
+        "feature": "doy_cos",
+        "raw": 0.5707841943569036,
+        "imputed": 0.5707841943569036,
+        "scaled": 1.0424717504964465,
+        "coefficient": -3.7317581712955956,
+        "contribution": -3.8902524732599373
+      },
+      {
+        "feature": "viirs_fire_nominal",
+        "raw": 1.0,
+        "imputed": 1.0,
+        "scaled": 5.015284695428979,
+        "coefficient": 0.5907160944311367,
+        "contribution": 2.962609387744059
+      },
+      {
+        "feature": "viirs_hotspot_pixels",
+        "raw": 1.0,
+        "imputed": 1.0,
+        "scaled": 3.633605690715392,
+        "coefficient": 0.48318771154626017,
+        "contribution": 1.7557136183582382
+      }
+    ]
+  },
+  "reserved_not_scored": [
+    "2023-2024",
+    "pantanal"
+  ],
+  "scoring_bug": false,
+  "performance": "observed",
+  "cerrado_typical_zero_fire_row": {
+    "local_date": "2021-02-25",
+    "cell_id": "-964:-328",
+    "viirs_hotspot_pixels": 0.0,
+    "modis_detected": false,
+    "predicted_positive_probability": 0.8605258844879677,
+    "zero_fire_probability_min": 0.0019313071703173806,
+    "zero_fire_probability_median": 0.8668082428765319,
+    "zero_fire_probability_max": 0.9975444694871587,
+    "linear_predictor": 1.8196646637927234,
+    "intercept": -13.709511497333304,
+    "largest_contributions": [
+      {
+        "feature": "center_lat",
+        "raw": -12.942676383999736,
+        "imputed": -12.942676383999736,
+        "scaled": -0.9948219407631606,
+        "coefficient": -9.368419650263869,
+        "contribution": 9.319909418359233
+      },
+      {
+        "feature": "doy_sin",
+        "raw": 0.8211001178128892,
+        "imputed": 0.8211001178128892,
+        "scaled": 1.2585929566872336,
+        "coefficient": 5.335726840544983,
+        "contribution": 6.715508220316941
+      },
+      {
+        "feature": "center_lon",
+        "raw": -49.92937843051772,
+        "imputed": -49.92937843051772,
+        "scaled": -0.4305926843895551,
+        "coefficient": -9.846211123410447,
+        "contribution": 4.239706478695601
+      },
+      {
+        "feature": "doy_cos",
+        "raw": 0.5707841943569036,
+        "imputed": 0.5707841943569036,
+        "scaled": 1.0424717504964465,
+        "coefficient": -3.7317581712955956,
+        "contribution": -3.8902524732599373
+      },
+      {
+        "feature": "local_hour",
+        "raw": 13.671111111111111,
+        "imputed": 13.671111111111111,
+        "scaled": 0.6717106516715391,
+        "coefficient": -1.151818919674699,
+        "contribution": -0.7736890371423003
+      },
+      {
+        "feature": "viirs_cloud_fraction",
+        "raw": 0.053691275167785234,
+        "imputed": 0.053691275167785234,
+        "scaled": 0.29168253320093607,
+        "coefficient": -0.30600053867690885,
+        "contribution": -0.08925501228213178
+      },
+      {
+        "feature": "viirs_visible_land_km2",
+        "raw": 19.828125,
+        "imputed": 19.828125,
+        "scaled": -0.10294706921165128,
+        "coefficient": -0.767402028914231,
+        "contribution": 0.07900178978379496
+      },
+      {
+        "feature": "viirs_water_fraction",
+        "raw": 0.0,
+        "imputed": 0.0,
+        "scaled": -0.24315542602730222,
+        "coefficient": 0.3005368121860021,
+        "contribution": -0.07307715660397465
+      }
+    ]
+  },
+  "conclusion": "Scoring is correct. classes_ is [0, 1], and column 1 is the MODIS-positive class. Each reported weekly estimate equals the mean of those cell-day probabilities. The Cerrado weekly estimate of 0.8606 is the observed behavior of the balanced logistic candidate.",
+  "driver": "4,961 of 4,964 Cerrado cell-days have zero VIIRS fire pixels and a mean positive probability of 0.8605. Their log-odds are dominated by latitude, day-of-year, and longitude, not by fire-pixel counts."
+}

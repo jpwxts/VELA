@@ -1,0 +1,16 @@
+{
+  "region_id": "yakutia",
+  "week_start": "2021-11-22",
+  "week_end": "2021-11-28",
+  "split": "tune",
+  "fire_counts_used": false,
+  "download_started": false,
+  "matched_passes": 14,
+  "unique_matched_files": 52,
+  "cached_files": [],
+  "missing_files": 52,
+  "unknown_size_files": [],
+  "gross_matched_pass_bytes": 2847082377,
+  "additional_transfer_bytes": 2847082377,
+  "prior_estimate_bytes": 3229215808
+}

@@ -1,0 +1,154 @@
+{
+  "reprocessed_after_zenith_fix": true,
+  "eligible_cell_days": 0,
+  "excluded_rows": 32300,
+  "exclusion_reasons": {
+    "duplicate_pass_not_selected": 14355,
+    "insufficient_shared_land": 11846,
+    "missing_modis": 3741,
+    "missing_viirs": 2358
+  },
+  "granule_skips": [
+    {
+      "stamp": "A2021327.0200",
+      "platform": "Aqua",
+      "reason": "nighttime"
+    },
+    {
+      "stamp": "A2021329.0500",
+      "platform": "Aqua",
+      "reason": "nighttime"
+    },
+    {
+      "stamp": "A2021331.0450",
+      "platform": "Aqua",
+      "reason": "nighttime"
+    },
+    {
+      "stamp": "A2021332.0215",
+      "platform": "Aqua",
+      "reason": "nighttime"
+    },
+    {
+      "stamp": "A2021332.0530",
+      "platform": "Aqua",
+      "reason": "nighttime"
+    }
+  ],
+  "passes": [
+    {
+      "stamp": "yakutia_2021326_0250.parquet",
+      "eligible": 0,
+      "excluded": 3589,
+      "skips": []
+    },
+    {
+      "stamp": "yakutia_2021326_0255.parquet",
+      "eligible": 0,
+      "excluded": 3589,
+      "skips": []
+    },
+    {
+      "stamp": "yakutia_2021326_0430.parquet",
+      "eligible": 0,
+      "excluded": 3589,
+      "skips": []
+    },
+    {
+      "stamp": "yakutia_2021327_0200.parquet",
+      "eligible": 0,
+      "excluded": 0,
+      "skips": [
+        {
+          "stamp": "A2021327.0200",
+          "platform": "Aqua",
+          "reason": "nighttime"
+        }
+      ]
+    },
+    {
+      "stamp": "yakutia_2021328_0240.parquet",
+      "eligible": 0,
+      "excluded": 3588,
+      "skips": []
+    },
+    {
+      "stamp": "yakutia_2021328_0415.parquet",
+      "eligible": 0,
+      "excluded": 3589,
+      "skips": []
+    },
+    {
+      "stamp": "yakutia_2021329_0320.parquet",
+      "eligible": 0,
+      "excluded": 3589,
+      "skips": []
+    },
+    {
+      "stamp": "yakutia_2021329_0325.parquet",
+      "eligible": 0,
+      "excluded": 3589,
+      "skips": []
+    },
+    {
+      "stamp": "yakutia_2021329_0500.parquet",
+      "eligible": 0,
+      "excluded": 0,
+      "skips": [
+        {
+          "stamp": "A2021329.0500",
+          "platform": "Aqua",
+          "reason": "nighttime"
+        }
+      ]
+    },
+    {
+      "stamp": "yakutia_2021331_0310.parquet",
+      "eligible": 0,
+      "excluded": 3589,
+      "skips": []
+    },
+    {
+      "stamp": "yakutia_2021331_0450.parquet",
+      "eligible": 0,
+      "excluded": 0,
+      "skips": [
+        {
+          "stamp": "A2021331.0450",
+          "platform": "Aqua",
+          "reason": "nighttime"
+        }
+      ]
+    },
+    {
+      "stamp": "yakutia_2021332_0215.parquet",
+      "eligible": 0,
+      "excluded": 0,
+      "skips": [
+        {
+          "stamp": "A2021332.0215",
+          "platform": "Aqua",
+          "reason": "nighttime"
+        }
+      ]
+    },
+    {
+      "stamp": "yakutia_2021332_0355.parquet",
+      "eligible": 0,
+      "excluded": 3589,
+      "skips": []
+    },
+    {
+      "stamp": "yakutia_2021332_0530.parquet",
+      "eligible": 0,
+      "excluded": 0,
+      "skips": [
+        {
+          "stamp": "A2021332.0530",
+          "platform": "Aqua",
+          "reason": "nighttime"
+        }
+      ]
+    }
+  ]
+}

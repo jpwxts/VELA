@@ -1,0 +1,95 @@
+{
+  "label": "noaa20-cerrado-missing-aqua",
+  "download_authorized_this_run": false,
+  "reuse_noaa20_files": 20,
+  "deduplicated_missing_aqua_pairs": [
+    {
+      "aqua_stamp": "A2021055.1625",
+      "fire": "MYD14.A2021055.1625.061.2021056131716",
+      "geolocation": "MYD03.A2021055.1625.061.2021056173622.hdf",
+      "missing_files": [
+        "MYD14.A2021055.1625.061.2021056131716",
+        "MYD03.A2021055.1625.061.2021056173622.hdf"
+      ],
+      "additional_bytes": 35541230,
+      "catalog_pair_bytes": 35541230,
+      "cache_status": "missing",
+      "noaa20_fire": "VJ114IMG.A2021055.1624.002.2024156061814"
+    },
+    {
+      "aqua_stamp": "A2021057.1750",
+      "fire": "MYD14.A2021057.1750.061.2021058113704",
+      "geolocation": "MYD03.A2021057.1750.061.2021058160212.hdf",
+      "missing_files": [
+        "MYD14.A2021057.1750.061.2021058113704",
+        "MYD03.A2021057.1750.061.2021058160212.hdf"
+      ],
+      "additional_bytes": 37860479,
+      "catalog_pair_bytes": 37860479,
+      "cache_status": "missing",
+      "noaa20_fire": "VJ114IMG.A2021057.1730.002.2024156070912"
+    },
+    {
+      "aqua_stamp": "A2021058.1655",
+      "fire": "MYD14.A2021058.1655.061.2021059120428",
+      "geolocation": "MYD03.A2021058.1655.061.2021059163505.hdf",
+      "missing_files": [
+        "MYD14.A2021058.1655.061.2021059120428",
+        "MYD03.A2021058.1655.061.2021059163505.hdf"
+      ],
+      "additional_bytes": 39044267,
+      "catalog_pair_bytes": 39044267,
+      "cache_status": "missing",
+      "noaa20_fire": "VJ114IMG.A2021058.1712.002.2024156072414"
+    }
+  ],
+  "missing_files": [
+    {
+      "name": "MYD03.A2021055.1625.061.2021056173622.hdf",
+      "role": "geolocation",
+      "aqua_stamp": "A2021055.1625",
+      "bytes": 34992999
+    },
+    {
+      "name": "MYD03.A2021057.1750.061.2021058160212.hdf",
+      "role": "geolocation",
+      "aqua_stamp": "A2021057.1750",
+      "bytes": 37364757
+    },
+    {
+      "name": "MYD03.A2021058.1655.061.2021059163505.hdf",
+      "role": "geolocation",
+      "aqua_stamp": "A2021058.1655",
+      "bytes": 38553080
+    },
+    {
+      "name": "MYD14.A2021055.1625.061.2021056131716",
+      "role": "fire",
+      "aqua_stamp": "A2021055.1625",
+      "bytes": 548231
+    },
+    {
+      "name": "MYD14.A2021057.1750.061.2021058113704",
+      "role": "fire",
+      "aqua_stamp": "A2021057.1750",
+      "bytes": 495722
+    },
+    {
+      "name": "MYD14.A2021058.1655.061.2021059120428",
+      "role": "fire",
+      "aqua_stamp": "A2021058.1655",
+      "bytes": 491187
+    }
+  ],
+  "missing_file_names": [
+    "MYD03.A2021055.1625.061.2021056173622.hdf",
+    "MYD03.A2021057.1750.061.2021058160212.hdf",
+    "MYD03.A2021058.1655.061.2021059163505.hdf",
+    "MYD14.A2021055.1625.061.2021056131716",
+    "MYD14.A2021057.1750.061.2021058113704",
+    "MYD14.A2021058.1655.061.2021059120428"
+  ],
+  "estimated_additional_bytes": 112445976,
+  "catalog_overlap_vs_measured_shared_land": "Accepted rows used catalog footprint overlap with the study box (UMM rectangles when present, otherwise CMR bbox search hit). Measured shared visible land is computed only after both swaths are read.",
+  "exact_retrieve_command": "PYTHONUNBUFFERED=1 python -m scripts.ingest_noaa20_cerrado_aqua --manifest data/catalog/noaa20_cerrado_missing_aqua_manifest.json --i-authorize-download"
+}

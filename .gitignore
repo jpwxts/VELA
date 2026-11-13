@@ -4,7 +4,16 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .DS_Store
-data/
+.ipynb_checkpoints/
+.conda/
+
+# Large NASA granules stay local (≈14 GB). Use Earthdata + scripts to fetch.
+data/raw/
+data/cache/
+data/preparedness/
+data/jobs/
+
+# Sensor products and binaries are ignored globally…
 *.hdf
 *.hdf4
 *.he5
@@ -13,5 +22,19 @@ data/
 *.nc4
 *.parquet
 *.joblib
-.ipynb_checkpoints/
-.conda/
+
+# …except shareable derived tables and model artifacts under data/
+!data/catalog/
+!data/catalog/**
+!data/manifests/
+!data/manifests/**
+!data/fixtures/
+!data/fixtures/**
+!data/metrics/
+!data/metrics/**
+!data/models/
+!data/models/**
+!data/processed/
+!data/processed/**
+!data/processed/**/*.parquet
+!data/models/**/*.joblib

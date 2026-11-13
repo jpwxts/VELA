@@ -1,0 +1,250 @@
+{
+  "fire_counts_used": false,
+  "download_started": false,
+  "selected_before_catalog_search": true,
+  "seed": 42,
+  "budget_bytes": 5000000000,
+  "current_representation": [
+    {
+      "region_id": "cerrado",
+      "region_name": "Brazilian Cerrado",
+      "landscape": "savanna",
+      "role": "train",
+      "usable_training_weeks": 2,
+      "week_starts": [
+        "2014-01-27",
+        "2019-08-19"
+      ],
+      "seasons": [
+        "DJF",
+        "JJA"
+      ],
+      "modis_positive_cell_days": 28
+    },
+    {
+      "region_id": "california",
+      "region_name": "Northern California",
+      "landscape": "mediterranean forest",
+      "role": "train",
+      "usable_training_weeks": 1,
+      "week_starts": [
+        "2013-03-11"
+      ],
+      "seasons": [
+        "MAM"
+      ],
+      "modis_positive_cell_days": 5
+    },
+    {
+      "region_id": "zambia",
+      "region_name": "Zambia woodland",
+      "landscape": "woodland",
+      "role": "train",
+      "usable_training_weeks": 0,
+      "week_starts": [],
+      "seasons": [],
+      "modis_positive_cell_days": 0
+    },
+    {
+      "region_id": "yakutia",
+      "region_name": "Central Yakutia",
+      "landscape": "boreal forest",
+      "role": "train",
+      "usable_training_weeks": 1,
+      "week_starts": [
+        "2017-09-11"
+      ],
+      "seasons": [
+        "SON"
+      ],
+      "modis_positive_cell_days": 0
+    },
+    {
+      "region_id": "arnhem",
+      "region_name": "Arnhem Land",
+      "landscape": "tropical savanna",
+      "role": "train",
+      "usable_training_weeks": 0,
+      "week_starts": [],
+      "seasons": [],
+      "modis_positive_cell_days": 0
+    },
+    {
+      "region_id": "pantanal",
+      "region_name": "Pantanal",
+      "landscape": "wetland",
+      "role": "transfer",
+      "usable_training_weeks": 0,
+      "week_starts": [],
+      "seasons": [],
+      "modis_positive_cell_days": 0
+    }
+  ],
+  "batches": [
+    {
+      "rank": 1,
+      "batch_id": "A",
+      "name": "Manifest regions with no usable rows",
+      "adds": "The Australian tropical savanna window already in the manifest, plus the other seasonal weeks of the Zambia woodland window.",
+      "budget_eligible": true,
+      "regions": [
+        "arnhem",
+        "zambia"
+      ],
+      "weeks": 8,
+      "paired_daytime_passes": 41,
+      "unique_new_bytes": 7580326849,
+      "unique_files": 154,
+      "regions_with_no_paired_coverage": [],
+      "estimated_new_download_gb": 7.580326849,
+      "peak_temporary_disk_bytes": 13019107061,
+      "peak_temporary_disk_gb": 13.019107061
+    },
+    {
+      "rank": 2,
+      "batch_id": "B",
+      "name": "Second continent for landscapes already in the table",
+      "adds": "African tropical savanna, North American boreal forest, and South American mediterranean forest.",
+      "budget_eligible": true,
+      "regions": [
+        "guinea_savanna",
+        "alaska_boreal",
+        "chile_med"
+      ],
+      "weeks": 12,
+      "paired_daytime_passes": 100,
+      "unique_new_bytes": 18595257150,
+      "unique_files": 374,
+      "regions_with_no_paired_coverage": [],
+      "estimated_new_download_gb": 18.59525715,
+      "peak_temporary_disk_bytes": 24034037362,
+      "peak_temporary_disk_gb": 24.034037362
+    },
+    {
+      "rank": 3,
+      "batch_id": "C",
+      "name": "Landscapes missing from the table",
+      "adds": "Grassland, temperate forest, tropical forest, and a second woodland site independent of Zambia.",
+      "budget_eligible": true,
+      "regions": [
+        "flint_hills",
+        "appalachia",
+        "amazon_frontier",
+        "zimbabwe_woodland"
+      ],
+      "weeks": 16,
+      "paired_daytime_passes": 93,
+      "unique_new_bytes": 17964771780,
+      "unique_files": 352,
+      "regions_with_no_paired_coverage": [],
+      "estimated_new_download_gb": 17.96477178,
+      "peak_temporary_disk_bytes": 23403551992,
+      "peak_temporary_disk_gb": 23.403551992
+    },
+    {
+      "rank": 4,
+      "batch_id": "D",
+      "name": "Another independent site for each new landscape",
+      "adds": "A second tropical savanna, boreal forest, temperate forest, grassland, and tropical forest site, each on a different landmass from the first new site.",
+      "budget_eligible": true,
+      "regions": [
+        "llanos",
+        "saskatchewan",
+        "se_australia",
+        "kazakh_steppe",
+        "kalimantan"
+      ],
+      "weeks": 20,
+      "paired_daytime_passes": 123,
+      "unique_new_bytes": 22236214751,
+      "unique_files": 456,
+      "regions_with_no_paired_coverage": [],
+      "estimated_new_download_gb": 22.236214751,
+      "peak_temporary_disk_bytes": 27674994963,
+      "peak_temporary_disk_gb": 27.674994963
+    },
+    {
+      "rank": 5,
+      "batch_id": "E",
+      "name": "Entire regions reserved for geographic testing",
+      "adds": "Held-out mediterranean, boreal, and tropical-forest regions, plus the existing Pantanal wetland. These weeks are searched and are not part of the training budget.",
+      "budget_eligible": false,
+      "regions": [
+        "pantanal",
+        "cape_med",
+        "fennoscandia",
+        "congo_forest"
+      ],
+      "weeks": 16,
+      "paired_daytime_passes": 113,
+      "unique_new_bytes": 22071583016,
+      "unique_files": 428,
+      "regions_with_no_paired_coverage": [],
+      "estimated_new_download_gb": 22.071583016,
+      "peak_temporary_disk_bytes": 27510363228,
+      "peak_temporary_disk_gb": 27.510363228
+    }
+  ],
+  "regions_with_no_paired_coverage": [],
+  "budget_batch": {
+    "unique_new_bytes": 4606396933,
+    "estimated_new_download_gb": 4.606396933,
+    "unique_files": 98,
+    "peak_temporary_disk_bytes": 10045177145,
+    "weeks": [
+      {
+        "region_id": "arnhem",
+        "season": "DJF",
+        "year": 2014,
+        "week_start": "2014-12-08",
+        "week_end": "2014-12-14",
+        "candidate_daytime_passes": 4,
+        "new_bytes": 601243514
+      },
+      {
+        "region_id": "arnhem",
+        "season": "MAM",
+        "year": 2013,
+        "week_start": "2013-03-18",
+        "week_end": "2013-03-24",
+        "candidate_daytime_passes": 5,
+        "new_bytes": 947984353
+      },
+      {
+        "region_id": "arnhem",
+        "season": "JJA",
+        "year": 2020,
+        "week_start": "2020-06-08",
+        "week_end": "2020-06-14",
+        "candidate_daytime_passes": 5,
+        "new_bytes": 928714043
+      },
+      {
+        "region_id": "arnhem",
+        "season": "SON",
+        "year": 2017,
+        "week_start": "2017-10-09",
+        "week_end": "2017-10-15",
+        "candidate_daytime_passes": 5,
+        "new_bytes": 774589990
+      },
+      {
+        "region_id": "zambia",
+        "season": "DJF",
+        "year": 2016,
+        "week_start": "2016-12-12",
+        "week_end": "2016-12-18",
+        "candidate_daytime_passes": 7,
+        "new_bytes": 1353865033
+      }
+    ],
+    "stopped_before": {
+      "region_id": "zambia",
+      "week_start": "2014-04-28",
+      "new_bytes": 1126138262,
+      "candidate_daytime_passes": 5
+    }
+  },
+  "current_data_bytes": 5438780212,
+  "disk_free_bytes": 41243385856
+}

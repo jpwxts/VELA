@@ -1,0 +1,5 @@
+region_id,region_name,landscape,role,development,year,season,week_start,week_end,thursday,quiet,split,west,south,east,north,products
+cerrado,Brazilian Cerrado,savanna,train,yes,2014,DJF,2014-01-27,2014-02-02,2014-01-30,yes,train,-52.5,-15.5,-48.5,-12.5,"MYD14,MYD03,VNP14IMG,VNP03IMG"
+california,Northern California,mediterranean forest,train,yes,2013,MAM,2013-03-11,2013-03-17,2013-03-14,yes,train,-122.8,39.2,-120.2,41.8,"MYD14,MYD03,VNP14IMG,VNP03IMG"
+zambia,Zambia woodland,woodland,train,yes,2020,JJA,2020-08-17,2020-08-23,2020-08-20,no,train,25.0,-15.5,29.0,-12.5,"MYD14,MYD03,VNP14IMG,VNP03IMG"
+yakutia,Central Yakutia,boreal forest,train,yes,2017,SON,2017-09-11,2017-09-17,2017-09-14,no,train,125.0,61.0,130.0,64.0,"MYD14,MYD03,VNP14IMG,VNP03IMG"

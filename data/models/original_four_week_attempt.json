@@ -1,0 +1,196 @@
+{
+  "label": "preliminary validation",
+  "selection_status": "pending",
+  "minimum_scored_weeks": 4,
+  "chosen_model": null,
+  "final_test_evaluated": false,
+  "reserved_not_run": [
+    "2023-2024",
+    "pantanal"
+  ],
+  "planned_matched_pass_bytes": 4915943252,
+  "budget_bytes": 5000000000,
+  "bytes_transferred": 3849570985,
+  "candidate_identifiers": {
+    "logistic_regression": {
+      "file": "candidate_logistic_regression.joblib",
+      "exists": true,
+      "sha256": "39352d5864e71bb92fe82f288b969e81e1577ba3377c7049d6fc5e6a2b8878fa",
+      "label": "candidate",
+      "training_rows": 21301,
+      "training_regions": [
+        "california",
+        "cerrado",
+        "yakutia"
+      ],
+      "training_years": [
+        2013,
+        2014,
+        2017,
+        2019
+      ]
+    },
+    "random_forest": {
+      "file": "candidate_random_forest.joblib",
+      "exists": true,
+      "sha256": "e96ae96d359563442449d0575e1687c262257889bef9ff0868e50854507a6925",
+      "label": "candidate",
+      "training_rows": 21301,
+      "training_regions": [
+        "california",
+        "cerrado",
+        "yakutia"
+      ],
+      "training_years": [
+        2013,
+        2014,
+        2017,
+        2019
+      ]
+    }
+  },
+  "models_refit": false,
+  "weeks": [
+    {
+      "region_id": "cerrado",
+      "region_group": "previously_trained",
+      "dates": "2021-02-22, 2021-02-23, 2021-02-25, 2021-02-28",
+      "eligible_dates": [
+        "2021-02-22",
+        "2021-02-23",
+        "2021-02-25",
+        "2021-02-28"
+      ],
+      "usable_days": 4,
+      "eligible_cell_days": 4964,
+      "coverage_status": "ok",
+      "scored": true,
+      "reason": null,
+      "observed_modis_rate": 0.0008058017727639,
+      "raw_viirs_rate": 0.0006043513295729251,
+      "logistic_estimate": 0.8606100811486417,
+      "random_forest_estimate": 0.007555794663145206,
+      "absolute_error_percentage_points": {
+        "raw_viirs": 0.020145044319097496,
+        "logistic_regression": 85.98042793758778,
+        "random_forest": 0.6749992890381306
+      }
+    },
+    {
+      "region_id": "california",
+      "region_group": "previously_trained",
+      "dates": "2021-03-23, 2021-03-26, 2021-03-27",
+      "eligible_dates": [
+        "2021-03-23",
+        "2021-03-26",
+        "2021-03-27"
+      ],
+      "usable_days": 3,
+      "eligible_cell_days": 4613,
+      "coverage_status": "ok",
+      "scored": true,
+      "reason": null,
+      "observed_modis_rate": 0.0008671146759158899,
+      "raw_viirs_rate": 0.0021677866897897246,
+      "logistic_estimate": 0.4766547971964293,
+      "random_forest_estimate": 0.004819132724002617,
+      "absolute_error_percentage_points": {
+        "raw_viirs": 0.13006720138738348,
+        "logistic_regression": 47.57876825205134,
+        "random_forest": 0.39520180480867273
+      }
+    },
+    {
+      "region_id": "zambia",
+      "region_group": "new",
+      "dates": "2021-07-19, 2021-07-20, 2021-07-24, 2021-07-25",
+      "eligible_dates": [
+        "2021-07-19",
+        "2021-07-20",
+        "2021-07-24",
+        "2021-07-25"
+      ],
+      "usable_days": 4,
+      "eligible_cell_days": 7493,
+      "coverage_status": "ok",
+      "scored": true,
+      "reason": null,
+      "observed_modis_rate": 0.04217269451488056,
+      "raw_viirs_rate": 0.1146403309755772,
+      "logistic_estimate": 0.13826638538972122,
+      "random_forest_estimate": 0.053391829951951575,
+      "absolute_error_percentage_points": {
+        "raw_viirs": 7.246763646069665,
+        "logistic_regression": 9.609369087484065,
+        "random_forest": 1.1219135437071017
+      }
+    },
+    {
+      "region_id": "yakutia",
+      "region_group": "previously_trained",
+      "dates": "2021-11-22 to 2021-11-28",
+      "eligible_dates": [],
+      "usable_days": 0,
+      "eligible_cell_days": 0,
+      "reference_positives": 0,
+      "reference_zeros": 0,
+      "excluded_rows": 32300,
+      "coverage_status": "insufficient",
+      "scored": false,
+      "reason": "No eligible cell-days. The rate is missing. Pixel audit after correcting VIIRS NetCDF solar-zenith double-scaling: 14 catalog daytime pairs; 9 pairs still pass the daytime filter; 344,035 Aqua and 4,398,858 Suomi-NPP pixels fall inside the box on those pairs; 0 clear or fire pixels on either platform before footprints are intersected; every Aqua pixel is cloud and every Suomi-NPP processed land pixel is cloud (plus bow-tie/missing). Shared visible land is a measured numerical zero. Five Aqua granules are nighttime and are skipped. The week MAE is undefined.",
+      "observed_modis_rate": null,
+      "raw_viirs_rate": null,
+      "logistic_estimate": null,
+      "random_forest_estimate": null,
+      "absolute_error_percentage_points": {
+        "raw_viirs": null,
+        "logistic_regression": null,
+        "random_forest": null
+      },
+      "exclusion_reasons": {
+        "insufficient_shared_land": 11846,
+        "missing_modis": 3741,
+        "missing_viirs": 2358,
+        "duplicate_pass_not_selected": 14355
+      },
+      "shared_visible_km2_max": 0.0,
+      "pixel_audit": "data/catalog/yakutia_pixel_audit.json"
+    }
+  ],
+  "scored_weeks": 3,
+  "scored_previously_trained_weeks": 2,
+  "scored_new_region_weeks": 1,
+  "weekly_mae_percentage_points": {
+    "raw_viirs": 2.4656586305920487,
+    "logistic_regression": 47.722855092374395,
+    "random_forest": 0.730704879184635
+  },
+  "weekly_mae_by_region_group": {
+    "previously_trained": {
+      "raw_viirs": 0.07510612285324049,
+      "logistic_regression": 66.77959809481956,
+      "random_forest": 0.5351005469234016
+    },
+    "new": {
+      "raw_viirs": 7.246763646069665,
+      "logistic_regression": 9.609369087484065,
+      "random_forest": 1.1219135437071017
+    }
+  },
+  "weighting": "Each scored region-week has equal weight.",
+  "yakutia_transfer": {
+    "bytes_transferred": 2847082378,
+    "download_authorized": true,
+    "noaa20_downloaded": false,
+    "integrity": {
+      "files_verified": 52,
+      "magic_failures": [],
+      "checksums_in_catalog": [
+        "MD5",
+        "not_in_catalog"
+      ],
+      "catalog_bytes": 2847082377,
+      "bytes_on_disk": 2847082378
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "label": "pilot",
+  "purpose": "training diagnostic only",
+  "not_for_reveal": true,
+  "not_the_final_model": true,
+  "artifact": "/Users/florlyn/Desktop/MODISVIIRS/data/models/pilot_logistic_log1p.joblib",
+  "feature": "log1p(viirs_hotspot_pixel_count)",
+  "class_weight": null,
+  "penalty": "l2",
+  "C": 1.0,
+  "intercept": -5.987760151017487,
+  "coefficient_on_log1p_count": 2.9469683431559415,
+  "probability_min": 0.002502997447772813,
+  "probability_max": 0.8987098479725839,
+  "checks": {
+    "eligible_cells": 5451,
+    "modis_positives": 24,
+    "duplicate_cell_days": 0,
+    "eligible_dates": [
+      "2019-08-20",
+      "2019-08-21",
+      "2019-08-24"
+    ]
+  },
+  "omitted_from_activity_summary": [
+    "2019-08-23"
+  ],
+  "training_diagnostics": [
+    {
+      "local_date": "2019-08-20",
+      "cells": 2312,
+      "raw_viirs_positive_rate": 0.009515570934256055,
+      "mean_predicted_probability": 0.0050585464122823295,
+      "observed_modis_positive_rate": 0.004325259515570935,
+      "label": "training_diagnostic"
+    },
+    {
+      "local_date": "2019-08-21",
+      "cells": 434,
+      "raw_viirs_positive_rate": 0.009216589861751152,
+      "mean_predicted_probability": 0.0031263551863780553,
+      "observed_modis_positive_rate": 0.0,
+      "label": "training_diagnostic"
+    },
+    {
+      "local_date": "2019-08-24",
+      "cells": 2705,
+      "raw_viirs_positive_rate": 0.007763401109057301,
+      "mean_predicted_probability": 0.004161430221351155,
+      "observed_modis_positive_rate": 0.005175600739371534,
+      "label": "training_diagnostic"
+    }
+  ],
+  "note": "These rates are computed on the same rows used to fit the pilot. They are not a validation score, not the 2023\u20132024 test, and not Reveal MODIS."
+}

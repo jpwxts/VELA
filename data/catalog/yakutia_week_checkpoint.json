@@ -1,0 +1,386 @@
+{
+  "completed": [
+    "yakutia_2021326_0250.parquet",
+    "yakutia_2021326_0255.parquet",
+    "yakutia_2021326_0430.parquet",
+    "yakutia_2021327_0200.parquet",
+    "yakutia_2021328_0240.parquet",
+    "yakutia_2021328_0415.parquet",
+    "yakutia_2021329_0320.parquet",
+    "yakutia_2021329_0325.parquet",
+    "yakutia_2021329_0500.parquet",
+    "yakutia_2021331_0310.parquet",
+    "yakutia_2021331_0450.parquet",
+    "yakutia_2021332_0215.parquet",
+    "yakutia_2021332_0355.parquet",
+    "yakutia_2021332_0530.parquet"
+  ],
+  "bytes_downloaded": 2847082378,
+  "reused_files": [],
+  "verified": [
+    {
+      "name": "MYD14.A2021326.0250.061.2021326114152.hdf",
+      "bytes": 368101,
+      "catalog_bytes": 368101,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "MYD03.A2021326.0250.061.2021326152743.hdf",
+      "bytes": 38107186,
+      "catalog_bytes": 38107186,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "VNP14IMG.A2021326.0248.002.2024074220330.nc",
+      "bytes": 468562,
+      "catalog_bytes": 468562,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "VNP03IMG.A2021326.0248.002.2021326095111.nc",
+      "bytes": 189267173,
+      "catalog_bytes": 189267173,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "MYD14.A2021326.0255.061.2021326113856.hdf",
+      "bytes": 420742,
+      "catalog_bytes": 420742,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "MYD03.A2021326.0255.061.2021326152918.hdf",
+      "bytes": 35674382,
+      "catalog_bytes": 35674382,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "MYD14.A2021326.0430.061.2021326113721.hdf",
+      "bytes": 311494,
+      "catalog_bytes": 311494,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "MYD03.A2021326.0430.061.2021326152620.hdf",
+      "bytes": 43607914,
+      "catalog_bytes": 43607914,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "VNP14IMG.A2021326.0430.002.2024074220331.nc",
+      "bytes": 326518,
+      "catalog_bytes": 326518,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "VNP03IMG.A2021326.0430.002.2021326130841.nc",
+      "bytes": 190906650,
+      "catalog_bytes": 190906650,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "MYD14.A2021327.0200.061.2021327105448.hdf",
+      "bytes": 389198,
+      "catalog_bytes": 389198,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "MYD03.A2021327.0200.061.2021327152354.hdf",
+      "bytes": 33302988,
+      "catalog_bytes": 33302988,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "VNP14IMG.A2021327.0230.002.2024074221134.nc",
+      "bytes": 392134,
+      "catalog_bytes": 392134,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "VNP03IMG.A2021327.0230.002.2021327110847.nc",
+      "bytes": 186485026,
+      "catalog_bytes": 186485026,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "MYD14.A2021328.0240.061.2021328122238.hdf",
+      "bytes": 399945,
+      "catalog_bytes": 399945,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "MYD03.A2021328.0240.061.2021328154635.hdf",
+      "bytes": 40539363,
+      "catalog_bytes": 40539363,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "VNP14IMG.A2021328.0212.002.2024074221939.nc",
+      "bytes": 475507,
+      "catalog_bytes": 475507,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "VNP03IMG.A2021328.0212.002.2021328103612.nc",
+      "bytes": 179610893,
+      "catalog_bytes": 179610893,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "MYD14.A2021328.0415.061.2021328122429.hdf",
+      "bytes": 313147,
+      "catalog_bytes": 313147,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "MYD03.A2021328.0415.061.2021328154808.hdf",
+      "bytes": 42224600,
+      "catalog_bytes": 42224600,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "VNP14IMG.A2021328.0348.002.2024074221939.nc",
+      "bytes": 890404,
+      "catalog_bytes": 890404,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "VNP03IMG.A2021328.0348.002.2021328103812.nc",
+      "bytes": 187189796,
+      "catalog_bytes": 187189796,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "MYD14.A2021329.0320.061.2021329115224.hdf",
+      "bytes": 321744,
+      "catalog_bytes": 321744,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "MYD03.A2021329.0320.061.2021329153047.hdf",
+      "bytes": 38016913,
+      "catalog_bytes": 38016913,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "VNP14IMG.A2021329.0330.002.2024074222710.nc",
+      "bytes": 718786,
+      "catalog_bytes": 718786,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "VNP03IMG.A2021329.0330.002.2021329104517.nc",
+      "bytes": 191678910,
+      "catalog_bytes": 191678910,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "MYD14.A2021329.0325.061.2021329115030.hdf",
+      "bytes": 431003,
+      "catalog_bytes": 431002,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "MYD03.A2021329.0325.061.2021329152936.hdf",
+      "bytes": 38373463,
+      "catalog_bytes": 38373463,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "MYD14.A2021329.0500.061.2021329115304.hdf",
+      "bytes": 298148,
+      "catalog_bytes": 298148,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "MYD03.A2021329.0500.061.2021329153611.hdf",
+      "bytes": 43638354,
+      "catalog_bytes": 43638354,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "VNP14IMG.A2021329.0512.002.2024074222705.nc",
+      "bytes": 714357,
+      "catalog_bytes": 714357,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "VNP03IMG.A2021329.0512.002.2021329115749.nc",
+      "bytes": 200408226,
+      "catalog_bytes": 200408226,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "MYD14.A2021331.0310.061.2021331133529.hdf",
+      "bytes": 380384,
+      "catalog_bytes": 380384,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "MYD03.A2021331.0310.061.2021331164922.hdf",
+      "bytes": 41295542,
+      "catalog_bytes": 41295542,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "VNP14IMG.A2021331.0254.002.2024074224310.nc",
+      "bytes": 625616,
+      "catalog_bytes": 625616,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "VNP03IMG.A2021331.0254.002.2021331100930.nc",
+      "bytes": 189027436,
+      "catalog_bytes": 189027436,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "MYD14.A2021331.0450.061.2021331132220.hdf",
+      "bytes": 396200,
+      "catalog_bytes": 396200,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "MYD03.A2021331.0450.061.2021331165122.hdf",
+      "bytes": 41122202,
+      "catalog_bytes": 41122202,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "VNP14IMG.A2021331.0436.002.2024074224236.nc",
+      "bytes": 399701,
+      "catalog_bytes": 399701,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "VNP03IMG.A2021331.0436.002.2021331114233.nc",
+      "bytes": 193215774,
+      "catalog_bytes": 193215774,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "MYD14.A2021332.0215.061.2021332115334.hdf",
+      "bytes": 395445,
+      "catalog_bytes": 395445,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "MYD03.A2021332.0215.061.2021332155558.hdf",
+      "bytes": 39343647,
+      "catalog_bytes": 39343647,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "VNP14IMG.A2021332.0236.002.2024074225001.nc",
+      "bytes": 385782,
+      "catalog_bytes": 385782,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "VNP03IMG.A2021332.0236.002.2021335230353.nc",
+      "bytes": 187779022,
+      "catalog_bytes": 187779022,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "MYD14.A2021332.0355.061.2021332115743.hdf",
+      "bytes": 416488,
+      "catalog_bytes": 416488,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "MYD03.A2021332.0355.061.2021332155807.hdf",
+      "bytes": 40622383,
+      "catalog_bytes": 40622383,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "VNP14IMG.A2021332.0412.002.2024074225002.nc",
+      "bytes": 1213055,
+      "catalog_bytes": 1213055,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "VNP03IMG.A2021332.0412.002.2021335230318.nc",
+      "bytes": 185788077,
+      "catalog_bytes": 185788077,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "MYD14.A2021332.0530.061.2021332120011.hdf",
+      "bytes": 268418,
+      "catalog_bytes": 268418,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "MYD03.A2021332.0530.061.2021332155548.hdf",
+      "bytes": 43078031,
+      "catalog_bytes": 43078031,
+      "magic_ok": true,
+      "checksum": "MD5"
+    },
+    {
+      "name": "VNP14IMG.A2021332.0554.002.2024074225002.nc",
+      "bytes": 1182499,
+      "catalog_bytes": 1182499,
+      "magic_ok": true,
+      "checksum": "not_in_catalog"
+    },
+    {
+      "name": "VNP03IMG.A2021332.0554.002.2021335225836.nc",
+      "bytes": 193875049,
+      "catalog_bytes": 193875049,
+      "magic_ok": true,
+      "checksum": "MD5"
+    }
+  ]
+}

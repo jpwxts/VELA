@@ -1,0 +1,285 @@
+{
+  "fixture": {
+    "name": "weather_no_fwi",
+    "label": "Saved fixture \u00b7 weather without FWI \u00b7 labeled archive"
+  },
+  "bbox": {
+    "west": -66.6,
+    "south": -3.4,
+    "east": -66.3,
+    "north": -3.1
+  },
+  "forecast": {
+    "ok": true,
+    "issue_id": "gwis-ecmwf|-66.60,-3.40,-66.30,-3.10|2026-11-11:2026-11-17",
+    "region_key": "-66.60,-3.40,-66.30,-3.10",
+    "point": {
+      "latitude": -3.2688928,
+      "longitude": -66.44589,
+      "timezone": "America/Manaus",
+      "label": "This marker is the forecast point returned for the center of the selected area."
+    },
+    "weather_source": "Open-Meteo forecast API",
+    "recent_rain": {
+      "status": "measured",
+      "millimetres": 9.6,
+      "days": 7,
+      "start": "2026-11-04",
+      "end": "2026-11-10"
+    },
+    "forecast_rain": {
+      "status": "measured",
+      "millimetres": 27.1
+    },
+    "days": [
+      {
+        "valid_date": "2026-11-11",
+        "lead_days": 0,
+        "temperature_max_c": {
+          "status": "measured",
+          "value": 33.7
+        },
+        "relative_humidity_min_percent": {
+          "status": "measured",
+          "value": 53.0
+        },
+        "wind_speed_max_m_s": {
+          "status": "measured",
+          "value": 2.22
+        },
+        "wind_gust_max_m_s": {
+          "status": "measured",
+          "value": 6.3
+        },
+        "forecast_rain_mm": {
+          "status": "measured",
+          "value": 0.9
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "unavailable",
+          "fwi": null,
+          "ranking": null,
+          "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+          "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+          "valid_date": "2026-11-11",
+          "issue_time": null
+        }
+      },
+      {
+        "valid_date": "2026-11-12",
+        "lead_days": 1,
+        "temperature_max_c": {
+          "status": "measured",
+          "value": 30.9
+        },
+        "relative_humidity_min_percent": {
+          "status": "measured",
+          "value": 69.0
+        },
+        "wind_speed_max_m_s": {
+          "status": "measured",
+          "value": 3.53
+        },
+        "wind_gust_max_m_s": {
+          "status": "measured",
+          "value": 9.1
+        },
+        "forecast_rain_mm": {
+          "status": "measured",
+          "value": 9.5
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "unavailable",
+          "fwi": null,
+          "ranking": null,
+          "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+          "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+          "valid_date": "2026-11-12",
+          "issue_time": null
+        }
+      },
+      {
+        "valid_date": "2026-11-13",
+        "lead_days": 2,
+        "temperature_max_c": {
+          "status": "measured",
+          "value": 32.0
+        },
+        "relative_humidity_min_percent": {
+          "status": "measured",
+          "value": 64.0
+        },
+        "wind_speed_max_m_s": {
+          "status": "measured",
+          "value": 2.06
+        },
+        "wind_gust_max_m_s": {
+          "status": "measured",
+          "value": 6.3
+        },
+        "forecast_rain_mm": {
+          "status": "measured",
+          "value": 6.7
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "unavailable",
+          "fwi": null,
+          "ranking": null,
+          "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+          "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+          "valid_date": "2026-11-13",
+          "issue_time": null
+        }
+      },
+      {
+        "valid_date": "2026-11-14",
+        "lead_days": 3,
+        "temperature_max_c": {
+          "status": "measured",
+          "value": 30.9
+        },
+        "relative_humidity_min_percent": {
+          "status": "measured",
+          "value": 68.0
+        },
+        "wind_speed_max_m_s": {
+          "status": "measured",
+          "value": 1.74
+        },
+        "wind_gust_max_m_s": {
+          "status": "measured",
+          "value": 6.1
+        },
+        "forecast_rain_mm": {
+          "status": "measured",
+          "value": 2.8
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "unavailable",
+          "fwi": null,
+          "ranking": null,
+          "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+          "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+          "valid_date": "2026-11-14",
+          "issue_time": null
+        }
+      },
+      {
+        "valid_date": "2026-11-15",
+        "lead_days": 4,
+        "temperature_max_c": {
+          "status": "measured",
+          "value": 31.4
+        },
+        "relative_humidity_min_percent": {
+          "status": "measured",
+          "value": 69.0
+        },
+        "wind_speed_max_m_s": {
+          "status": "measured",
+          "value": 1.93
+        },
+        "wind_gust_max_m_s": {
+          "status": "measured",
+          "value": 5.6
+        },
+        "forecast_rain_mm": {
+          "status": "measured",
+          "value": 5.4
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "unavailable",
+          "fwi": null,
+          "ranking": null,
+          "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+          "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+          "valid_date": "2026-11-15",
+          "issue_time": null
+        }
+      },
+      {
+        "valid_date": "2026-11-16",
+        "lead_days": 5,
+        "temperature_max_c": {
+          "status": "measured",
+          "value": 33.0
+        },
+        "relative_humidity_min_percent": {
+          "status": "measured",
+          "value": 58.0
+        },
+        "wind_speed_max_m_s": {
+          "status": "measured",
+          "value": 2.3
+        },
+        "wind_gust_max_m_s": {
+          "status": "measured",
+          "value": 8.0
+        },
+        "forecast_rain_mm": {
+          "status": "measured",
+          "value": 0.6
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "unavailable",
+          "fwi": null,
+          "ranking": null,
+          "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+          "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+          "valid_date": "2026-11-16",
+          "issue_time": null
+        }
+      },
+      {
+        "valid_date": "2026-11-17",
+        "lead_days": 6,
+        "temperature_max_c": {
+          "status": "measured",
+          "value": 34.1
+        },
+        "relative_humidity_min_percent": {
+          "status": "measured",
+          "value": 55.0
+        },
+        "wind_speed_max_m_s": {
+          "status": "measured",
+          "value": 2.72
+        },
+        "wind_gust_max_m_s": {
+          "status": "measured",
+          "value": 9.0
+        },
+        "forecast_rain_mm": {
+          "status": "measured",
+          "value": 1.2
+        },
+        "verification_status": "pending",
+        "fire_danger": {
+          "status": "unavailable",
+          "fwi": null,
+          "ranking": null,
+          "source": "Copernicus Emergency Management Service, GWIS. ECMWF Fire Weather Index from WMS layer ecmwf.fwi.",
+          "ranking_source": "Copernicus Emergency Management Service, GWIS. ECMWF local historical FWI ranking from WMS layer ecmwf.ranking.",
+          "valid_date": "2026-11-17",
+          "issue_time": null
+        }
+      }
+    ],
+    "performance": {
+      "status": "pending_verification",
+      "held_out_error_percentage_points": null,
+      "model": null,
+      "text": "Pending verification. No held-out harmonization error has been measured."
+    },
+    "product_issue_time": null,
+    "product_issue_status": "missing",
+    "issued_at": "2026-11-11T19:59:39+00:00",
+    "verification_status": "pending"
+  }
+}

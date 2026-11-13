@@ -1,0 +1,61 @@
+{
+  "label": "candidate",
+  "purpose": "Candidates for later 2021\u20132022 comparison. Not Reveal MODIS and not the final model.",
+  "not_for_reveal": true,
+  "not_the_final_model": true,
+  "chosen_model": null,
+  "validation": "pending",
+  "temporal_test": null,
+  "transfer_evaluation": null,
+  "feature_columns": [
+    "viirs_hotspot_pixels",
+    "viirs_fire_low",
+    "viirs_fire_nominal",
+    "viirs_fire_high",
+    "viirs_clear_fraction",
+    "viirs_cloud_fraction",
+    "viirs_water_fraction",
+    "viirs_unknown_fraction",
+    "viirs_visible_land_km2",
+    "center_lat",
+    "center_lon",
+    "doy_sin",
+    "doy_cos",
+    "local_hour"
+  ],
+  "class_weight": {
+    "logistic_regression": "balanced",
+    "random_forest": "balanced_subsample"
+  },
+  "gaps": [],
+  "model_files": {
+    "logistic_regression": "/Users/florlyn/Desktop/MODISVIIRS/data/models/candidate_logistic_regression.joblib",
+    "random_forest": "/Users/florlyn/Desktop/MODISVIIRS/data/models/candidate_random_forest.joblib"
+  },
+  "counts": {
+    "train_rows": 21301,
+    "tune_rows": 0,
+    "test_rows": 0,
+    "transfer_rows": 0,
+    "train_positives": 33,
+    "train_years": [
+      2013,
+      2014,
+      2017,
+      2019
+    ],
+    "train_regions": [
+      "california",
+      "cerrado",
+      "yakutia"
+    ]
+  },
+  "logistic_regression_probability_span": [
+    5.098147722715454e-19,
+    1.0
+  ],
+  "random_forest_probability_span": [
+    0.0,
+    0.9989544275077844
+  ]
+}

@@ -1,0 +1,304 @@
+{
+  "configured": true,
+  "date": "2026-11-04",
+  "bbox": {
+    "west": -50.35,
+    "south": -14.35,
+    "east": -49.95,
+    "north": -14.05
+  },
+  "total_count": 5,
+  "combined": {
+    "coverage": "unknown"
+  },
+  "results": [
+    {
+      "platform": "Aqua",
+      "status": "no_hotspots",
+      "coverage": "unknown",
+      "count": 0,
+      "product": "MODIS_NRT",
+      "hotspots": []
+    },
+    {
+      "platform": "Suomi-NPP",
+      "status": "product_unavailable",
+      "coverage": "unknown",
+      "count": 0,
+      "product": "VIIRS_SNPP_NRT",
+      "hotspots": []
+    },
+    {
+      "platform": "NOAA-20",
+      "status": "ok",
+      "coverage": "unknown",
+      "count": 4,
+      "product": "VIIRS_NOAA20_NRT",
+      "hotspots": [
+        {
+          "lat": -14.181,
+          "lon": -50.181,
+          "acq_date": "2026-11-04",
+          "acq_time": "03:57",
+          "acq_time_raw": "357",
+          "satellite_code": "N20",
+          "platform": "NOAA-20",
+          "instrument": "VIIRS",
+          "confidence": "n",
+          "frp": 10.0,
+          "brightness": 330.0,
+          "source": "VIIRS_NOAA20_NRT"
+        },
+        {
+          "lat": -14.1805,
+          "lon": -50.1795,
+          "acq_date": "2026-11-04",
+          "acq_time": "03:57",
+          "acq_time_raw": "357",
+          "satellite_code": "N20",
+          "platform": "NOAA-20",
+          "instrument": "VIIRS",
+          "confidence": "n",
+          "frp": 11.0,
+          "brightness": 331.0,
+          "source": "VIIRS_NOAA20_NRT"
+        },
+        {
+          "lat": -14.121,
+          "lon": -50.101,
+          "acq_date": "2026-11-04",
+          "acq_time": "04:10",
+          "acq_time_raw": "410",
+          "satellite_code": "N20",
+          "platform": "NOAA-20",
+          "instrument": "VIIRS",
+          "confidence": "n",
+          "frp": 7.0,
+          "brightness": 325.0,
+          "source": "VIIRS_NOAA20_NRT"
+        },
+        {
+          "lat": -14.1205,
+          "lon": -50.1005,
+          "acq_date": "2026-11-04",
+          "acq_time": "16:55",
+          "acq_time_raw": "1655",
+          "satellite_code": "N20",
+          "platform": "NOAA-20",
+          "instrument": "VIIRS",
+          "confidence": "n",
+          "frp": 8.0,
+          "brightness": 326.0,
+          "source": "VIIRS_NOAA20_NRT"
+        }
+      ]
+    },
+    {
+      "platform": "NOAA-21",
+      "status": "ok",
+      "coverage": "unknown",
+      "count": 1,
+      "product": "VIIRS_NOAA21_NRT",
+      "hotspots": [
+        {
+          "lat": -14.179,
+          "lon": -50.178,
+          "acq_date": "2026-11-04",
+          "acq_time": "16:42",
+          "acq_time_raw": "1642",
+          "satellite_code": "N21",
+          "platform": "NOAA-21",
+          "instrument": "VIIRS",
+          "confidence": "n",
+          "frp": 9.5,
+          "brightness": 328.0,
+          "source": "VIIRS_NOAA21_NRT"
+        }
+      ]
+    }
+  ],
+  "hotspot_areas": {
+    "observation_day_convention": "Observation day is the FIRMS acquisition date in UTC (acq_date). It is not a local calendar day and not a wildfire-incident day.",
+    "grid": "5 km equal-area cells",
+    "area_count": 2,
+    "detection_count": 5,
+    "satellite_count": 2,
+    "satellites": [
+      "NOAA-20",
+      "NOAA-21"
+    ],
+    "multiple_satellite_area_count": 1,
+    "one_satellite_area_count": 1,
+    "areas": [
+      {
+        "cell_id": "-967:-357",
+        "observation_day": "2026-11-04",
+        "observation_day_convention": "Observation day is the FIRMS acquisition date in UTC (acq_date). It is not a local calendar day and not a wildfire-incident day.",
+        "center_lat": -14.110869647733903,
+        "center_lon": -50.08484094768591,
+        "bounds": {
+          "west": -50.11075136721394,
+          "south": -14.131060730696042,
+          "east": -50.058930528157866,
+          "north": -14.090680308242426
+        },
+        "area_km2": 25.0,
+        "label": "area with detected heat",
+        "satellite_count": 1,
+        "detection_count": 2,
+        "pass_count": 2,
+        "platforms": [
+          "NOAA-20"
+        ],
+        "by_platform": [
+          {
+            "platform": "NOAA-20",
+            "detection_count": 2,
+            "observation_times_utc": [
+              "04:10",
+              "16:55"
+            ],
+            "passes": 2
+          }
+        ],
+        "members": [
+          {
+            "lat": -14.121,
+            "lon": -50.101,
+            "acq_date": "2026-11-04",
+            "acq_time": "04:10",
+            "acq_time_raw": "410",
+            "satellite_code": "N20",
+            "platform": "NOAA-20",
+            "instrument": "VIIRS",
+            "confidence": "n",
+            "frp": 7.0,
+            "brightness": 325.0,
+            "source": "VIIRS_NOAA20_NRT",
+            "feed_status": "ok"
+          },
+          {
+            "lat": -14.1205,
+            "lon": -50.1005,
+            "acq_date": "2026-11-04",
+            "acq_time": "16:55",
+            "acq_time_raw": "1655",
+            "satellite_code": "N20",
+            "platform": "NOAA-20",
+            "instrument": "VIIRS",
+            "confidence": "n",
+            "frp": 8.0,
+            "brightness": 326.0,
+            "source": "VIIRS_NOAA20_NRT",
+            "feed_status": "ok"
+          }
+        ],
+        "multiple_satellites": false
+      },
+      {
+        "cell_id": "-969:-359",
+        "observation_day": "2026-11-04",
+        "observation_day_convention": "Observation day is the FIRMS acquisition date in UTC (acq_date). It is not a local calendar day and not a wildfire-incident day.",
+        "center_lat": -14.191644469502416,
+        "center_lon": -50.18848262579804,
+        "bounds": {
+          "west": -50.21439304532606,
+          "south": -14.21184255545396,
+          "east": -50.162572206270006,
+          "north": -14.171448138668548
+        },
+        "area_km2": 25.0,
+        "label": "area with detected heat",
+        "satellite_count": 2,
+        "detection_count": 3,
+        "pass_count": 2,
+        "platforms": [
+          "NOAA-20",
+          "NOAA-21"
+        ],
+        "by_platform": [
+          {
+            "platform": "NOAA-20",
+            "detection_count": 2,
+            "observation_times_utc": [
+              "03:57"
+            ],
+            "passes": 1
+          },
+          {
+            "platform": "NOAA-21",
+            "detection_count": 1,
+            "observation_times_utc": [
+              "16:42"
+            ],
+            "passes": 1
+          }
+        ],
+        "members": [
+          {
+            "lat": -14.181,
+            "lon": -50.181,
+            "acq_date": "2026-11-04",
+            "acq_time": "03:57",
+            "acq_time_raw": "357",
+            "satellite_code": "N20",
+            "platform": "NOAA-20",
+            "instrument": "VIIRS",
+            "confidence": "n",
+            "frp": 10.0,
+            "brightness": 330.0,
+            "source": "VIIRS_NOAA20_NRT",
+            "feed_status": "ok"
+          },
+          {
+            "lat": -14.1805,
+            "lon": -50.1795,
+            "acq_date": "2026-11-04",
+            "acq_time": "03:57",
+            "acq_time_raw": "357",
+            "satellite_code": "N20",
+            "platform": "NOAA-20",
+            "instrument": "VIIRS",
+            "confidence": "n",
+            "frp": 11.0,
+            "brightness": 331.0,
+            "source": "VIIRS_NOAA20_NRT",
+            "feed_status": "ok"
+          },
+          {
+            "lat": -14.179,
+            "lon": -50.178,
+            "acq_date": "2026-11-04",
+            "acq_time": "16:42",
+            "acq_time_raw": "1642",
+            "satellite_code": "N21",
+            "platform": "NOAA-21",
+            "instrument": "VIIRS",
+            "confidence": "n",
+            "frp": 9.5,
+            "brightness": 328.0,
+            "source": "VIIRS_NOAA21_NRT",
+            "feed_status": "ok"
+          }
+        ],
+        "multiple_satellites": true
+      }
+    ],
+    "not_a_wildfire_count": true
+  },
+  "public_result": {
+    "kind": "unknown_with_detections",
+    "text": "Satellites detected heat in 2 areas.",
+    "lead": "Satellites detected heat in 2 areas.",
+    "multi_line": "1 area was seen by more than one satellite.",
+    "area_count": 2,
+    "detection_count": 5,
+    "satellite_count": 2,
+    "multiple_satellite_area_count": 1,
+    "coverage": "unknown"
+  },
+  "fixture": {
+    "name": "two_satellites",
+    "label": "Two-satellite click fixture \u00b7 NOAA-20 + NOAA-21 in one 5 km cell \u00b7 labeled archive"
+  }
+}

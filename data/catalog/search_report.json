@@ -1,0 +1,103 @@
+{
+  "unique_files": 76,
+  "files_per_product": {
+    "MYD14": 16,
+    "MYD03": 16,
+    "VNP14IMG": 22,
+    "VNP03IMG": 22
+  },
+  "candidate_daytime_passes": [
+    {
+      "modis_fire": "MYD14.A2019232.1725.061.2020304193337",
+      "modis_geo": "MYD03.A2019232.1725.061.2019233174737.hdf",
+      "viirs_fire": "VNP14IMG.A2019232.1706.002.2024095042640",
+      "viirs_geo": "VNP03IMG.A2019232.1706.002.2021111001212.nc",
+      "modis_time": "2019-08-20T17:25:00+00:00",
+      "viirs_time": "2019-08-20T17:06:00+00:00",
+      "delta_minutes": 19.0,
+      "daytime_window": true,
+      "bytes": 230841168
+    },
+    {
+      "modis_fire": "MYD14.A2019233.1630.061.2020304201527",
+      "modis_geo": "MYD03.A2019233.1630.061.2019234161004.hdf",
+      "viirs_fire": "VNP14IMG.A2019233.1648.002.2024095053044",
+      "viirs_geo": "VNP03IMG.A2019233.1648.002.2021111001349.nc",
+      "modis_time": "2019-08-21T16:30:00+00:00",
+      "viirs_time": "2019-08-21T16:48:00+00:00",
+      "delta_minutes": 18.0,
+      "daytime_window": true,
+      "bytes": 227188747
+    },
+    {
+      "modis_fire": "MYD14.A2019235.1620.061.2020304214519",
+      "modis_geo": "MYD03.A2019235.1620.061.2019236151131.hdf",
+      "viirs_fire": "VNP14IMG.A2019235.1612.002.2024095065843",
+      "viirs_geo": "VNP03IMG.A2019235.1612.002.2021111003811.nc",
+      "modis_time": "2019-08-23T16:20:00+00:00",
+      "viirs_time": "2019-08-23T16:12:00+00:00",
+      "delta_minutes": 8.0,
+      "daytime_window": true,
+      "bytes": 205827938
+    },
+    {
+      "modis_fire": "MYD14.A2019235.1755.061.2020304214513",
+      "modis_geo": "MYD03.A2019235.1755.061.2019236150923.hdf",
+      "viirs_fire": "VNP14IMG.A2019235.1748.002.2024095065844",
+      "viirs_geo": "VNP03IMG.A2019235.1748.002.2021111004239.nc",
+      "modis_time": "2019-08-23T17:55:00+00:00",
+      "viirs_time": "2019-08-23T17:48:00+00:00",
+      "delta_minutes": 7.0,
+      "daytime_window": true,
+      "bytes": 221887572
+    },
+    {
+      "modis_fire": "MYD14.A2019236.1700.061.2020304223052",
+      "modis_geo": "MYD03.A2019236.1700.061.2019238163125.hdf",
+      "viirs_fire": "VNP14IMG.A2019236.1730.002.2024095072520",
+      "viirs_geo": "VNP03IMG.A2019236.1730.002.2021111005426.nc",
+      "modis_time": "2019-08-24T17:00:00+00:00",
+      "viirs_time": "2019-08-24T17:30:00+00:00",
+      "delta_minutes": 30.0,
+      "daytime_window": true,
+      "bytes": 231880684
+    }
+  ],
+  "candidate_count": 5,
+  "estimated_transfer_bytes": 4564574647,
+  "unknown_size_count": 0,
+  "unknown_size_files": [],
+  "incomplete_fire_geo_pairs": 0,
+  "modis_passes_without_viirs": 7,
+  "viirs_passes_without_modis": 13,
+  "rejected": {
+    "outside_daytime_window": 4,
+    "footprint_outside_region": 0
+  },
+  "unrecognized_names": [],
+  "generated_at": "2026-11-10T13:47:37.522851+00:00",
+  "discovery_client": "earthaccess",
+  "earthdata_login": true,
+  "region_id": "cerrado",
+  "region_name": "Brazilian Cerrado",
+  "start": "2019-08-19",
+  "end": "2019-08-25",
+  "bbox": [
+    -52.5,
+    -15.5,
+    -48.5,
+    -12.5
+  ],
+  "versions": {
+    "MYD14": "061",
+    "MYD03": "6.1",
+    "VNP14IMG": "002",
+    "VNP03IMG": "2"
+  },
+  "search_errors": {
+    "MYD14": null,
+    "MYD03": null,
+    "VNP14IMG": null,
+    "VNP03IMG": null
+  }
+}

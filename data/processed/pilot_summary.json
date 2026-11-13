@@ -1,0 +1,62 @@
+{
+  "dataset": "pilot",
+  "region_id": "cerrado",
+  "eligible_cells": 5451,
+  "distinct_dates": 3,
+  "distinct_dates_with_eligible_cells": 3,
+  "dates": [
+    "2019-08-20",
+    "2019-08-21",
+    "2019-08-24"
+  ],
+  "omitted_from_activity_summary": [
+    {
+      "local_date": "2019-08-23",
+      "reason": "Zero eligible cells, so this date is not an activity rate."
+    }
+  ],
+  "modis_positive_examples": 24,
+  "by_date": [
+    {
+      "local_date": "2019-08-20",
+      "outcomes": {
+        "both": 4,
+        "modis_only": 6,
+        "neither": 2284,
+        "viirs_only": 18
+      },
+      "eligible": 2312,
+      "modis_positive": 10
+    },
+    {
+      "local_date": "2019-08-21",
+      "outcomes": {
+        "neither": 430,
+        "viirs_only": 4
+      },
+      "eligible": 434,
+      "modis_positive": 0
+    },
+    {
+      "local_date": "2019-08-24",
+      "outcomes": {
+        "both": 11,
+        "modis_only": 3,
+        "neither": 2681,
+        "viirs_only": 10
+      },
+      "eligible": 2705,
+      "modis_positive": 14
+    }
+  ],
+  "model_selection": "not run",
+  "reserved_region": "pantanal",
+  "storage": {
+    "bytes_downloaded": 886784941,
+    "bytes_downloaded_this_run": 0,
+    "granule_bytes_on_disk": 1117626109,
+    "peak_temporary_bytes": 1118706249,
+    "current_bytes": 1118706249
+  },
+  "additional_download_bytes": 886784941
+}

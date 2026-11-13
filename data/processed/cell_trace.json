@@ -1,0 +1,66 @@
+{
+  "cell_id": "-998:-335",
+  "center_lat": -13.224147105770554,
+  "center_lon": -51.691286958423895,
+  "local_date": "2019-08-20",
+  "outcome": "both",
+  "exclusion_reason": null,
+  "modis_detected": true,
+  "viirs_hotspot_pixel_count": 15,
+  "shared_coverage_fraction": 0.56,
+  "modis_file": "MYD14.A2019232.1725.061.2020304193337.hdf",
+  "viirs_file": "VNP14IMG.A2019232.1706.002.2024095042640.nc",
+  "modis_time": "2019-08-20T17:25:00+00:00",
+  "viirs_time": "2019-08-20T17:06:00+00:00",
+  "bounds": {
+    "west": -51.71719737795192,
+    "south": -13.244264197675594,
+    "east": -51.66537653889586,
+    "north": -13.204031631424115
+  },
+  "counts": {
+    "modis": {
+      "fire_low": 0,
+      "fire_nominal": 2,
+      "fire_high": 1,
+      "clear": 11,
+      "cloud": 0,
+      "water": 0,
+      "unknown": 0,
+      "missing": 0
+    },
+    "viirs": {
+      "fire_low": 7,
+      "fire_nominal": 8,
+      "fire_high": 0,
+      "clear": 129,
+      "cloud": 4,
+      "water": 5,
+      "unknown": 0,
+      "missing": 0
+    }
+  },
+  "rule": "A cell-day is usable only when land visible to both Aqua MODIS and Suomi-NPP VIIRS covers at least half of the 25 km\u00b2 cell. Visible land is clear land or a detected fire. Cloud, water, unknown, sun glint, bow-tie deletion, and unprocessed pixels do not count. Shared area is the smaller of the two sensors' visible-land areas, using nominal pixel areas of 1 km\u00b2 for MODIS and 0.140625 km\u00b2 for VIIRS. If either sensor has no processed pixels in the cell, the cell-day is missing and is not labeled as a day without fire.",
+  "data_origin": "nasa",
+  "pass": {
+    "confirmed_passes": [
+      {
+        "modis_file": "MYD14.A2019232.1725.061.2020304193337.hdf",
+        "viirs_file": "VNP14IMG.A2019232.1706.002.2024095042640.nc",
+        "delta_minutes": 19.0,
+        "modis_shape": [
+          2030,
+          1354
+        ],
+        "viirs_shape": [
+          6464,
+          6400
+        ],
+        "modis_daytime_check": "solar_zenith",
+        "viirs_daytime_check": "solar_zenith",
+        "modis_pixels_in_area": 77687,
+        "viirs_pixels_in_area": 844738
+      }
+    ]
+  }
+}

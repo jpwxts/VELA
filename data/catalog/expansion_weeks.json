@@ -1,0 +1,269 @@
+{
+  "bytes_downloaded": 4315619208,
+  "duplicate_cell_days": 0,
+  "weeks": [
+    {
+      "region_id": "arnhem",
+      "week_start": "2022-11-28",
+      "matched_passes": 5,
+      "distinct_eligible_dates": 4,
+      "eligible_dates": [
+        "2022-11-29",
+        "2022-12-01",
+        "2022-12-02",
+        "2022-12-04"
+      ],
+      "eligible_cell_days": 3085,
+      "modis_positives": 0,
+      "viirs_positives": 0,
+      "excluded_cells": 16923,
+      "excluded_coverage": {
+        "insufficient_shared_land": 11246,
+        "duplicate_pass_not_selected": 4002,
+        "missing_viirs": 1140,
+        "missing_modis": 535
+      },
+      "insufficient_dates": []
+    },
+    {
+      "region_id": "california",
+      "week_start": "2013-03-11",
+      "matched_passes": 5,
+      "distinct_eligible_dates": 4,
+      "eligible_dates": [
+        "2013-03-12",
+        "2013-03-13",
+        "2013-03-15",
+        "2013-03-17"
+      ],
+      "eligible_cell_days": 4420,
+      "modis_positives": 5,
+      "viirs_positives": 23,
+      "excluded_cells": 8786,
+      "excluded_coverage": {
+        "insufficient_shared_land": 4267,
+        "duplicate_pass_not_selected": 2598,
+        "missing_modis": 1867,
+        "missing_viirs": 54
+      },
+      "insufficient_dates": []
+    },
+    {
+      "region_id": "california",
+      "week_start": "2021-03-22",
+      "matched_passes": 9,
+      "distinct_eligible_dates": 3,
+      "eligible_dates": [
+        "2021-03-23",
+        "2021-03-26",
+        "2021-03-27"
+      ],
+      "eligible_cell_days": 4613,
+      "modis_positives": 4,
+      "viirs_positives": 10,
+      "excluded_cells": 19149,
+      "excluded_coverage": {
+        "duplicate_pass_not_selected": 13154,
+        "insufficient_shared_land": 4680,
+        "missing_viirs": 1260,
+        "missing_modis": 55
+      },
+      "insufficient_dates": [
+        {
+          "local_date": "2021-03-24",
+          "coverage_status": "insufficient",
+          "rate": null
+        }
+      ]
+    },
+    {
+      "region_id": "cerrado",
+      "week_start": "2014-01-27",
+      "matched_passes": 5,
+      "distinct_eligible_dates": 3,
+      "eligible_dates": [
+        "2014-01-27",
+        "2014-01-30",
+        "2014-02-01"
+      ],
+      "eligible_cell_days": 4609,
+      "modis_positives": 4,
+      "viirs_positives": 14,
+      "excluded_cells": 22935,
+      "excluded_coverage": {
+        "insufficient_shared_land": 13435,
+        "duplicate_pass_not_selected": 3848,
+        "missing_modis": 3544,
+        "missing_viirs": 2108
+      },
+      "insufficient_dates": [
+        {
+          "local_date": "2014-01-29",
+          "coverage_status": "insufficient",
+          "rate": null
+        }
+      ]
+    },
+    {
+      "region_id": "cerrado",
+      "week_start": "2019-08-19",
+      "matched_passes": 5,
+      "distinct_eligible_dates": 3,
+      "eligible_dates": [
+        "2019-08-20",
+        "2019-08-21",
+        "2019-08-24"
+      ],
+      "eligible_cell_days": 5451,
+      "modis_positives": 24,
+      "viirs_positives": 47,
+      "excluded_cells": 18856,
+      "excluded_coverage": {
+        "insufficient_shared_land": 12282,
+        "missing_modis": 3524,
+        "missing_viirs": 2397,
+        "duplicate_pass_not_selected": 653
+      },
+      "insufficient_dates": [
+        {
+          "local_date": "2019-08-23",
+          "coverage_status": "insufficient",
+          "rate": null
+        }
+      ]
+    },
+    {
+      "region_id": "cerrado",
+      "week_start": "2021-02-22",
+      "matched_passes": 6,
+      "distinct_eligible_dates": 4,
+      "eligible_dates": [
+        "2021-02-22",
+        "2021-02-23",
+        "2021-02-25",
+        "2021-02-28"
+      ],
+      "eligible_cell_days": 4964,
+      "modis_positives": 4,
+      "viirs_positives": 3,
+      "excluded_cells": 30508,
+      "excluded_coverage": {
+        "insufficient_shared_land": 15382,
+        "duplicate_pass_not_selected": 11786,
+        "missing_modis": 3290,
+        "missing_viirs": 50
+      },
+      "insufficient_dates": []
+    },
+    {
+      "region_id": "yakutia",
+      "week_start": "2017-09-11",
+      "matched_passes": 10,
+      "distinct_eligible_dates": 4,
+      "eligible_dates": [
+        "2017-09-11",
+        "2017-09-13",
+        "2017-09-14",
+        "2017-09-16"
+      ],
+      "eligible_cell_days": 6821,
+      "modis_positives": 0,
+      "viirs_positives": 0,
+      "excluded_cells": 26055,
+      "excluded_coverage": {
+        "duplicate_pass_not_selected": 18520,
+        "insufficient_shared_land": 6442,
+        "missing_modis": 835,
+        "missing_viirs": 258
+      },
+      "insufficient_dates": []
+    },
+    {
+      "region_id": "yakutia",
+      "week_start": "2021-11-22",
+      "matched_passes": 9,
+      "distinct_eligible_dates": 0,
+      "eligible_dates": [],
+      "eligible_cell_days": 0,
+      "modis_positives": 0,
+      "viirs_positives": 0,
+      "excluded_cells": 32300,
+      "excluded_coverage": {
+        "duplicate_pass_not_selected": 14355,
+        "insufficient_shared_land": 11846,
+        "missing_modis": 3741,
+        "missing_viirs": 2358
+      },
+      "insufficient_dates": [
+        {
+          "local_date": "2021-11-22",
+          "coverage_status": "insufficient",
+          "rate": null
+        },
+        {
+          "local_date": "2021-11-24",
+          "coverage_status": "insufficient",
+          "rate": null
+        },
+        {
+          "local_date": "2021-11-25",
+          "coverage_status": "insufficient",
+          "rate": null
+        },
+        {
+          "local_date": "2021-11-27",
+          "coverage_status": "insufficient",
+          "rate": null
+        },
+        {
+          "local_date": "2021-11-28",
+          "coverage_status": "insufficient",
+          "rate": null
+        }
+      ]
+    },
+    {
+      "region_id": "zambia",
+      "week_start": "2021-07-19",
+      "matched_passes": 7,
+      "distinct_eligible_dates": 4,
+      "eligible_dates": [
+        "2021-07-19",
+        "2021-07-20",
+        "2021-07-24",
+        "2021-07-25"
+      ],
+      "eligible_cell_days": 7493,
+      "modis_positives": 316,
+      "viirs_positives": 859,
+      "excluded_cells": 31605,
+      "excluded_coverage": {
+        "insufficient_shared_land": 17147,
+        "duplicate_pass_not_selected": 9848,
+        "missing_modis": 4610
+      },
+      "insufficient_dates": [
+        {
+          "local_date": "2021-07-22",
+          "coverage_status": "insufficient",
+          "rate": null
+        }
+      ]
+    },
+    {
+      "region_id": "zambia",
+      "week_start": "2020-08-17",
+      "week_end": "2020-08-23",
+      "status": "no_paired_coverage",
+      "matched_passes": 0,
+      "distinct_eligible_dates": 0,
+      "eligible_cell_days": 0,
+      "modis_positives": 0,
+      "viirs_positives": 0,
+      "excluded_cells": 0,
+      "excluded_coverage": {},
+      "rate": null
+    }
+  ],
+  "pilot_unchanged": true
+}

@@ -1,0 +1,47 @@
+{
+  "feature": "log1p(viirs_hotspot_pixel_count)",
+  "cell_id": "-1000:-336",
+  "cell_key": 99000099664,
+  "viirs_file": "VNP14IMG.A2019232.1706.002.2024095042640.nc",
+  "viirs_geo_file": "VNP03IMG.A2019232.1706.002.2021111001212.nc",
+  "modis_file_not_opened": "MYD14.A2019232.1725.061.2020304193337.hdf",
+  "stored_viirs_hotspot_pixel_count": 8,
+  "recount_from_viirs_swath_only": 8,
+  "recount_classes": {
+    "fire_low": 0,
+    "fire_nominal": 8,
+    "fire_high": 0,
+    "clear": 125,
+    "cloud": 11,
+    "water": 11,
+    "unknown": 0,
+    "missing": 0
+  },
+  "matches_stored_count": true,
+  "uses_modis_footprint": false,
+  "note": "The count bins VIIRS fire-mask pixels by the VIIRS latitude and longitude on the fixed 5 km grid, inside the selected region rectangle. Shared MODIS coverage decides which cell-days are eligible. It does not define the pixels inside the count. The saved pilot was not refit.",
+  "expansion_cell": {
+    "cell_id": "-2354:928",
+    "cell_key": 97646100928,
+    "region_id": "california",
+    "local_date": "2013-03-12",
+    "viirs_file": "VNP14IMG.A2013071.2042.002.2024026111846.nc",
+    "viirs_geo_file": "VNP03IMG.A2013071.2042.002.2020358204923.nc",
+    "modis_file_not_opened": "MYD14.A2013071.2100.061.2021226122456.hdf",
+    "stored_viirs_hotspot_pixel_count": 1,
+    "recount_from_viirs_swath_only": 1,
+    "recount_classes": {
+      "fire_low": 0,
+      "fire_nominal": 1,
+      "fire_high": 0,
+      "clear": 155,
+      "cloud": 0,
+      "water": 0,
+      "unknown": 0,
+      "missing": 0
+    },
+    "matches_stored_count": true,
+    "uses_modis_footprint": false
+  },
+  "eligible_rows_match_viirs_class_sum": true
+}

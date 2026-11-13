@@ -1,0 +1,350 @@
+{
+  "label": "NOAA-20 transfer pilot evaluated",
+  "operational_harmonized_estimate": "calibration pending",
+  "research_status": "transfer pilot evaluated",
+  "region_id": "cerrado",
+  "week_start": "2021-02-22",
+  "week_end": "2021-02-28",
+  "protocol_amendment": "2026-11-12b",
+  "bytes_transferred": 1800954900,
+  "authorized_bytes": 1800954900,
+  "verification": [
+    {
+      "name": "VJ114IMG.A2021053.1706.002.2024156054816.nc",
+      "bytes": 2922175,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021053.1706.021.2021072200249.nc",
+      "bytes": 188124827,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ114IMG.A2021054.1648.002.2024156055249.nc",
+      "bytes": 2946240,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021054.1648.021.2021072195917.nc",
+      "bytes": 184608327,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ114IMG.A2021055.1624.002.2024156061814.nc",
+      "bytes": 1928990,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021055.1624.021.2021072202142.nc",
+      "bytes": 162531415,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ114IMG.A2021055.1630.002.2024156061827.nc",
+      "bytes": 2679416,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021055.1630.021.2021072202410.nc",
+      "bytes": 176161692,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ114IMG.A2021056.1606.002.2024156063825.nc",
+      "bytes": 2010448,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021056.1606.021.2021072210004.nc",
+      "bytes": 161977715,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ114IMG.A2021056.1748.002.2024156064020.nc",
+      "bytes": 2934269,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021056.1748.021.2021072205017.nc",
+      "bytes": 181595843,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ114IMG.A2021057.1548.002.2024156070831.nc",
+      "bytes": 1704996,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021057.1548.021.2021072210850.nc",
+      "bytes": 160177722,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ114IMG.A2021057.1730.002.2024156070912.nc",
+      "bytes": 2645999,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021057.1730.021.2021072210919.nc",
+      "bytes": 187670720,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ114IMG.A2021058.1712.002.2024156072414.nc",
+      "bytes": 2676975,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021058.1712.021.2021072212730.nc",
+      "bytes": 187404795,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ114IMG.A2021059.1654.002.2024156075329.nc",
+      "bytes": 2429275,
+      "suffix": ".nc",
+      "exists": true
+    },
+    {
+      "name": "VJ103IMG.A2021059.1654.021.2021072221142.nc",
+      "bytes": 185823061,
+      "suffix": ".nc",
+      "exists": true
+    }
+  ],
+  "feature_parity": {
+    "fire_mask_present": true,
+    "latitude_present": true,
+    "longitude_present": true,
+    "solar_zenith_present": true,
+    "netcdf_auto_scale_disabled": true,
+    "class_table": "VIIRS Collection 2 codes 0-9 shared by VNP14IMG and VJ114IMG",
+    "viirs_classes": {
+      "0": "missing",
+      "1": "missing",
+      "2": "unknown",
+      "3": "water",
+      "4": "cloud",
+      "5": "clear",
+      "6": "unknown",
+      "7": "fire_low",
+      "8": "fire_nominal",
+      "9": "fire_high"
+    },
+    "solar_zenith_scale": 0.009999999776482582,
+    "solar_zenith_offset": 0.0,
+    "solar_zenith_sample_median_deg": 22.920000076293945,
+    "solar_zenith_reader": "corrected_single_scale",
+    "solar_zenith_faithful": true,
+    "daytime_read_ok": true,
+    "daytime_check": "solar_zenith",
+    "feature_columns": [
+      "viirs_hotspot_pixels",
+      "viirs_fire_low",
+      "viirs_fire_nominal",
+      "viirs_fire_high",
+      "viirs_clear_fraction",
+      "viirs_cloud_fraction",
+      "viirs_water_fraction",
+      "viirs_unknown_fraction",
+      "viirs_visible_land_km2",
+      "center_lat",
+      "center_lon",
+      "doy_sin",
+      "doy_cos",
+      "local_hour"
+    ],
+    "feature_probe_keys": [
+      "viirs_hotspot_pixels",
+      "viirs_fire_low",
+      "viirs_fire_nominal",
+      "viirs_fire_high",
+      "viirs_clear_fraction",
+      "viirs_cloud_fraction",
+      "viirs_water_fraction",
+      "viirs_unknown_fraction",
+      "viirs_visible_land_km2",
+      "center_lat",
+      "center_lon",
+      "doy_sin",
+      "doy_cos",
+      "local_hour"
+    ],
+    "feature_columns_match": true,
+    "unreproducible_features": [],
+    "faithful": true
+  },
+  "frozen_model": {
+    "model_name": "random_forest",
+    "candidate_sha256": "e96ae96d359563442449d0575e1687c262257889bef9ff0868e50854507a6925",
+    "vela_model_sha256": "c2609ef9c399f3196cf4931edd19cdfd48795af70a9e78099aedd46b13df7306",
+    "refit": false,
+    "selected_suomi_model_unchanged": true
+  },
+  "qualifying_passes": 0,
+  "matched_cell_days": 0,
+  "aqua_positives": 0,
+  "aqua_zeros": 0,
+  "observed_aqua_rate": null,
+  "raw_noaa20_rate": null,
+  "frozen_model_mean_probability": null,
+  "signed_difference_percentage_points": {
+    "raw_noaa20": null,
+    "frozen_random_forest": null
+  },
+  "absolute_error_percentage_points": {
+    "raw_noaa20": null,
+    "frozen_random_forest": null
+  },
+  "errors_undefined": true,
+  "reason": "One NOAA-20/Aqua daytime pair fell inside the 30-minute tolerance (26 Feb 2021, delta 22 min) and produced overlapping footprints, but every collected cell-day failed the half-cell shared visible-land rule (missing_modis=184, insufficient_shared_land=194). The other nine authorized NOAA-20 daytime pairs had no cached Aqua pass within 30 minutes (best deltas 31\u20131463 min; no Aqua on disk for 24 and 27 Feb). Jointly eligible matched cell-days = 0, so rates and absolute errors are undefined.",
+  "calibration_activated": false,
+  "noaa21_status": "calibration pending",
+  "selected_suomi_model": "random_forest",
+  "selected_suomi_model_changed": false,
+  "final_test_evaluated": false,
+  "pantanal_opened": false,
+  "native_detections_preserved": true,
+  "confirmed_passes": [
+    {
+      "modis_file": "MYD14.A2021057.1610.061.2021058113629.hdf",
+      "viirs_file": "VJ114IMG.A2021057.1548.002.2024156070831.nc",
+      "viirs_platform": "NOAA-20",
+      "delta_minutes": 22.0,
+      "modis_shape": [
+        2030,
+        1354
+      ],
+      "viirs_shape": [
+        6464,
+        6400
+      ],
+      "modis_daytime_check": "solar_zenith",
+      "viirs_daytime_check": "solar_zenith",
+      "modis_pixels_in_area": 906,
+      "viirs_pixels_in_area": 24261
+    }
+  ],
+  "exclusion_counts": {
+    "missing_modis": 184,
+    "insufficient_shared_land": 194
+  },
+  "granule_skips": [
+    {
+      "stamp": "A2021053.1635",
+      "platform": "Aqua",
+      "reason": "no_viirs_within_tolerance"
+    },
+    {
+      "stamp": "A2021054.1720",
+      "platform": "Aqua",
+      "reason": "no_viirs_within_tolerance"
+    },
+    {
+      "stamp": "A2021056.1705",
+      "platform": "Aqua",
+      "reason": "no_viirs_within_tolerance"
+    },
+    {
+      "stamp": "A2021056.1710",
+      "platform": "Aqua",
+      "reason": "no_viirs_within_tolerance"
+    },
+    {
+      "stamp": "A2021059.1735",
+      "platform": "Aqua",
+      "reason": "no_viirs_within_tolerance"
+    },
+    {
+      "stamp": "A2021059.1740",
+      "platform": "Aqua",
+      "reason": "no_viirs_within_tolerance"
+    },
+    {
+      "stamp": "A2021053.1706",
+      "platform": "NOAA-20",
+      "reason": "no_modis_within_tolerance"
+    },
+    {
+      "stamp": "A2021054.1648",
+      "platform": "NOAA-20",
+      "reason": "no_modis_within_tolerance"
+    },
+    {
+      "stamp": "A2021055.1624",
+      "platform": "NOAA-20",
+      "reason": "no_modis_within_tolerance"
+    },
+    {
+      "stamp": "A2021055.1630",
+      "platform": "NOAA-20",
+      "reason": "no_modis_within_tolerance"
+    },
+    {
+      "stamp": "A2021056.1606",
+      "platform": "NOAA-20",
+      "reason": "no_modis_within_tolerance"
+    },
+    {
+      "stamp": "A2021056.1748",
+      "platform": "NOAA-20",
+      "reason": "no_modis_within_tolerance"
+    },
+    {
+      "stamp": "A2021057.1730",
+      "platform": "NOAA-20",
+      "reason": "no_modis_within_tolerance"
+    },
+    {
+      "stamp": "A2021058.1712",
+      "platform": "NOAA-20",
+      "reason": "no_modis_within_tolerance"
+    },
+    {
+      "stamp": "A2021059.1654",
+      "platform": "NOAA-20",
+      "reason": "no_modis_within_tolerance"
+    }
+  ],
+  "guards": {
+    "suomi_chosen_before": "random_forest",
+    "suomi_chosen_after": "random_forest",
+    "suomi_unchanged": true,
+    "reserve_unchanged": true,
+    "noaa20_operational": "calibration pending",
+    "noaa21_operational": "calibration pending",
+    "pilot_cannot_activate_noaa": true
+  },
+  "next_development_week": {
+    "status": "not_specified_by_transfer_plan",
+    "proposed_rule": "Walk the existing 2021\u20132022 validation_priority order for NOAA-20/Aqua daytime pairs, starting after Cerrado 2021-02-22. Do not reorder by fire counts, Aqua rates, or model scores. Reuse cached Aqua when present. Keep operational NOAA estimates calibration pending until a written activation rule is approved.",
+    "proposed_next_week": {
+      "region_id": "california",
+      "week_start": "2021-03-22",
+      "week_end": "2021-03-28",
+      "source": "validation_priority.next after cerrado 2021-02-22"
+    },
+    "outcomes_inspected_before_rule": false
+  },
+  "confirmed_overlapping_passes": 1,
+  "pilot_interpretation": "With zero jointly eligible cell-days and zero Aqua reference positives on this pilot week, the run verifies download, feature parity, pairing under the existing rules, and that NOAA-20 stays calibration pending operationally. It does not measure low-activity transfer accuracy, and active-fire transfer remains unknown.",
+  "sparse_aqua_positives": true
+}

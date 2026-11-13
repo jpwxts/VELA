@@ -155,16 +155,22 @@ scripts/             Catalog, ingest, train, expansion, validation helpers
 config/              Regions, settings, global plans
 docs/                METHOD.md and validation notes
 tests/               Pytest coverage for geocode, land check, preparedness, core rules
-data/                Local only (gitignored): raw granules, parquet tables, models, fixtures
+data/                Shared derived data + local raw granules (see below)
 ```
 
-| Path | Role |
-| --- | --- |
-| `config/settings.json` | Grid, years, pair tolerance, smoke-test weeks |
-| `config/regions.json` | Sample landscapes (Pantanal reserved) |
-| `docs/METHOD.md` | Mask tables, 30-minute match, coverage rule, model splits |
-| `data/processed/paired_cells.parquet` | Usable cell-days (after ingest) |
-| `data/models/` | Pilot models and selection reports (local) |
+| Path | In GitHub? | Role |
+| --- | --- | --- |
+| `config/settings.json` | Yes | Grid, years, pair tolerance, smoke-test weeks |
+| `config/regions.json` | Yes | Sample landscapes (Pantanal reserved) |
+| `docs/METHOD.md` | Yes | Mask tables, 30-minute match, coverage rule, model splits |
+| `data/catalog/` | Yes | Expansion / catalog summaries (`expansion_weeks.json`, …) |
+| `data/manifests/` | Yes | Sample and expansion week manifests |
+| `data/fixtures/` | Yes | UI fixtures and screenshots |
+| `data/processed/` | Yes | Paired / excluded cell tables and pass shards |
+| `data/models/` | Yes | Pilot / candidate models and selection JSON |
+| `data/raw/` | **No** (~14 GB) | NASA HDF/NetCDF granules — fetch with Earthdata + scripts |
+
+Raw granules are too large for GitHub. Clone the repo for tables and models; run `earthaccess login` and the ingest scripts if you need the original swaths.
 
 ---
 

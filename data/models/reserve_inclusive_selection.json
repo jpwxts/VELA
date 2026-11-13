@@ -1,0 +1,235 @@
+{
+  "label": "reserve-inclusive selection",
+  "protocol_amendment": {
+    "file": "docs/VALIDATION_PROTOCOL_AMENDMENT_2026-11-12.md",
+    "version": "2026-11-12b",
+    "sha256": "2ebd405ccb56f253a7d37d00095cc9444ad7ed1542d8cf8ab4c9d72f68a2a373",
+    "approved_for_run": "arnhem-2022-11-28",
+    "recorded_before_arnhem_processing": true,
+    "checks": {
+      "reserve_order": true,
+      "coverage_eligibility": true,
+      "stopping_rule": true,
+      "reserve_enters_four_week_selection": true,
+      "arnhem_first_after_yakutia": true,
+      "disjoint_from_training_years_regions": true,
+      "disjoint_from_2023_2024_and_pantanal": true,
+      "fire_counts_unused_in_selection": true,
+      "material_gap_closed_before_outcomes": "explicit reserve entry into equal-weight four-week mean; original vs reserve-inclusive labels"
+    }
+  },
+  "models_refit": false,
+  "candidate_identifiers": {
+    "logistic_regression": {
+      "file": "candidate_logistic_regression.joblib",
+      "exists": true,
+      "sha256": "39352d5864e71bb92fe82f288b969e81e1577ba3377c7049d6fc5e6a2b8878fa",
+      "label": "candidate",
+      "training_rows": 21301,
+      "training_regions": [
+        "california",
+        "cerrado",
+        "yakutia"
+      ],
+      "training_years": [
+        2013,
+        2014,
+        2017,
+        2019
+      ]
+    },
+    "random_forest": {
+      "file": "candidate_random_forest.joblib",
+      "exists": true,
+      "sha256": "e96ae96d359563442449d0575e1687c262257889bef9ff0868e50854507a6925",
+      "label": "candidate",
+      "training_rows": 21301,
+      "training_regions": [
+        "california",
+        "cerrado",
+        "yakutia"
+      ],
+      "training_years": [
+        2013,
+        2014,
+        2017,
+        2019
+      ]
+    }
+  },
+  "bytes_transferred_arnhem": 814354982,
+  "original_four_week_attempt": "/Users/florlyn/Desktop/MODISVIIRS/data/models/original_four_week_attempt.json",
+  "weeks": [
+    {
+      "region_id": "cerrado",
+      "region_group": "previously_trained",
+      "dates": "2021-02-22, 2021-02-23, 2021-02-25, 2021-02-28",
+      "eligible_dates": [
+        "2021-02-22",
+        "2021-02-23",
+        "2021-02-25",
+        "2021-02-28"
+      ],
+      "usable_days": 4,
+      "eligible_cell_days": 4964,
+      "coverage_status": "ok",
+      "scored": true,
+      "reason": null,
+      "observed_modis_rate": 0.0008058017727639,
+      "raw_viirs_rate": 0.0006043513295729251,
+      "logistic_estimate": 0.8606100811486417,
+      "random_forest_estimate": 0.007555794663145206,
+      "absolute_error_percentage_points": {
+        "raw_viirs": 0.020145044319097496,
+        "logistic_regression": 85.98042793758778,
+        "random_forest": 0.6749992890381306
+      }
+    },
+    {
+      "region_id": "california",
+      "region_group": "previously_trained",
+      "dates": "2021-03-23, 2021-03-26, 2021-03-27",
+      "eligible_dates": [
+        "2021-03-23",
+        "2021-03-26",
+        "2021-03-27"
+      ],
+      "usable_days": 3,
+      "eligible_cell_days": 4613,
+      "coverage_status": "ok",
+      "scored": true,
+      "reason": null,
+      "observed_modis_rate": 0.0008671146759158899,
+      "raw_viirs_rate": 0.0021677866897897246,
+      "logistic_estimate": 0.4766547971964293,
+      "random_forest_estimate": 0.004819132724002617,
+      "absolute_error_percentage_points": {
+        "raw_viirs": 0.13006720138738348,
+        "logistic_regression": 47.57876825205134,
+        "random_forest": 0.39520180480867273
+      }
+    },
+    {
+      "region_id": "zambia",
+      "region_group": "new",
+      "dates": "2021-07-19, 2021-07-20, 2021-07-24, 2021-07-25",
+      "eligible_dates": [
+        "2021-07-19",
+        "2021-07-20",
+        "2021-07-24",
+        "2021-07-25"
+      ],
+      "usable_days": 4,
+      "eligible_cell_days": 7493,
+      "coverage_status": "ok",
+      "scored": true,
+      "reason": null,
+      "observed_modis_rate": 0.04217269451488056,
+      "raw_viirs_rate": 0.1146403309755772,
+      "logistic_estimate": 0.13826638538972122,
+      "random_forest_estimate": 0.053391829951951575,
+      "absolute_error_percentage_points": {
+        "raw_viirs": 7.246763646069665,
+        "logistic_regression": 9.609369087484065,
+        "random_forest": 1.1219135437071017
+      }
+    },
+    {
+      "region_id": "yakutia",
+      "region_group": "previously_trained",
+      "dates": "2021-11-22 to 2021-11-28",
+      "eligible_dates": [],
+      "usable_days": 0,
+      "eligible_cell_days": 0,
+      "reference_positives": 0,
+      "reference_zeros": 0,
+      "excluded_rows": 32300,
+      "coverage_status": "insufficient",
+      "scored": false,
+      "reason": "No eligible cell-days. The rate is missing. Pixel audit after correcting VIIRS NetCDF solar-zenith double-scaling: 14 catalog daytime pairs; 9 pairs still pass the daytime filter; 344,035 Aqua and 4,398,858 Suomi-NPP pixels fall inside the box on those pairs; 0 clear or fire pixels on either platform before footprints are intersected; every Aqua pixel is cloud and every Suomi-NPP processed land pixel is cloud (plus bow-tie/missing). Shared visible land is a measured numerical zero. Five Aqua granules are nighttime and are skipped. The week MAE is undefined.",
+      "observed_modis_rate": null,
+      "raw_viirs_rate": null,
+      "logistic_estimate": null,
+      "random_forest_estimate": null,
+      "absolute_error_percentage_points": {
+        "raw_viirs": null,
+        "logistic_regression": null,
+        "random_forest": null
+      },
+      "exclusion_reasons": {
+        "insufficient_shared_land": 11846,
+        "missing_modis": 3741,
+        "missing_viirs": 2358,
+        "duplicate_pass_not_selected": 14355
+      },
+      "shared_visible_km2_max": 0.0,
+      "pixel_audit": "data/catalog/yakutia_pixel_audit.json"
+    },
+    {
+      "region_id": "arnhem",
+      "region_group": "new",
+      "week_start": "2022-11-28",
+      "week_end": "2022-12-04",
+      "dates": "2022-11-29, 2022-12-01, 2022-12-02, 2022-12-04",
+      "eligible_dates": [
+        "2022-11-29",
+        "2022-12-01",
+        "2022-12-02",
+        "2022-12-04"
+      ],
+      "usable_days": 4,
+      "eligible_cell_days": 3085,
+      "reference_positives": 0,
+      "reference_zeros": 3085,
+      "excluded_rows": 16923,
+      "qualifying_passes": 5,
+      "qualifying_pass_stamps": [
+        "arnhem_2022333_0425.parquet",
+        "arnhem_2022335_0410.parquet",
+        "arnhem_2022335_0415.parquet",
+        "arnhem_2022336_0455.parquet",
+        "arnhem_2022338_0440.parquet"
+      ],
+      "coverage_status": "ok",
+      "scored": true,
+      "reason": null,
+      "observed_modis_rate": 0.0,
+      "raw_viirs_rate": 0.0,
+      "logistic_estimate": 6.398219076436091e-12,
+      "random_forest_estimate": 0.004473141116645505,
+      "absolute_error_percentage_points": {
+        "raw_viirs": 0.0,
+        "logistic_regression": 6.398219076436091e-10,
+        "random_forest": 0.4473141116645505
+      },
+      "role": "reserve"
+    }
+  ],
+  "scored_weeks": 4,
+  "enough_weeks_to_select": true,
+  "weekly_mae_percentage_points": {
+    "raw_viirs": 1.8492439729440364,
+    "logistic_regression": 35.79214131944075,
+    "random_forest": 0.6598571873046138
+  },
+  "mae_includes": [
+    "cerrado",
+    "california",
+    "zambia",
+    "arnhem"
+  ],
+  "mae_excludes_undefined": [
+    "yakutia"
+  ],
+  "chosen_model": "random_forest",
+  "selection_status": "selected",
+  "tie_break": "Lower weekly mean absolute error wins. Each scored region-week has equal weight. Ties prefer raw VIIRS, then logistic regression, then random forest.",
+  "final_test_evaluated": false,
+  "reveal_performance": "pending_until_final_test",
+  "noaa20_calibration": "calibration pending",
+  "noaa21_calibration": "calibration pending",
+  "reserved_not_run": [
+    "2023-2024",
+    "pantanal"
+  ]
+}

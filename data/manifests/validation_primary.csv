@@ -1,0 +1,9 @@
+region_id,region_name,landscape,role,development,year,season,week_start,week_end,thursday,quiet,split,west,south,east,north,products
+cerrado,Brazilian Cerrado,savanna,train,yes,2021,DJF,2021-02-22,2021-02-28,2021-02-25,yes,tune,-52.5,-15.5,-48.5,-12.5,"MYD14,MYD03,VNP14IMG,VNP03IMG"
+california,Northern California,mediterranean forest,train,yes,2021,MAM,2021-03-22,2021-03-28,2021-03-25,yes,tune,-122.8,39.2,-120.2,41.8,"MYD14,MYD03,VNP14IMG,VNP03IMG"
+zambia,Zambia woodland,woodland,train,yes,2021,JJA,2021-07-19,2021-07-25,2021-07-22,no,tune,25.0,-15.5,29.0,-12.5,"MYD14,MYD03,VNP14IMG,VNP03IMG"
+yakutia,Central Yakutia,boreal forest,train,yes,2021,SON,2021-11-22,2021-11-28,2021-11-25,yes,tune,125.0,61.0,130.0,64.0,"MYD14,MYD03,VNP14IMG,VNP03IMG"
+arnhem,Arnhem Land,tropical savanna,train,yes,2022,DJF,2022-11-28,2022-12-04,2022-12-01,yes,tune,133.0,-13.8,136.5,-11.5,"MYD14,MYD03,VNP14IMG,VNP03IMG"
+cerrado,Brazilian Cerrado,savanna,train,yes,2022,MAM,2022-05-23,2022-05-29,2022-05-26,no,tune,-52.5,-15.5,-48.5,-12.5,"MYD14,MYD03,VNP14IMG,VNP03IMG"
+california,Northern California,mediterranean forest,train,yes,2022,JJA,2022-08-08,2022-08-14,2022-08-11,no,tune,-122.8,39.2,-120.2,41.8,"MYD14,MYD03,VNP14IMG,VNP03IMG"
+zambia,Zambia woodland,woodland,train,yes,2022,SON,2022-09-26,2022-10-02,2022-09-29,no,tune,25.0,-15.5,29.0,-12.5,"MYD14,MYD03,VNP14IMG,VNP03IMG"

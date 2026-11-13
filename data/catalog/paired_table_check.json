@@ -1,0 +1,354 @@
+{
+  "downloaded_passes": 22,
+  "passes_with_cell_rows": 20,
+  "passes": [
+    {
+      "stamp": "cerrado_2014027_1630.parquet",
+      "modis_fire": "MYD14.A2014027.1630.061.2021246073407",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 38
+    },
+    {
+      "stamp": "cerrado_2014029_1620.parquet",
+      "modis_fire": "MYD14.A2014029.1620.061.2021246193711",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 0
+    },
+    {
+      "stamp": "cerrado_2014029_1755.parquet",
+      "modis_fire": "MYD14.A2014029.1755.061.2021246193625",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 0
+    },
+    {
+      "stamp": "cerrado_2014030_1700.parquet",
+      "modis_fire": "MYD14.A2014030.1700.061.2021246204407",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 1195
+    },
+    {
+      "stamp": "cerrado_2014032_1650.parquet",
+      "modis_fire": "MYD14.A2014032.1650.061.2021246204230",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 3376
+    },
+    {
+      "stamp": "california_2013071_2100.parquet",
+      "modis_fire": "MYD14.A2013071.2100.061.2021226122456",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 1662
+    },
+    {
+      "stamp": "california_2013072_2140.parquet",
+      "modis_fire": "MYD14.A2013072.2140.061.2021226123533",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 180
+    },
+    {
+      "stamp": "california_2013072_2145.parquet",
+      "modis_fire": "MYD14.A2013072.2145.061.2021226123712",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 0
+    },
+    {
+      "stamp": "california_2013074_2130.parquet",
+      "modis_fire": "MYD14.A2013074.2130.061.2021226145649",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 1920
+    },
+    {
+      "stamp": "california_2013076_2115.parquet",
+      "modis_fire": "MYD14.A2013076.2115.061.2021226154150",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 658
+    },
+    {
+      "stamp": "yakutia_2017254_0320.parquet",
+      "modis_fire": "MYD14.A2017254.0320.061.2021283041754",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 2829
+    },
+    {
+      "stamp": "yakutia_2017254_0500.parquet",
+      "modis_fire": "MYD14.A2017254.0500.061.2021283041826",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 298
+    },
+    {
+      "stamp": "yakutia_2017256_0310.parquet",
+      "modis_fire": "MYD14.A2017256.0310.061.2021283050508",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 1071
+    },
+    {
+      "stamp": "yakutia_2017256_0445.parquet",
+      "modis_fire": "MYD14.A2017256.0445.061.2021283050525",
+      "rows_in_cell_tables": false,
+      "shard_on_disk": false,
+      "eligible_at_ingest": 0
+    },
+    {
+      "stamp": "yakutia_2017256_0450.parquet",
+      "modis_fire": "MYD14.A2017256.0450.061.2021283050627",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 490
+    },
+    {
+      "stamp": "yakutia_2017257_0215.parquet",
+      "modis_fire": "MYD14.A2017257.0215.061.2021283101844",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 0
+    },
+    {
+      "stamp": "yakutia_2017257_0350.parquet",
+      "modis_fire": "MYD14.A2017257.0350.061.2021283101847",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 1388
+    },
+    {
+      "stamp": "yakutia_2017257_0355.parquet",
+      "modis_fire": "MYD14.A2017257.0355.061.2021283101846",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 1165
+    },
+    {
+      "stamp": "yakutia_2017257_0530.parquet",
+      "modis_fire": "MYD14.A2017257.0530.061.2021283101921",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 0
+    },
+    {
+      "stamp": "yakutia_2017259_0205.parquet",
+      "modis_fire": "MYD14.A2017259.0205.061.2021283181233",
+      "rows_in_cell_tables": false,
+      "shard_on_disk": false,
+      "eligible_at_ingest": 0
+    },
+    {
+      "stamp": "yakutia_2017259_0340.parquet",
+      "modis_fire": "MYD14.A2017259.0340.061.2021283181334",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 119
+    },
+    {
+      "stamp": "yakutia_2017259_0520.parquet",
+      "modis_fire": "MYD14.A2017259.0520.061.2021283181425",
+      "rows_in_cell_tables": true,
+      "shard_on_disk": true,
+      "eligible_at_ingest": 0
+    }
+  ],
+  "weeks": [
+    {
+      "region_id": "california",
+      "week_start": "2013-03-11",
+      "eligible_dates": [
+        "2013-03-12",
+        "2013-03-13",
+        "2013-03-15",
+        "2013-03-17"
+      ],
+      "eligible_cell_days": 4420,
+      "modis_positives": 5,
+      "viirs_positives": 23,
+      "coverage_status": "ok",
+      "rate": null,
+      "insufficient_dates": []
+    },
+    {
+      "region_id": "cerrado",
+      "week_start": "2014-01-27",
+      "eligible_dates": [
+        "2014-01-27",
+        "2014-01-30",
+        "2014-02-01"
+      ],
+      "eligible_cell_days": 4609,
+      "modis_positives": 4,
+      "viirs_positives": 14,
+      "coverage_status": "ok",
+      "rate": null,
+      "insufficient_dates": [
+        {
+          "local_date": "2014-01-29",
+          "coverage_status": "insufficient",
+          "rate": null
+        }
+      ]
+    },
+    {
+      "region_id": "cerrado",
+      "week_start": "2019-08-19",
+      "eligible_dates": [
+        "2019-08-20",
+        "2019-08-21",
+        "2019-08-24"
+      ],
+      "eligible_cell_days": 5451,
+      "modis_positives": 24,
+      "viirs_positives": 47,
+      "coverage_status": "ok",
+      "rate": null,
+      "insufficient_dates": [
+        {
+          "local_date": "2019-08-23",
+          "coverage_status": "insufficient",
+          "rate": null
+        }
+      ]
+    },
+    {
+      "region_id": "yakutia",
+      "week_start": "2017-09-11",
+      "eligible_dates": [
+        "2017-09-11",
+        "2017-09-13",
+        "2017-09-14",
+        "2017-09-16"
+      ],
+      "eligible_cell_days": 6821,
+      "modis_positives": 0,
+      "viirs_positives": 0,
+      "coverage_status": "ok",
+      "rate": null,
+      "insufficient_dates": []
+    },
+    {
+      "region_id": "zambia",
+      "week_start": "2020-08-17",
+      "eligible_dates": [],
+      "eligible_cell_days": 0,
+      "modis_positives": 0,
+      "viirs_positives": 0,
+      "coverage_status": "missing",
+      "rate": null,
+      "status": "no_paired_coverage",
+      "insufficient_dates": []
+    }
+  ],
+  "batches": {
+    "original_pilot": {
+      "region_id": "cerrado",
+      "week_start": "2019-08-19",
+      "eligible_dates": [
+        "2019-08-20",
+        "2019-08-21",
+        "2019-08-24"
+      ],
+      "eligible_cell_days": 5451,
+      "modis_positives": 24,
+      "viirs_positives": 47,
+      "coverage_status": "ok",
+      "rate": null
+    },
+    "expansion_rows": {
+      "eligible_cell_days": 15850,
+      "modis_positives": 9,
+      "viirs_positives": 37,
+      "eligible_dates": [
+        "2013-03-12",
+        "2013-03-13",
+        "2013-03-15",
+        "2013-03-17",
+        "2014-01-27",
+        "2014-01-30",
+        "2014-02-01",
+        "2017-09-11",
+        "2017-09-13",
+        "2017-09-14",
+        "2017-09-16"
+      ]
+    },
+    "combined": {
+      "eligible_cell_days": 21301,
+      "modis_positives": 33,
+      "viirs_positives": 84,
+      "duplicate_cell_days": 0
+    }
+  },
+  "duplicate_cell_days": 0,
+  "viirs_class_sum_matches_predictor": true,
+  "viirs_recount_matches": true,
+  "validation_cache": {
+    "validation_weeks": [
+      {
+        "region_id": "cerrado",
+        "season": "DJF",
+        "year": 2021,
+        "week_start": "2021-02-22",
+        "quiet": "yes"
+      },
+      {
+        "region_id": "california",
+        "season": "MAM",
+        "year": 2021,
+        "week_start": "2021-03-22",
+        "quiet": "yes"
+      },
+      {
+        "region_id": "zambia",
+        "season": "JJA",
+        "year": 2021,
+        "week_start": "2021-07-19",
+        "quiet": "no"
+      },
+      {
+        "region_id": "yakutia",
+        "season": "SON",
+        "year": 2021,
+        "week_start": "2021-11-22",
+        "quiet": "yes"
+      },
+      {
+        "region_id": "arnhem",
+        "season": "DJF",
+        "year": 2022,
+        "week_start": "2022-11-28",
+        "quiet": "yes"
+      },
+      {
+        "region_id": "cerrado",
+        "season": "MAM",
+        "year": 2022,
+        "week_start": "2022-05-23",
+        "quiet": "no"
+      },
+      {
+        "region_id": "california",
+        "season": "JJA",
+        "year": 2022,
+        "week_start": "2022-08-08",
+        "quiet": "no"
+      },
+      {
+        "region_id": "zambia",
+        "season": "SON",
+        "year": 2022,
+        "week_start": "2022-09-26",
+        "quiet": "no"
+      }
+    ],
+    "cached_files": [],
+    "additional_matched_pass_bytes": 13432943446,
+    "download_started": false
+  }
+}

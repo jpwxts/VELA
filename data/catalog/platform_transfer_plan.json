@@ -1,0 +1,89 @@
+{
+  "label": "platform-transfer",
+  "metadata_only": false,
+  "download_started": true,
+  "fire_counts_used": false,
+  "measured_transfer_results": true,
+  "noaa20_cerrado_pilot": {
+    "file": "data/catalog/noaa20_cerrado_pilot.json",
+    "week_start": "2021-02-22",
+    "week_end": "2021-02-28",
+    "download_started": true,
+    "calibration_activated": false,
+    "research_status": "transfer pilot evaluated",
+    "result_file": "data/models/noaa20_cerrado_transfer_pilot.json"
+  },
+  "harmonized_estimate": "calibration pending",
+  "preserved_final_test_years": [
+    2023,
+    2024
+  ],
+  "preserved_region": "pantanal",
+  "frozen_suomi_npp": {
+    "candidates_refit": false,
+    "validation_file": "data/models/preliminary_validation.json",
+    "validation_relabeled": false,
+    "final_test_evaluated": false
+  },
+  "products": {
+    "VJ114IMG": {
+      "short_name": "VJ114IMG",
+      "version": "002",
+      "role": "fire",
+      "platform": "NOAA-20"
+    },
+    "VJ103IMG": {
+      "short_name": "VJ103IMG",
+      "version": "2.1",
+      "role": "geolocation",
+      "platform": "NOAA-20"
+    },
+    "VJ214IMG": {
+      "short_name": "VJ214IMG",
+      "version": "002",
+      "role": "fire",
+      "platform": "NOAA-21"
+    },
+    "VJ203IMG": {
+      "short_name": "VJ203IMG",
+      "version": "002",
+      "role": "geolocation",
+      "platform": "NOAA-21"
+    }
+  },
+  "pairs": [
+    {
+      "viirs_platform": "NOAA-20",
+      "reference_platform": "Aqua",
+      "fire_product": "VJ114IMG",
+      "geolocation_product": "VJ103IMG",
+      "firms_coverage_start": "2018-04-01",
+      "evaluation_years": [
+        2021,
+        2022
+      ],
+      "split": "platform-transfer",
+      "reason": "NOAA-20 FIRMS coverage includes 2021\u20132022. Those years are outside the 2023\u20132024 final test. This plan does not rescore the frozen Suomi-NPP validation."
+    },
+    {
+      "viirs_platform": "NOAA-21",
+      "reference_platform": "Aqua",
+      "fire_product": "VJ214IMG",
+      "geolocation_product": "VJ203IMG",
+      "firms_coverage_start": "2023-01-01",
+      "evaluation_years": [
+        2025,
+        2026
+      ],
+      "excluded_years": [
+        2023,
+        2024
+      ],
+      "split": "platform-transfer",
+      "reason": "NOAA-21 FIRMS coverage starts in 2023. 2023\u20132024 remain the Suomi-NPP final test, so the NOAA-21 transfer window starts in 2025."
+    }
+  ],
+  "contribution_rule": "Each adequately observed cell-day contributes once. Aqua supplies the contribution when it is eligible. Otherwise one VIIRS platform is selected by visible-land coverage, then by closeness to 13:30 local time. Hotspot count is not used. NOAA-20 and NOAA-21 raw observations stay visible, and their harmonized estimates stay calibration pending until a measured transfer result exists.",
+  "granule_search": "not_run",
+  "estimated_transfer_bytes": null
+}

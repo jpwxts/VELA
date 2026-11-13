@@ -1,0 +1,110 @@
+{
+  "region_id": "cerrado",
+  "week": {
+    "region_id": "cerrado",
+    "start": "2019-08-19",
+    "end": "2019-08-25"
+  },
+  "candidate": {
+    "modis_fire": "MYD14.A2019232.1725.061.2020304193337",
+    "modis_geo": "MYD03.A2019232.1725.061.2019233174737.hdf",
+    "viirs_fire": "VNP14IMG.A2019232.1706.002.2024095042640",
+    "viirs_geo": "VNP03IMG.A2019232.1706.002.2021111001212.nc",
+    "modis_time": "2019-08-20T17:25:00+00:00",
+    "viirs_time": "2019-08-20T17:06:00+00:00",
+    "delta_minutes": 19.0,
+    "daytime_window": true,
+    "bytes": 230841168
+  },
+  "files": [
+    "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/2019-08-20/MYD14.A2019232.1725.061.2020304193337.hdf",
+    "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/2019-08-20/MYD03.A2019232.1725.061.2019233174737.hdf",
+    "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/2019-08-20/VNP14IMG.A2019232.1706.002.2024095042640.nc",
+    "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/2019-08-20/VNP03IMG.A2019232.1706.002.2021111001212.nc"
+  ],
+  "reader_checks": {
+    "MYD14.A2019232.1725.061.2020304193337.hdf": {
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/2019-08-20/MYD14.A2019232.1725.061.2020304193337.hdf",
+      "file_name": "MYD14.A2019232.1725.061.2020304193337.hdf",
+      "format": "HDF4",
+      "shape": [
+        2030,
+        1354
+      ],
+      "histogram": {
+        "3": 46400,
+        "4": 352664,
+        "5": 2348058,
+        "7": 48,
+        "8": 883,
+        "9": 567
+      },
+      "pixels": 2748620,
+      "corner_value": 4,
+      "opened_array": true
+    },
+    "VNP14IMG.A2019232.1706.002.2024095042640.nc": {
+      "path": "/Users/florlyn/Desktop/MODISVIIRS/data/raw/cerrado/2019-08-20/VNP14IMG.A2019232.1706.002.2024095042640.nc",
+      "file_name": "VNP14IMG.A2019232.1706.002.2024095042640.nc",
+      "format": "NetCDF4/HDF5",
+      "shape": [
+        6464,
+        6400
+      ],
+      "histogram": {
+        "0": 11,
+        "1": 5326336,
+        "2": 97,
+        "3": 1381146,
+        "4": 5688913,
+        "5": 28966060,
+        "6": 19,
+        "7": 671,
+        "8": 5846,
+        "9": 501
+      },
+      "pixels": 41369600,
+      "corner_value": 1,
+      "opened_array": true
+    }
+  },
+  "eligible_cells": 2312,
+  "excluded_cells": 3613,
+  "exclusion_counts": {
+    "insufficient_shared_land": 3578,
+    "missing_modis": 35
+  },
+  "outcome_counts": {
+    "neither": 2284,
+    "viirs_only": 18,
+    "modis_only": 6,
+    "both": 4
+  },
+  "granule_skips": [],
+  "confirmed_passes": [
+    {
+      "modis_file": "MYD14.A2019232.1725.061.2020304193337.hdf",
+      "viirs_file": "VNP14IMG.A2019232.1706.002.2024095042640.nc",
+      "delta_minutes": 19.0,
+      "modis_shape": [
+        2030,
+        1354
+      ],
+      "viirs_shape": [
+        6464,
+        6400
+      ],
+      "modis_daytime_check": "solar_zenith",
+      "viirs_daytime_check": "solar_zenith",
+      "modis_pixels_in_area": 77687,
+      "viirs_pixels_in_area": 844738
+    }
+  ],
+  "storage": {
+    "bytes_downloaded": 230841168,
+    "peak_temporary_bytes": 231234056,
+    "current_bytes": 231234056
+  },
+  "trace": "/Users/florlyn/Desktop/MODISVIIRS/data/processed/cell_trace.json",
+  "data_origin": "nasa"
+}
