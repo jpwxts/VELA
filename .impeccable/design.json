@@ -1,0 +1,634 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-13T17:46:01Z",
+  "title": "Design System: Vela",
+  "extensions": {
+    "colorMeta": {
+      "teal": {
+        "role": "primary",
+        "displayName": "Chart Teal",
+        "canonical": "#58b9ad",
+        "oklch": "oklch(72.4% 0.093 185)",
+        "tonalRamp": [
+          "#000f0c",
+          "#022b27",
+          "#0a4d46",
+          "#027369",
+          "#3f978d",
+          "#74bab0",
+          "#a1dbd3",
+          "#cbfaf2"
+        ]
+      },
+      "teal-deep": {
+        "role": "primary",
+        "displayName": "Light Chart Teal",
+        "canonical": "#86d3c8",
+        "oklch": "oklch(81.4% 0.078 184)",
+        "tonalRamp": [
+          "#000f0c",
+          "#032b26",
+          "#0c4d46",
+          "#277168",
+          "#50948b",
+          "#7fb8af",
+          "#aad9d2",
+          "#d1f8f2"
+        ]
+      },
+      "teal-wash": {
+        "role": "primary",
+        "displayName": "Teal Wash",
+        "canonical": "#1b3531",
+        "oklch": "oklch(30.7% 0.033 183)",
+        "tonalRamp": [
+          "#040e0c",
+          "#182825",
+          "#334744",
+          "#506965",
+          "#738c88",
+          "#9ab0ac",
+          "#bfd3cf",
+          "#e2f3ef"
+        ]
+      },
+      "on-teal": {
+        "role": "primary",
+        "displayName": "On Teal",
+        "canonical": "#0b1412",
+        "oklch": "oklch(18.1% 0.014 179)",
+        "tonalRamp": [
+          "#080c0b",
+          "#1f2624",
+          "#3c4442",
+          "#5c6663",
+          "#7e8986",
+          "#a4adab",
+          "#c8d0ce",
+          "#e9f0ee"
+        ]
+      },
+      "ember": {
+        "role": "secondary",
+        "displayName": "Ember",
+        "canonical": "#ee6540",
+        "oklch": "oklch(67.2% 0.178 36)",
+        "tonalRamp": [
+          "#1c0200",
+          "#440f02",
+          "#75220a",
+          "#ad3107",
+          "#d55a39",
+          "#f4896c",
+          "#febba9",
+          "#fee9e3"
+        ]
+      },
+      "ember-wash": {
+        "role": "secondary",
+        "displayName": "Ember Wash",
+        "canonical": "#3b2118",
+        "oklch": "oklch(27.9% 0.044 40)",
+        "tonalRamp": [
+          "#130805",
+          "#301f1a",
+          "#533c34",
+          "#785c52",
+          "#9c7f74",
+          "#bfa49b",
+          "#dfc8c0",
+          "#fdeae3"
+        ]
+      },
+      "sea": {
+        "role": "tertiary",
+        "displayName": "Night Sea",
+        "canonical": "#132b2a",
+        "oklch": "oklch(26.9% 0.030 192)",
+        "tonalRamp": [
+          "#040d0d",
+          "#192726",
+          "#344746",
+          "#516967",
+          "#748c8a",
+          "#9bb0ae",
+          "#c0d2d1",
+          "#e3f2f1"
+        ]
+      },
+      "land": {
+        "role": "tertiary",
+        "displayName": "Night Land",
+        "canonical": "#233127",
+        "oklch": "oklch(29.7% 0.026 154)",
+        "tonalRamp": [
+          "#070d09",
+          "#1e2720",
+          "#3a463d",
+          "#59685d",
+          "#7c8b80",
+          "#a2afa5",
+          "#c6d1c9",
+          "#e8f1ea"
+        ]
+      },
+      "contour": {
+        "role": "tertiary",
+        "displayName": "Contour Green",
+        "canonical": "#86a87a",
+        "oklch": "oklch(69.4% 0.075 138)",
+        "tonalRamp": [
+          "#040f01",
+          "#182a11",
+          "#324a2a",
+          "#4f6d45",
+          "#729067",
+          "#99b490",
+          "#bfd6b7",
+          "#e2f5db"
+        ]
+      },
+      "sea-ink": {
+        "role": "tertiary",
+        "displayName": "Sea Ink",
+        "canonical": "#6aa39b",
+        "oklch": "oklch(67.4% 0.061 185)",
+        "tonalRamp": [
+          "#000f0d",
+          "#072a26",
+          "#204b46",
+          "#3a6e67",
+          "#5e928a",
+          "#8ab5ae",
+          "#b2d7d1",
+          "#d8f6f1"
+        ]
+      },
+      "plate": {
+        "role": "neutral",
+        "displayName": "Plate Ground",
+        "canonical": "#0c1311",
+        "oklch": "oklch(17.9% 0.011 176)",
+        "tonalRamp": [
+          "#090c0b",
+          "#202524",
+          "#3e4442",
+          "#5d6563",
+          "#808886",
+          "#a5adaa",
+          "#c9cfcd",
+          "#eaf0ee"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Shell",
+        "canonical": "#111916",
+        "oklch": "oklch(20.4% 0.013 170)",
+        "tonalRamp": [
+          "#080c0b",
+          "#202523",
+          "#3d4441",
+          "#5d6662",
+          "#7f8985",
+          "#a5adaa",
+          "#c9d0cd",
+          "#eaf0ee"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Card",
+        "canonical": "#171f1c",
+        "oklch": "oklch(23.0% 0.013 170)",
+        "tonalRamp": [
+          "#080c0b",
+          "#202523",
+          "#3d4441",
+          "#5d6662",
+          "#7f8985",
+          "#a5adaa",
+          "#c9d0cd",
+          "#eaf0ee"
+        ]
+      },
+      "field": {
+        "role": "neutral",
+        "displayName": "Field",
+        "canonical": "#1e2825",
+        "oklch": "oklch(26.6% 0.015 175)",
+        "tonalRamp": [
+          "#080c0b",
+          "#1f2624",
+          "#3c4542",
+          "#5b6663",
+          "#7e8986",
+          "#a4adaa",
+          "#c8d0cd",
+          "#e9f0ee"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#2a3632",
+        "oklch": "oklch(32.0% 0.018 173)",
+        "tonalRamp": [
+          "#070c0b",
+          "#1f2623",
+          "#3b4542",
+          "#5a6662",
+          "#7d8985",
+          "#a3aeaa",
+          "#c7d0cd",
+          "#e9f1ee"
+        ]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Strong Hairline",
+        "canonical": "#3d4c47",
+        "oklch": "oklch(40.2% 0.021 173)",
+        "tonalRamp": [
+          "#070d0b",
+          "#1d2623",
+          "#3a4541",
+          "#586762",
+          "#7b8a85",
+          "#a1aeaa",
+          "#c5d1cd",
+          "#e8f1ee"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#e8ebe1",
+        "oklch": "oklch(93.5% 0.014 120)",
+        "tonalRamp": [
+          "#0b0c08",
+          "#232520",
+          "#41433d",
+          "#62645c",
+          "#85877f",
+          "#aaaca5",
+          "#cdcfc8",
+          "#eeefea"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Soft Ink",
+        "canonical": "#b1bbb1",
+        "oklch": "oklch(78.1% 0.018 145)",
+        "tonalRamp": [
+          "#090c09",
+          "#212621",
+          "#3e443e",
+          "#5d665e",
+          "#808980",
+          "#a6ada6",
+          "#c9d0c9",
+          "#ebf0eb"
+        ]
+      },
+      "ink-faint": {
+        "role": "neutral",
+        "displayName": "Faint Ink",
+        "canonical": "#8e9a91",
+        "oklch": "oklch(67.4% 0.019 153)",
+        "tonalRamp": [
+          "#080c09",
+          "#202621",
+          "#3c453f",
+          "#5c665f",
+          "#7f8981",
+          "#a4aea6",
+          "#c8d0ca",
+          "#eaf0eb"
+        ]
+      },
+      "marker-white": {
+        "role": "neutral",
+        "displayName": "Marker White",
+        "canonical": "#fffdf8",
+        "oklch": "oklch(99.4% 0.007 89)",
+        "tonalRamp": [
+          "#0c0b09",
+          "#252422",
+          "#43423f",
+          "#65635f",
+          "#888682",
+          "#acaba7",
+          "#cfceca",
+          "#efeeec"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The reading itself: a detection count or a fire-weather danger class."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The place name at the top of the card (1.5rem on narrow screens)."
+      },
+      "headline-pane": {
+        "displayName": "Pane headline",
+        "purpose": "The title of the open pane."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Stat values in the weather grid."
+      },
+      "title-sentence": {
+        "displayName": "Finding sentence",
+        "purpose": "The one-sentence finding for a selected square."
+      },
+      "section": {
+        "displayName": "Section",
+        "purpose": "Block headings inside a pane."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text; lede paragraphs capped at 60ch."
+      },
+      "body-small": {
+        "displayName": "Body small",
+        "purpose": "Supporting text, notices and list rows, usually in Soft Ink."
+      },
+      "control": {
+        "displayName": "Control",
+        "purpose": "Button labels; toolbar tools use weight 500."
+      },
+      "tooltip": {
+        "displayName": "Tooltip",
+        "purpose": "Names of icon-only controls, shown on hover or keyboard focus."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Uppercase mono name of a measurement above its value, a date used as a label, and the place breadcrumb above the card title."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "The boundary's coordinates, map badges and calendar weekday letters."
+      },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "The lowercase \"vela\" beside the flame."
+      },
+      "map-place": {
+        "displayName": "Map place name",
+        "purpose": "City names on the globe above 1,500 km, in ink with a land-coloured halo."
+      },
+      "map-water": {
+        "displayName": "Map water name",
+        "purpose": "Sea names on the globe: italic, uppercase, tracked; oceans use 0.875rem and 0.22em."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow-control",
+        "value": "0 1px 2px rgba(0, 0, 0, 0.45)",
+        "purpose": "Control lift: every floating control on the plate (tools, search field, legend)."
+      },
+      {
+        "name": "shadow-card",
+        "value": "0 1px 2px rgba(0, 0, 0, 0.35), 0 18px 40px -16px rgba(0, 0, 0, 0.75)",
+        "purpose": "Card lift: the detail card and the search results list."
+      },
+      {
+        "name": "marker-separation",
+        "value": "0 1px 3px rgba(0, 0, 0, 0.6)",
+        "purpose": "Under a heat dot's 2px Marker White border, so it reads against contour lines."
+      },
+      {
+        "name": "marker-multi-ring",
+        "value": "0 0 0 3px #0c1311, 0 0 0 5px #ee6540",
+        "purpose": "Heat seen by two or more satellites: a Plate Ground gap, then an ember ring."
+      },
+      {
+        "name": "marker-selected-ring",
+        "value": "0 0 0 3px #0c1311, 0 0 0 6px #58b9ad",
+        "purpose": "The selected heat marker: a Plate Ground gap, then a teal ring."
+      },
+      {
+        "name": "rail-active-bar",
+        "value": "inset 3px 0 0 #58b9ad",
+        "purpose": "The active rail tab's marker; inset 0 -3px 0 on the narrow-screen tab bar."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The only easing curve, used for every transition."
+      },
+      {
+        "name": "state",
+        "value": "120ms to 160ms",
+        "purpose": "Background, border and colour changes on controls, days and rail tabs."
+      },
+      {
+        "name": "tooltip",
+        "value": "120ms opacity, 350ms delay on hover, no delay on keyboard focus",
+        "purpose": "Tooltip reveal for icon-only controls."
+      },
+      {
+        "name": "reposition",
+        "value": "260ms",
+        "purpose": "The credits chip sliding aside when the card opens."
+      },
+      {
+        "name": "card-in",
+        "value": "280ms, opacity 0 to 1 with translateX(10px) to 0",
+        "purpose": "Detail card entrance; the mobile sheet uses translateY(16px)."
+      },
+      {
+        "name": "camera-flight",
+        "value": "0.35s keyboard zoom step, 1.2s to a place, 1.4s home",
+        "purpose": "Globe camera moves; 0s under reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "narrow",
+        "value": "860px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one committing action in a group, such as Check my land.",
+      "html": "<button class=\"ds-btn-primary\">Check my land</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px; border: 1px solid var(--teal, #58b9ad); border-radius: 4px; background: var(--teal, #58b9ad); color: var(--on-teal, #0b1412); font: 600 0.9375rem/1.2 var(--font-ui, \"Source Sans 3\", system-ui, sans-serif); cursor: pointer; transition: background-color 140ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)), border-color 140ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)); } .ds-btn-primary:hover { background: var(--teal-deep, #86d3c8); border-color: var(--teal-deep, #86d3c8); } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 2px solid var(--teal, #58b9ad); outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "The neutral action beside a primary one, such as Clear.",
+      "html": "<button class=\"ds-btn-ghost\">Clear</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px; border: 1px solid var(--line-strong, #3d4c47); border-radius: 4px; background: var(--field, #1e2825); color: var(--ink, #e8ebe1); font: 600 0.9375rem/1.2 var(--font-ui, \"Source Sans 3\", system-ui, sans-serif); cursor: pointer; transition: background-color 140ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)), border-color 140ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)); } .ds-btn-ghost:hover { border-color: var(--ink-faint, #8e9a91); background: var(--teal-wash, #1b3531); } .ds-btn-ghost:focus-visible { outline: 2px solid var(--teal, #58b9ad); outline-offset: 2px; }"
+    },
+    {
+      "name": "Follow-up Button",
+      "kind": "button",
+      "refersTo": "button-follow-up",
+      "description": "The next step offered inside a result, such as View fire calendar.",
+      "html": "<button class=\"ds-btn-follow\">View fire calendar</button>",
+      "css": ".ds-btn-follow { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border: 1px solid var(--line-strong, #3d4c47); border-radius: 4px; background: var(--field, #1e2825); color: var(--teal-deep, #86d3c8); font: 600 0.875rem/1.2 var(--font-ui, \"Source Sans 3\", system-ui, sans-serif); cursor: pointer; transition: background-color 140ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)), border-color 140ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)); } .ds-btn-follow:hover { border-color: var(--ink-faint, #8e9a91); background: var(--teal-wash, #1b3531); color: var(--ink, #e8ebe1); } .ds-btn-follow:focus-visible { outline: 2px solid var(--teal, #58b9ad); outline-offset: 2px; }"
+    },
+    {
+      "name": "Search Field and Pencil Tool",
+      "kind": "input",
+      "refersTo": "input-search",
+      "description": "The search field joined to its Find button, beside the icon-only Draw area tool with its tooltip below.",
+      "html": "<div class=\"ds-toolbar\"><div class=\"ds-search\"><input class=\"ds-search-input\" type=\"search\" placeholder=\"Find a city, park, forest or farm\" aria-label=\"Find a place\"><button class=\"ds-tool ds-tool-joined\">Find</button></div><button class=\"ds-tool ds-tool-icon\" aria-label=\"Draw area\" data-tip=\"Draw area\"><svg viewBox=\"0 0 20 20\" aria-hidden=\"true\"><path d=\"M13.6 3.4l3 3L7 16l-3.6.6L4 13z\"/><path d=\"M11.6 5.4l3 3\"/></svg></button></div>",
+      "css": ".ds-toolbar { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 36px; } .ds-search { display: flex; } .ds-search-input { width: 268px; height: 42px; padding: 0 12px; border: 1px solid var(--line-strong, #3d4c47); border-right: 0; border-radius: 4px 0 0 4px; background: var(--field, #1e2825); color: var(--ink, #e8ebe1); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45); font: 400 0.9375rem/1.5 var(--font-ui, \"Source Sans 3\", system-ui, sans-serif); } .ds-search-input::placeholder { color: var(--ink-faint, #8e9a91); opacity: 1; } .ds-search-input:focus-visible { outline: 2px solid var(--teal, #58b9ad); outline-offset: -2px; } .ds-tool { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 14px; border: 1px solid var(--line-strong, #3d4c47); border-radius: 4px; background: var(--card, #171f1c); color: var(--ink, #e8ebe1); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45); font: 500 0.9375rem/1.2 var(--font-ui, \"Source Sans 3\", system-ui, sans-serif); white-space: nowrap; cursor: pointer; transition: background-color 140ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)), border-color 140ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)); } .ds-tool-joined { border-radius: 0 4px 4px 0; } .ds-tool-icon { position: relative; justify-content: center; width: 42px; padding: 0; } .ds-tool svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; } .ds-tool:hover { background: var(--field, #1e2825); border-color: var(--ink-faint, #8e9a91); } .ds-tool:active { background: var(--teal-wash, #1b3531); } .ds-tool:focus-visible { outline: 2px solid var(--teal, #58b9ad); outline-offset: 2px; } .ds-tool-icon::after { content: attr(data-tip); left: 50%; top: calc(100% + 8px); transform: translateX(-50%); position: absolute; z-index: 10; padding: 5px 9px; border-radius: 3px; background: var(--ink, #e8ebe1); color: var(--paper, #111916); font: 600 0.8125rem/1.3 var(--font-ui, \"Source Sans 3\", system-ui, sans-serif); white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 120ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)); } .ds-tool-icon:hover::after { opacity: 1; transition-delay: 350ms; } .ds-tool-icon:focus-visible::after { opacity: 1; }"
+    },
+    {
+      "name": "Icon Rail",
+      "kind": "nav",
+      "refersTo": "rail-item",
+      "description": "The four icon-only destinations in the 60px rail. Each name is kept for assistive technology and shown in a tooltip on hover or keyboard focus; the active tab carries a teal inset bar on Teal Wash.",
+      "html": "<nav class=\"ds-rail\" aria-label=\"Atlas sections\"><button class=\"ds-rail-item ds-on\" data-tip=\"Burn activity map\"><svg viewBox=\"0 0 20 20\" aria-hidden=\"true\"><circle cx=\"10\" cy=\"10\" r=\"7\"/><circle class=\"ds-solid\" cx=\"10\" cy=\"10\" r=\"2.4\"/></svg><span>Burn activity map</span></button><button class=\"ds-rail-item\" data-tip=\"History\"><svg viewBox=\"0 0 20 20\" aria-hidden=\"true\"><rect x=\"3\" y=\"4.5\" width=\"14\" height=\"12\" rx=\"1.5\"/><path d=\"M3 8.5h14M7 2.8v3M13 2.8v3\"/></svg><span>History</span></button><button class=\"ds-rail-item\" data-tip=\"Weather outlook\"><svg viewBox=\"0 0 20 20\" aria-hidden=\"true\"><circle cx=\"10\" cy=\"10\" r=\"3.2\"/><path d=\"M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4\"/></svg><span>Weather outlook</span></button><button class=\"ds-rail-item\" data-tip=\"Research\"><svg viewBox=\"0 0 20 20\" aria-hidden=\"true\"><path d=\"M4 5.5h12M4 10h12M4 14.5h8\"/></svg><span>Research</span></button></nav>",
+      "css": ".ds-rail { display: grid; gap: 6px; width: 60px; margin-right: 150px; padding: 14px 0; border-right: 1px solid var(--line, #2a3632); background: var(--paper, #111916); } .ds-rail-item { position: relative; display: grid; place-items: center; width: 100%; height: 48px; padding: 0; border: 0; background: none; color: var(--ink-soft, #b1bbb1); cursor: pointer; transition: background-color 160ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)), color 160ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)); } .ds-rail-item svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; } .ds-rail-item .ds-solid { fill: currentColor; stroke: none; } .ds-rail-item > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } .ds-rail-item:hover { background: color-mix(in srgb, var(--teal-wash, #1b3531) 60%, transparent); color: var(--ink, #e8ebe1); } .ds-rail-item:active { background: var(--teal-wash, #1b3531); } .ds-rail-item.ds-on { background: var(--teal-wash, #1b3531); box-shadow: inset 3px 0 0 var(--teal, #58b9ad); color: var(--teal-deep, #86d3c8); } .ds-rail-item:focus-visible { outline: 2px solid var(--teal, #58b9ad); outline-offset: 2px; } .ds-rail-item::after { content: attr(data-tip); left: calc(100% + 10px); top: 50%; transform: translateY(-50%); position: absolute; z-index: 10; padding: 5px 9px; border-radius: 3px; background: var(--ink, #e8ebe1); color: var(--paper, #111916); font: 600 0.8125rem/1.3 var(--font-ui, \"Source Sans 3\", system-ui, sans-serif); white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 120ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)); } .ds-rail-item:hover::after { opacity: 1; transition-delay: 350ms; } .ds-rail-item:focus-visible::after { opacity: 1; }"
+    },
+    {
+      "name": "Detail Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "The floating card: place breadcrumb, place name, one-line summary and the boundary's coordinates as a two-by-two mono grid in the head, then the open pane.",
+      "html": "<article class=\"ds-card\"><header class=\"ds-card-head\"><p class=\"ds-crumb\">United States</p><h2 class=\"ds-card-title\">Sierra County</h2><p class=\"ds-card-meta\">Saved example · 4 corners · 10 November 2026</p><p class=\"ds-coords\"><span>W -121.04</span><span>S 39.55</span><span>E -120.985</span><span>N 39.588</span></p></header><div class=\"ds-card-body\"><h3 class=\"ds-pane-title\">Burn activity</h3><p class=\"ds-lede\">Search for a place or draw a boundary on the globe, then check it for satellite heat.</p></div></article>",
+      "css": ".ds-card { width: 384px; max-width: 100%; border: 1px solid var(--line, #2a3632); border-radius: 6px; background: var(--card, #171f1c); color: var(--ink, #e8ebe1); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 18px 40px -16px rgba(0, 0, 0, 0.75); font: 400 0.9375rem/1.5 var(--font-ui, \"Source Sans 3\", system-ui, sans-serif); } .ds-card-head { padding: 22px 60px 18px 24px; border-bottom: 1px solid var(--line, #2a3632); } .ds-crumb { margin: 0 0 6px; font: 500 0.75rem/1.4 var(--font-data, \"Source Code Pro\", ui-monospace, monospace); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft, #b1bbb1); } .ds-card-title { margin: 0; font: 500 1.875rem/1.12 var(--font-display, \"Source Serif 4\", Georgia, serif); letter-spacing: -0.012em; } .ds-card-meta { margin: 8px 0 0; font-size: 0.875rem; color: var(--ink-soft, #b1bbb1); } .ds-coords { display: grid; grid-template-columns: repeat(2, max-content); gap: 0 18px; margin: 4px 0 0; font: 400 0.75rem/1.5 var(--font-data, \"Source Code Pro\", ui-monospace, monospace); font-variant-numeric: tabular-nums; color: var(--ink-soft, #b1bbb1); } .ds-card-body { padding: 22px 24px 28px; } .ds-pane-title { margin: 0 0 16px; font: 500 1.75rem/1.15 var(--font-display, \"Source Serif 4\", Georgia, serif); letter-spacing: -0.01em; } .ds-lede { margin: 0; color: var(--ink-soft, #b1bbb1); }"
+    },
+    {
+      "name": "Reading and Stat Grid",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "A mono measurement label over its serif value, then a two-column grid of smaller readings.",
+      "html": "<div class=\"ds-reading\"><p class=\"ds-reading-label\">Wed 11 Nov · Fire-weather danger</p><p class=\"ds-reading-value\">High</p><dl class=\"ds-stat-grid\"><div><dt>Temperature</dt><dd>21 °C</dd></div><div><dt>Humidity</dt><dd>8%</dd></div><div><dt>Wind</dt><dd>16 km/h</dd></div><div><dt>Rain / 24 h</dt><dd>0.0 mm</dd></div></dl></div>",
+      "css": ".ds-reading { width: 336px; max-width: 100%; padding: 22px 24px; background: var(--card, #171f1c); color: var(--ink, #e8ebe1); } .ds-reading-label, .ds-stat-grid dt { margin: 0; font: 500 0.75rem/1.4 var(--font-data, \"Source Code Pro\", ui-monospace, monospace); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft, #b1bbb1); } .ds-reading-value { margin: 4px 0 0; font: 500 2.125rem/1.1 var(--font-display, \"Source Serif 4\", Georgia, serif); letter-spacing: -0.015em; font-variant-numeric: lining-nums; } .ds-stat-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; margin: 18px 0 0; } .ds-stat-grid div { padding: 12px 0 14px; border-top: 1px solid var(--line, #2a3632); } .ds-stat-grid dd { margin: 4px 0 0; font: 500 1.5rem/1.15 var(--font-display, \"Source Serif 4\", Georgia, serif); font-variant-numeric: lining-nums; }"
+    },
+    {
+      "name": "Segmented Choice",
+      "kind": "chip",
+      "refersTo": "segment",
+      "description": "Equal-width choices such as Past, Present, Future; the chosen one is solid teal with On Teal text.",
+      "html": "<div class=\"ds-segmented\"><button class=\"ds-segment\">Past</button><button class=\"ds-segment ds-on\">Present</button><button class=\"ds-segment\">Future</button></div>",
+      "css": ".ds-segmented { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; width: 336px; max-width: 100%; } .ds-segment { min-height: 42px; padding: 4px 8px; border: 1px solid var(--line-strong, #3d4c47); border-radius: 4px; background: var(--field, #1e2825); color: var(--ink, #e8ebe1); font: 500 0.9375rem/1.2 var(--font-ui, \"Source Sans 3\", system-ui, sans-serif); cursor: pointer; transition: background-color 140ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)), border-color 140ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)), color 140ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)); } .ds-segment:hover { border-color: var(--teal, #58b9ad); background: var(--teal-wash, #1b3531); } .ds-segment.ds-on { border-color: var(--teal, #58b9ad); background: var(--teal, #58b9ad); color: var(--on-teal, #0b1412); font-weight: 600; } .ds-segment:focus-visible { outline: 2px solid var(--teal, #58b9ad); outline-offset: 2px; }"
+    },
+    {
+      "name": "Calendar Days",
+      "kind": "custom",
+      "refersTo": "calendar-day",
+      "description": "Calendar days with their foot marks: ember dot for heat on a checked day, open ring for checked with no heat, teal dash for a forecast day.",
+      "html": "<div class=\"ds-cal\"><button class=\"ds-day\">9</button><button class=\"ds-day ds-selected ds-heat\">10</button><button class=\"ds-day ds-heat\">11</button><button class=\"ds-day ds-checked\">12</button><button class=\"ds-day ds-today ds-forecast\">13</button><button class=\"ds-day ds-forecast\">14</button><button class=\"ds-day\" disabled>18</button></div>",
+      "css": ".ds-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; width: 336px; max-width: 100%; } .ds-day { position: relative; display: grid; place-items: center; aspect-ratio: 1 / 0.92; min-height: 40px; padding: 0 0 6px; border: 1px solid var(--line, #2a3632); border-radius: 3px; background: var(--field, #1e2825); color: var(--ink, #e8ebe1); font: 400 0.875rem/1 var(--font-ui, \"Source Sans 3\", system-ui, sans-serif); font-variant-numeric: tabular-nums; cursor: pointer; transition: background-color 120ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)), border-color 120ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)); } .ds-day:hover:not(:disabled) { border-color: var(--teal, #58b9ad); background: var(--teal-wash, #1b3531); } .ds-day:disabled { background: none; color: #6f7b74; cursor: default; } .ds-day.ds-today { border-color: var(--ink-faint, #8e9a91); font-weight: 700; } .ds-day.ds-selected { border-color: var(--teal, #58b9ad); background: var(--teal, #58b9ad); color: var(--on-teal, #0b1412); font-weight: 700; } .ds-day::after { content: \"\"; position: absolute; left: 50%; bottom: 5px; transform: translateX(-50%); } .ds-day.ds-heat::after { width: 5px; height: 5px; border-radius: 50%; background: var(--ember, #ee6540); } .ds-day.ds-checked::after { width: 6px; height: 6px; border-radius: 50%; border: 1.5px solid var(--ink-faint, #8e9a91); } .ds-day.ds-forecast::after { width: 10px; height: 2px; background: var(--teal, #58b9ad); } .ds-day.ds-selected.ds-heat::after { background: #8f2c12; } .ds-day:focus-visible { outline: 2px solid var(--teal, #58b9ad); outline-offset: 2px; }"
+    },
+    {
+      "name": "Map Marks",
+      "kind": "custom",
+      "refersTo": "map-badge-cell",
+      "description": "What is drawn on the plate: heat seen by one satellite, by two or more, the selected marker, an individual reading, the forecast point, the dashed land boundary, the selected square and the two map badges.",
+      "html": "<div class=\"ds-plate\"><span class=\"ds-heat\"></span><span class=\"ds-heat ds-multi\"></span><span class=\"ds-heat ds-selected\"></span><span class=\"ds-reading-dot\"></span><span class=\"ds-forecast-point\"></span><span class=\"ds-land\"></span><span class=\"ds-cell\"></span><span class=\"ds-badge ds-badge-land\">Search boundary</span><span class=\"ds-badge ds-badge-cell\">5 km cell</span></div>",
+      "css": ".ds-plate { display: flex; flex-wrap: wrap; align-items: center; gap: 22px; padding: 22px 24px; background: var(--land, #233127); } .ds-heat { width: 16px; height: 16px; border-radius: 50%; background: var(--ember, #ee6540); border: 2px solid #fffdf8; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); transition: transform 140ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)); } .ds-heat:hover { transform: scale(1.18); } .ds-heat.ds-multi { box-shadow: 0 0 0 3px var(--plate, #0c1311), 0 0 0 5px var(--ember, #ee6540); } .ds-heat.ds-selected { box-shadow: 0 0 0 3px var(--plate, #0c1311), 0 0 0 6px var(--teal, #58b9ad); } .ds-reading-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink, #e8ebe1); border: 1px solid var(--plate, #0c1311); } .ds-forecast-point { width: 10px; height: 10px; border-radius: 50%; background: #fffdf8; border: 2.5px solid var(--teal, #58b9ad); } .ds-land { width: 44px; height: 30px; border: 2px dashed var(--ink, #e8ebe1); background: color-mix(in srgb, var(--ink, #e8ebe1) 3%, transparent); } .ds-cell { width: 44px; height: 38px; border: 3px solid var(--teal, #58b9ad); background: color-mix(in srgb, var(--teal, #58b9ad) 10%, transparent); } .ds-badge { padding: 2px 7px; border-radius: 2px; font: 600 0.75rem/1.4 var(--font-data, \"Source Code Pro\", ui-monospace, monospace); white-space: nowrap; } .ds-badge-land { background: var(--ink, #e8ebe1); color: var(--paper, #111916); } .ds-badge-cell { background: var(--teal-deep, #86d3c8); color: var(--on-teal, #0b1412); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Night Atlas You Can Spin",
+    "overview": "Vela is one screen in Operate mode: a visitor arrives with one piece of land in mind, turns a globe to it, draws it, and reads four separate answers on a card beside the map. The world is an atlas plate at night. The shell is near-black green, the water is flat deep sea-green, the land is dark olive drawn in fine light-green contour lines, the type is warm off-white, and the only hot colour on the sheet is the ember of a satellite heat detection. The globe is not a picture behind the interface; it is the drawing itself.\n\nThe theme is dark only. The user revised the original cream-paper direction to a dark one, and the build declares `color-scheme: dark` with no light branch. The globe is stripped of everything that would make it look like a rendering: no sky, no atmosphere, no sun lighting, no fog. What remains is a flat disc of sea and land on a ground slightly darker than the shell.\n\nThe chrome is as quiet as it can be. The header carries only the flame and the wordmark. The rail shows four icons and names them in tooltips. The globe has no reset, zoom or compass controls: it is dragged, scrolled, pinched or turned from the keyboard. Guidance text appears on the plate only while a boundary is being drawn. What is left on the plate is a search field, one pencil, a legend, a small credits chip and the card.",
+    "keyCharacteristics": [
+      "One screen: a wordmark-only masthead, a 60px icon rail, the globe plate, a floating detail card.",
+      "Real terrain drawn as contour lines on a live globe, with the interval following the zoom.",
+      "Ember means observed heat. Teal means chosen. Off-white ink means the visitor's own boundary and individual readings.",
+      "Three self-hosted faces from one family: serif for names and readings, sans for controls and body, mono for measurements.",
+      "Depth by tone: the plate is darkest, the shell above it, the card above that, fields lightest. Two shadows only.",
+      "Dark theme only."
+    ],
+    "rules": [
+      {
+        "name": "The Ember Is Heat Rule",
+        "body": "Ember marks what a satellite observed, and nothing else on the working surface. One dot is one 5 km square seen by one satellite; a dot with an ember outer ring is a square seen by two or more. The brand flame is the single exception. Ember is never a button, a warning, a link or a highlight.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink Boundary Rule",
+        "body": "The visitor's land is drawn in Ink as a 2px dashed line with a 3% ink fill, labelled by an ink badge. It is never teal (that is the selected square) and never ember (that is heat), so the three things on the map can be told apart at a glance.",
+        "section": "colors"
+      },
+      {
+        "name": "The Teal Means Chosen Rule",
+        "body": "Teal is the colour of what the visitor selected or is about to commit: the active rail item, the selected square, the selected day, the primary button. One filled teal button per group of actions, with On Teal text.",
+        "section": "colors"
+      },
+      {
+        "name": "The Three Voices Rule",
+        "body": "Serif says what a place is called and what was measured. Sans is for anything pressed, typed or read as a sentence. Mono is for a coordinate, a date used as a label, or the name of a measurement. A face never crosses into another's job.",
+        "section": "typography"
+      },
+      {
+        "name": "The Mono Names A Measurement Rule",
+        "body": "An uppercase mono label sits directly above the value it names, or carries the place breadcrumb above the card title. It never introduces a section or decorates a heading; sections are introduced by serif headings alone.",
+        "section": "typography"
+      },
+      {
+        "name": "The Atlas Lettering Rule",
+        "body": "Names on the globe follow print convention: cities in sans 700 at 0.75rem in ink with a land-coloured halo; seas in italic serif 500, uppercase, tracked 0.16em in Sea Ink; oceans one step larger (0.875rem, 0.22em).",
+        "section": "typography"
+      },
+      {
+        "name": "The Map Stays Rule",
+        "body": "Detail opens beside the map, never instead of it. No pane, dialog or state may cover the whole plate.",
+        "section": "layout"
+      },
+      {
+        "name": "The Quiet Plate Rule",
+        "body": "Nothing stands on the plate that the visitor is not using. Names live in tooltips, guidance appears only during the act it guides, and the globe is moved by hand rather than by buttons.",
+        "section": "layout"
+      },
+      {
+        "name": "The Two Lifts Rule",
+        "body": "A surface is either part of the sheet (no shadow) or floating on the plate (control lift or card lift). Nothing inside the card carries a shadow; blocks inside it are separated by hairlines.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Lighter Is Nearer Rule",
+        "body": "A surface that sits above another is one tone lighter, never darker. The one deliberate inversion is the notice, which is recessed to Plate Ground inside the card to read as a note set into it.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep ember for observed heat and the brand flame. If something is not a satellite detection, it is not ember.",
+      "Do draw the visitor's land in dashed Ink and the selected square in solid Chart Teal, so boundary, selection and heat never share a colour.",
+      "Do put On Teal text on every Chart Teal or Light Chart Teal fill.",
+      "Do set names, pane titles and readings in Source Serif 4 at weight 500, controls and sentences in Source Sans 3, and coordinates, label-dates and measurement names in Source Code Pro.",
+      "Do float new controls on the plate as Card surfaces with a Strong Hairline border, 4px corners and the control lift, 16px from the plate's edge.",
+      "Do make a surface one tone lighter than the one it sits on, and separate blocks inside the card with a Hairline and 20px to 22px of space, not with nested boxes or shadows.",
+      "Do use Teal Wash for hover and pressed states on every neutral control, and solid Chart Teal only for the chosen item or the one primary action.",
+      "Do give every icon-only control an accessible name and a tooltip, and give it a visible text label wherever there is no hover.",
+      "Do keep icons to the shared grammar: 20-unit grid, 1.5px round strokes, current colour.",
+      "Do give the globe the card's footprint so the land is framed in the free part of the plate.",
+      "Do honour reduced motion: state transitions and camera flights become instant.",
+      "Do keep map sources keyless: CesiumJS from the pinned CDN build, Esri basemap, imagery and elevation."
+    ],
+    "donts": [
+      "Don't use ember for buttons, links, warnings or emphasis.",
+      "Don't add a light theme. The user chose dark, and the build is dark only.",
+      "Don't bring back a lit, shaded or atmospheric globe, or make satellite imagery the default basemap. Terrain is lines, not relief shading.",
+      "Don't add reset, zoom or compass controls to the globe, a tagline or source tag to the masthead, a footer line, or standing hint text on the plate. The user removed each of them.",
+      "Don't put text labels in the desktop rail.",
+      "Don't cover the plate with a full-screen panel or modal. Detail opens on the card.",
+      "Don't put a shadow on anything inside the card, or invent a third shadow.",
+      "Don't use the uppercase mono label to introduce a section or sit above a heading as decoration. It names a measurement or carries the place breadcrumb, nothing else.",
+      "Don't set place names or readings in the sans, or controls in the serif.",
+      "Don't introduce colours outside the palette for map marks. A new kind of mark gets ink, teal or a neutral tone, and ember only if it is observed heat.",
+      "Don't add a Cesium ion token or any map service that needs a key."
+    ]
+  }
+}

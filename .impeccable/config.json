@@ -1,0 +1,44 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "icon-tile-stack",
+        "value": "*",
+        "files": [
+          "app/static/index.html"
+        ],
+        "createdAt": "2026-11-13T17:11:53.633Z",
+        "reason": "False positive: the flagged 40px control is the calendar's previous-month button beside the month title, not a feature-card icon tile"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "app/static/index.html"
+        ],
+        "createdAt": "2026-11-13T17:11:53.870Z",
+        "reason": "Sanctioned: the cream paper shell comes from the four reference screenshots the user pinned as the design direction on 2026-11-14"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "app/static/index.html"
+        ],
+        "createdAt": "2026-11-13T17:42:09.879Z",
+        "reason": "Sanctioned: the teal bar marks the active rail tab (a real state), as drawn in the reference screenshots the user pinned on 2026-11-14"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "app/static/styles.css"
+        ],
+        "createdAt": "2026-11-13T17:42:10.204Z",
+        "reason": "Sanctioned: the teal bar marks the active rail tab (a real state), as drawn in the reference screenshots the user pinned on 2026-11-14"
+      }
+    ]
+  }
+}

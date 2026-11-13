@@ -38,3 +38,6 @@ data/jobs/
 !data/processed/**
 !data/processed/**/*.parquet
 !data/models/**/*.joblib
+
+# Impeccable review captures are local QA evidence, not source.
+.impeccable/review/

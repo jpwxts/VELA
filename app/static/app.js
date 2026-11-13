@@ -49,16 +49,23 @@ const state = {
   calendarRequestId: 0,
   savedLandSnapshot: null,
   usingSavedExample: false,
+  // Atlas shell
+  insets: { top: 64, right: 0, bottom: 0, left: 0 },
+  basemap: "atlas",
+  historyView: "present",
+  calendarMonth: null,
+  checkedDays: new Map(),
+  checkingDay: null,
+  traceOutline: null,
 };
 
-const INDIVIDUAL_COLORS = {
-  Aqua: "#d4551a",
-  Terra: "#8a4b32",
-  "Suomi-NPP": "#1f6f8b",
-  "NOAA-20": "#1e5a45",
-  "NOAA-21": "#6d4b86",
-  Unrecognized: "#55504b",
-};
+// Ember is reserved for observed heat. The visitor's land is drawn in ink,
+// the selected 5 km square in teal, and single satellite readings as ink dots.
+const HEAT_FILL = "#ee6540";
+const LAND_STROKE = "#e8ebe1";
+const CELL_STROKE = "#58b9ad";
+const READING_FILL = "#e8ebe1";
+const DOT_EDGE = "#0c1311";
 
 const STATUS_TEXT = {
   ok: "Detections returned",
@@ -70,31 +77,18 @@ const STATUS_TEXT = {
   none_selected: "Select a platform",
 };
 
-const map = L.map("map", { worldCopyJump: true, zoomControl: true }).setView([-14, -50.5], 3);
-const traceLayer = L.layerGroup().addTo(map);
-L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
-  attribution: 'Tiles © Esri · Places © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
-  maxZoom: 12,
-}).addTo(map);
+// The globe is the only map. app.js never touches Cesium directly; see globe.js.
+const globe = VelaGlobe.create("map", { creditContainer: document.querySelector("#globe-credits") });
 
-const legend = L.control({ position: "bottomleft" });
-legend.onAdd = () => {
-  const node = L.DomUtil.create("div", "legend");
-  node.innerHTML = `
-    <div class="legend-row"><span class="legend-swatch legend-swatch-circle ember" aria-hidden="true"></span><span>Observed heat · 1 satellite</span></div>
-    <div class="legend-row"><span class="legend-swatch legend-swatch-square ember" aria-hidden="true"></span><span>Observed heat · 2+ satellites</span></div>
-    <div class="legend-row"><span class="legend-swatch legend-swatch-point" aria-hidden="true"></span><span>Weather / fire-danger point</span></div>
-    <div class="legend-row"><span class="legend-swatch legend-swatch-missing" aria-hidden="true"></span><span>Missing or unavailable data</span></div>
-    <label class="legend-toggle"><input type="checkbox" id="toggle-forecast-point" checked> Show forecast point</label>
-    <p class="legend-note">Ember markers are observed heat. Forecast danger is a separate point when only a center forecast exists.</p>`;
-  L.DomEvent.disableClickPropagation(node);
-  return node;
-};
-legend.addTo(map);
 document.querySelector("#toggle-forecast-point")?.addEventListener("change", (event) => {
   state.showForecastPoint = Boolean(event.target.checked);
   syncForecastMarkerVisibility();
 });
+document.querySelector("#basemap-satellite")?.addEventListener("change", (event) => {
+  state.basemap = event.target.checked ? "satellite" : "atlas";
+  globe.setBasemap(state.basemap);
+});
+window.addEventListener("resize", syncGlobeInsets);
 
 const dayInput = document.querySelector("#day");
 const today = new Date();
@@ -103,9 +97,34 @@ dayInput.value = today.toISOString().slice(0, 10);
 document.querySelector("#year").value = today.getUTCFullYear();
 updateDayWords();
 
-document.querySelector("#search-button").addEventListener("click", searchPlace);
+document.querySelector("#search-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  searchPlace();
+});
 document.querySelector("#search").addEventListener("keydown", (event) => {
-  if (event.key === "Enter") searchPlace();
+  if (event.key === "Escape") document.querySelector("#places").innerHTML = "";
+});
+document.addEventListener("click", (event) => {
+  if (!event.target.closest("#search-form")) document.querySelector("#places").innerHTML = "";
+});
+document.querySelector("#change-date")?.addEventListener("click", () => {
+  setHistoryView("present");
+  openLandPanel({ tab: "weekly", focus: false });
+  dayInput.focus();
+});
+document.querySelectorAll("[data-history]").forEach((button) => {
+  button.addEventListener("click", () => setHistoryView(button.dataset.history));
+});
+document.querySelector("#cal-prev")?.addEventListener("click", () => shiftCalendarMonth(-1));
+document.querySelector("#cal-next")?.addEventListener("click", () => shiftCalendarMonth(1));
+document.querySelector("#cal-grid")?.addEventListener("click", (event) => {
+  const day = event.target.closest("[data-day]");
+  if (day && !day.disabled) chooseCalendarDay(day.dataset.day);
+});
+document.querySelector("#day-summary-check")?.addEventListener("click", () => checkLand());
+document.querySelector("#future-days")?.addEventListener("click", (event) => {
+  const day = event.target.closest("[data-forecast-day]");
+  if (day) openForecastDay(day.dataset.forecastDay);
 });
 document.querySelector("#try-example").addEventListener("click", loadCompetitionDemo);
 document.querySelector("#draw").addEventListener("click", startPolygonDraw);
@@ -113,7 +132,6 @@ document.querySelector("#finish-draw").addEventListener("click", finishPolygonDr
 document.querySelector("#clear-area").addEventListener("click", clearLand);
 document.querySelector("#confirm").addEventListener("click", () => checkLand());
 document.querySelector("#day").addEventListener("change", updateDayWords);
-document.querySelector("#see-where")?.addEventListener("click", () => openLandPanel({ tab: "where" }));
 document.querySelector("#show-individuals").addEventListener("change", (event) => {
   state.showIndividuals = event.target.checked;
   renderIndividuals(state.lastPayload);
@@ -142,26 +160,22 @@ document.querySelector("#week-detail")?.addEventListener("click", (event) => {
   renderTrace(choice.dataset.outcome);
 });
 document.querySelectorAll(".panel-tab").forEach((button) => {
-  button.addEventListener("click", () => switchPanelTab(button.dataset.panelTab));
+  // The rail is the tab list for the card: choosing a section also reopens a closed card.
+  button.addEventListener("click", () => openLandPanel({ tab: button.dataset.panelTab, focus: false }));
   button.addEventListener("keydown", (event) => {
     const tabs = [...document.querySelectorAll(".panel-tab")];
     const index = tabs.indexOf(button);
-    if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
-      event.preventDefault();
-      const next = event.key === "ArrowRight"
-        ? tabs[(index + 1) % tabs.length]
-        : tabs[(index - 1 + tabs.length) % tabs.length];
-      next.focus();
-      switchPanelTab(next.dataset.panelTab);
-    } else if (event.key === "Home") {
-      event.preventDefault();
-      tabs[0].focus();
-      switchPanelTab(tabs[0].dataset.panelTab);
-    } else if (event.key === "End") {
-      event.preventDefault();
-      tabs[tabs.length - 1].focus();
-      switchPanelTab(tabs[tabs.length - 1].dataset.panelTab);
-    }
+    const forward = event.key === "ArrowRight" || event.key === "ArrowDown";
+    const back = event.key === "ArrowLeft" || event.key === "ArrowUp";
+    let next = null;
+    if (forward) next = tabs[(index + 1) % tabs.length];
+    else if (back) next = tabs[(index - 1 + tabs.length) % tabs.length];
+    else if (event.key === "Home") next = tabs[0];
+    else if (event.key === "End") next = tabs[tabs.length - 1];
+    if (!next) return;
+    event.preventDefault();
+    next.focus();
+    openLandPanel({ tab: next.dataset.panelTab, focus: false });
   });
 });
 document.querySelector("#try-zambia")?.addEventListener("click", loadZambiaWeeklyExample);
@@ -169,24 +183,21 @@ document.querySelector("#return-selection")?.addEventListener("click", restoreSa
 document.querySelector("#open-weather-tab")?.addEventListener("click", () => switchPanelTab("weather"));
 if (document.querySelector("#try-zambia")) document.querySelector("#try-zambia").hidden = false;
 
-map.on("click", async (event) => {
+globe.onClick(async (spot) => {
   if (state.ignoreMapClick) return;
   if (state.drawing) {
-    addPolygonVertex(event.latlng);
+    addPolygonVertex(spot);
     return;
   }
   if (!state.box || !state.lastPayload) return;
-  await askAboutPoint(event.latlng.lat, event.latlng.lng);
+  await askAboutPoint(spot.lat, spot.lon);
 });
 
 document.querySelector("#show-detected-areas")?.addEventListener("click", () => {
   closeAreaPanel();
   if (state.lastPayload?.hotspot_areas?.areas?.length) {
     const first = state.lastPayload.hotspot_areas.areas[0];
-    map.fitBounds([
-      [first.bounds.south, first.bounds.west],
-      [first.bounds.north, first.bounds.east],
-    ], { maxZoom: 8, padding: [24, 24] });
+    flyToBounds(first.bounds, { minSpan: 3 });
   }
 });
 
@@ -211,8 +222,20 @@ document.querySelector("#view-fire-calendar")?.addEventListener("click", () => {
   if (state.selectedArea?.observation_day) {
     document.querySelector("#year").value = state.selectedArea.observation_day.slice(0, 4);
   }
+  state.historyView = "past";
   switchPanelTab("weekly");
 });
+
+// First paint: on a wide screen the card opens on the start state and the globe is
+// framed beside it. A phone starts with the globe alone; the tab bar opens the sheet.
+if (window.matchMedia("(max-width: 860px)").matches) {
+  document.querySelector("#area-panel").classList.add("peek");
+}
+document.querySelector("#sheet-expand")?.addEventListener("click", () => openLandPanel({ tab: "where" }));
+syncGlobeInsets();
+globe.home(false);
+setHistoryView(state.historyView);
+updateSelectionBanner();
 
 async function loadClickFixture(name = "click_regression") {
   const response = await fetch(`/api/hotspots/fixture?name=${encodeURIComponent(name)}`);
@@ -224,7 +247,9 @@ async function loadClickFixture(name = "click_regression") {
   document.querySelectorAll(".satellite-details fieldset input").forEach((node) => {
     node.checked = ["NOAA-20", "Aqua", "Suomi-NPP", "NOAA-21"].includes(node.value);
   });
+  state.savedExample = true;
   renderHotspots(payload);
+  updateSelectionBanner();
   const status = document.querySelector("#result-status");
   if (status) {
     status.hidden = false;
@@ -257,38 +282,91 @@ function switchPanelTab(name) {
   document.querySelectorAll(".panel-pane").forEach((node) => {
     node.hidden = node.id !== `pane-${tabName}`;
   });
-  activeTab?.scrollIntoView({ inline: "nearest", block: "nearest", behavior: "smooth" });
+  document.querySelector(".card-body")?.scrollTo({ top: 0 });
   if (tabName === "weather") loadWeatherOutlook();
-  if (tabName === "weekly") loadCalendar();
+  if (tabName === "weekly") setHistoryView(state.historyView);
   if (tabName === "research") renderResearch(state.lastPayload);
 }
 
 function openLandPanel(options = {}) {
   const panel = document.querySelector("#area-panel");
   panel.hidden = false;
+  panel.classList.remove("peek");
+  syncGlobeInsets();
   updateSelectionBanner();
   switchPanelTab(options.tab || state.panelTab || "where");
   if (options.focus !== false) panel.focus({ preventScroll: true });
 }
 
+// Tell the globe which part of the plate the card covers, so flights frame land beside it.
+function syncGlobeInsets() {
+  const panel = document.querySelector("#area-panel");
+  const plate = document.querySelector("#plate");
+  const open = Boolean(panel && !panel.hidden);
+  plate.classList.toggle("card-open", open);
+  const narrow = window.matchMedia("(max-width: 860px)").matches;
+  const box = open ? panel.getBoundingClientRect() : null;
+  state.insets = {
+    top: narrow ? 64 : 44,
+    left: 0,
+    right: open && !narrow ? box.width + 32 : 0,
+    bottom: open && narrow ? box.height : 0,
+  };
+  globe.setInsets(state.insets);
+}
+
+function flyToBounds(bounds, options = {}) {
+  if (!bounds) return;
+  syncGlobeInsets();
+  globe.flyTo(bounds, options);
+}
+
+function mapBadge(text, className) {
+  const node = document.createElement("div");
+  node.className = `map-badge ${className}`;
+  node.textContent = text;
+  return node;
+}
+
+// Short name for the card title, with the wider region as a breadcrumb above it.
+function selectionTitleParts() {
+  const place = state.lastPlace;
+  if (place && (place.primary || place.label)) {
+    const pieces = String(place.label || "").split(",").map((part) => part.trim()).filter(Boolean);
+    const title = place.primary || pieces[0];
+    let trail = [place.country, place.region || place.province].filter(Boolean);
+    if (!trail.length) trail = pieces.slice(1).slice(-2).reverse();
+    return { title, trail: trail.filter((part) => part !== title) };
+  }
+  const name = state.placeName || state.landLabel;
+  if (name) {
+    const pieces = String(name).split(",").map((part) => part.trim()).filter(Boolean);
+    return { title: pieces[0], trail: pieces.slice(1).slice(-2).reverse() };
+  }
+  if (state.selectedArea) return { title: `5 km square ${state.selectedArea.cell_id}`, trail: [] };
+  return { title: state.box ? "Selected land" : "Find your land", trail: [] };
+}
+
 function updateSelectionBanner() {
   const place = document.querySelector("#selection-place");
   const boundary = document.querySelector("#selection-boundary");
-  const placeText =
-    state.lastPlace?.label
-    || state.placeName
-    || state.landLabel
-    || (state.selectedArea ? `Selected 5 km cell ${state.selectedArea.cell_id}` : null)
-    || "Selected land";
-  place.textContent = placeText;
+  const crumb = document.querySelector("#selection-eyebrow");
+  const { title, trail } = selectionTitleParts();
+  place.textContent = title;
+  crumb.hidden = !trail.length;
+  crumb.textContent = trail.join(" / ");
   if (state.box) {
     const [west, south, east, north] = state.box;
     const corners = state.polygon ? Math.max(0, state.polygon.length - 1) : 4;
-    boundary.textContent = state.polygon
-      ? `${corners} corners · west ${west}, south ${south}, east ${east}, north ${north}`
-      : `West ${west}, south ${south}, east ${east}, north ${north}`;
+    const shape = state.polygon ? `${corners} corners` : "Search boundary";
+    const saved = state.savedExample ? "Saved example · " : "";
+    boundary.innerHTML =
+      `${saved}${escapeHtml(shape)} · ${escapeHtml(formatObservationDay(dayInput.value))}<br>`
+      + `<span class="stamp coords">`
+      + [`W ${west}`, `S ${south}`, `E ${east}`, `N ${north}`].map((pair) => `<span>${pair}</span>`).join(" ")
+      + `</span>`;
   } else {
-    boundary.textContent = "Draw or select land to explore weather, weekly trends, and research.";
+    boundary.textContent = "No land selected yet.";
   }
 }
 
@@ -300,6 +378,10 @@ function updateDayWords() {
     return;
   }
   node.textContent = formatObservationDay(value);
+  state.calendarMonth = value.slice(0, 7);
+  renderObservationCalendar();
+  renderDaySummary();
+  updateSelectionBanner();
 }
 
 async function loadStatus() {
@@ -336,7 +418,7 @@ async function searchPlace() {
   if (query.length < 2) return;
   const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
   if (!response.ok) {
-    list.innerHTML = "<li>Place search failed. Draw a rectangle instead.</li>";
+    list.innerHTML = "<li>Place search failed. Check your connection, or draw the boundary instead.</li>";
     return;
   }
   const payload = await response.json();
@@ -346,15 +428,17 @@ async function searchPlace() {
     button.type = "button";
     button.textContent = place.name;
     button.addEventListener("click", () => {
+      list.innerHTML = "";
       state.placeName = place.name;
       setBox([place.west, place.south, place.east, place.north], place.name);
       // Place search starts from a rectangle visitors can edit into a tighter plot.
       setPolygonFromBox(state.box, place.name);
+      openLandPanel({ tab: "where", focus: false });
     });
     item.append(button);
     list.append(item);
   });
-  if (!payload.places.length) list.innerHTML = "<li>No matching place.</li>";
+  if (!payload.places.length) list.innerHTML = "<li>No place matches that name. Try a nearby town or province.</li>";
 }
 
 function setBox(box, label) {
@@ -362,30 +446,18 @@ function setBox(box, label) {
   const [west, south, east, north] = state.box;
   clearRectangle();
   const parts = west <= east ? [[west, east]] : [[west, 180], [-180, east]];
-  // Ember orange search/land boundary — distinct from Orbit teal cell selection.
-  state.rectangle = parts.map(([left, right]) => L.rectangle([[south, left], [north, right]], {
-    color: "#d4551a",
-    weight: 2,
-    dashArray: "6 4",
-    fillColor: "#e8590c",
-    fillOpacity: 0.04,
-    interactive: false,
-  }).addTo(map));
-  if (state.landBoundaryLabel) {
-    map.removeLayer(state.landBoundaryLabel);
-    state.landBoundaryLabel = null;
-  }
-  state.landBoundaryLabel = L.marker([north, (west + east) / 2], {
-    icon: L.divIcon({
-      className: "",
-      html: `<div class="land-boundary-label">Search boundary</div>`,
-      iconSize: [120, 20],
-      iconAnchor: [60, 22],
-    }),
-    interactive: false,
-  }).addTo(map);
-  const bounds = L.latLngBounds(state.rectangle.map((layer) => layer.getBounds()));
-  map.fitBounds(bounds, { padding: [24, 24], maxZoom: 8 });
+  // Light dashed search/land boundary, distinct from the teal cell selection.
+  state.rectangle = parts.map(([left, right]) => globe.addArea(
+    [[left, south], [right, south], [right, north], [left, north]],
+    { stroke: LAND_STROKE, weight: 2, dashed: true, fill: LAND_STROKE, fillOpacity: 0.03 }
+  ));
+  state.landBoundaryLabel = globe.addOverlay(
+    north,
+    (west + east) / 2,
+    mapBadge("Search boundary", "land-boundary-label"),
+    "above"
+  );
+  flyToBounds({ west, south, east, north }, { minSpan: 0.3 });
   if (label) {
     document.querySelector("#area-label").textContent =
       `${label}. West ${west}, south ${south}, east ${east}, north ${north}.`;
@@ -425,47 +497,56 @@ function setPolygon(coordinates, label) {
   state.selectedForecastDay = null;
   clearPolygonLayers();
   clearRectangle();
-  state.polygonLayer = L.polygon(ring.map(([lon, lat]) => [lat, lon]), {
-    color: "#d4551a",
-    weight: 3,
-    fillColor: "#e8590c",
-    fillOpacity: 0.12,
-    // Fill must not steal taps meant for heat markers underneath.
-    interactive: false,
-  }).addTo(map);
-  map.fitBounds(state.polygonLayer.getBounds(), { padding: [28, 28], maxZoom: 11 });
+  state.polygonLayer = globe.addArea(ring, {
+    stroke: LAND_STROKE,
+    weight: 2.5,
+    dashed: true,
+    fill: LAND_STROKE,
+    fillOpacity: 0.05,
+  });
+  state.savedExample = false;
+  const [west, south, east, north] = state.box;
+  flyToBounds({ west, south, east, north }, { minSpan: 0.12 });
+  // A new boundary starts a new record: earlier checks and place names belonged to other land.
+  state.checkedDays.clear();
+  state.lastPlace = null;
+  state.placeRequestId += 1;
+  state.landLabel = label || "Your land";
   document.querySelector("#area-label").textContent =
     `${label || "Your land"}. ${ring.length - 1} corners. You can redraw after checking.`;
-  document.querySelector("#map-hint").textContent = "Boundary selected. Tap Check my land.";
+  document.querySelector("#map-hint").textContent = "Boundary selected. Choose Check my land.";
   clearWeatherOutlook();
+  updateSelectionBanner();
+  renderObservationCalendar();
+  renderDaySummary();
 }
 
 function clearRectangle() {
   if (state.rectangle) {
     const layers = Array.isArray(state.rectangle) ? state.rectangle : [state.rectangle];
-    layers.forEach((layer) => map.removeLayer(layer));
+    layers.forEach((layer) => layer.remove());
     state.rectangle = null;
   }
   if (state.landBoundaryLabel) {
-    map.removeLayer(state.landBoundaryLabel);
+    state.landBoundaryLabel.remove();
     state.landBoundaryLabel = null;
   }
 }
 
 function clearPolygonLayers() {
   if (state.polygonLayer) {
-    map.removeLayer(state.polygonLayer);
+    state.polygonLayer.remove();
     state.polygonLayer = null;
   }
   if (state.draftLayer) {
-    map.removeLayer(state.draftLayer);
+    state.draftLayer.remove();
     state.draftLayer = null;
   }
 }
 
 function clearForecastMarker() {
   if (state.forecastMarker) {
-    map.removeLayer(state.forecastMarker);
+    state.forecastMarker.remove();
     state.forecastMarker = null;
   }
 }
@@ -484,11 +565,43 @@ function clearLand() {
   clearPolygonLayers();
   clearForecastMarker();
   clearMapLayers();
-  document.querySelector("#finish-draw").hidden = true;
-  document.querySelector("#area-label").textContent = "Search or draw a plot boundary, then check your land.";
-  document.querySelector("#map-hint").textContent = "Draw your land, then tap Check my land.";
+  state.lastPayload = null;
+  state.selectedArea = null;
+  state.lastPlace = null;
+  state.placeName = null;
+  state.landLabel = null;
+  state.placeRequestId += 1;
+  state.checkedDays.clear();
+  state.checkingDay = null;
+  // Any land check still in flight belongs to the land that was just cleared.
+  state.landRequestId += 1;
+  setChecking(false);
+  setDrawing(false);
+  document.querySelector("#cell-detail").hidden = true;
+  document.querySelector("#public-result").hidden = true;
+  document.querySelector("#area-label").textContent =
+    "Search for a place or draw a boundary on the globe, then check it for satellite heat.";
+  document.querySelector("#map-hint").textContent = "Turn the globe to your land, then search or draw its boundary.";
   resetLandResult();
   clearWeatherOutlook();
+  updateSelectionBanner();
+  renderObservationCalendar();
+  renderDaySummary();
+}
+
+function setDrawing(on) {
+  state.drawing = Boolean(on);
+  document.querySelector("#finish-draw").hidden = !on;
+  document.querySelector("#draw").setAttribute("aria-pressed", on ? "true" : "false");
+  // The on-globe hint appears only while drawing, where it counts the corners placed.
+  document.querySelector("#map-hint").hidden = !on;
+}
+
+// The Check button shows its own progress, since results land in the same pane.
+function setChecking(on) {
+  const button = document.querySelector("#confirm");
+  button.disabled = Boolean(on);
+  button.textContent = on ? "Checking…" : "Check my land";
 }
 
 function clearWeatherOutlook() {
@@ -496,7 +609,7 @@ function clearWeatherOutlook() {
   const location = document.querySelector("#weather-location");
   if (location) {
     location.textContent =
-      "Confirm land on the My land view to load a seven-day outlook near the center of your plot.";
+      "Check your land to load a seven-day outlook near the center of your plot.";
   }
   const banner = document.querySelector("#weather-fixture-banner");
   if (banner) banner.hidden = true;
@@ -505,40 +618,53 @@ function clearWeatherOutlook() {
 }
 
 function startPolygonDraw() {
-  state.drawing = true;
+  // Pressing Draw area again while drawing cancels the unfinished boundary.
+  if (state.drawing) {
+    setDrawing(false);
+    state.polygonDraft = [];
+    if (state.draftLayer) {
+      state.draftLayer.remove();
+      state.draftLayer = null;
+    }
+    document.querySelector("#map-hint").textContent = "Drawing cancelled.";
+    return;
+  }
+  setDrawing(true);
   state.polygonDraft = [];
   clearPolygonLayers();
-  document.querySelector("#finish-draw").hidden = false;
   document.querySelector("#area-label").textContent =
-    "Click corners of your plot. Tap Finish boundary when the shape is closed enough.";
-  document.querySelector("#map-hint").textContent = "Drawing land boundary…";
+    "Click the corners of your plot on the globe. Choose Finish boundary once you have at least three.";
+  document.querySelector("#map-hint").textContent =
+    "Drawing: click each corner of your land, then choose Finish boundary.";
 }
 
-function addPolygonVertex(latlng) {
-  state.polygonDraft.push([latlng.lng, latlng.lat]);
-  if (state.draftLayer) map.removeLayer(state.draftLayer);
-  const latlngs = state.polygonDraft.map(([lon, lat]) => [lat, lon]);
-  state.draftLayer = L.polyline(latlngs, { color: "#d4551a", weight: 2, dashArray: "6 4" }).addTo(map);
-  state.polygonDraft.forEach(([lon, lat]) => {
-    L.circleMarker([lat, lon], { radius: 4, color: "#9a3412", fillOpacity: 1 }).addTo(state.draftLayer);
-  });
-  document.querySelector("#area-label").textContent =
-    `${state.polygonDraft.length} corner${state.polygonDraft.length === 1 ? "" : "s"} placed. Finish when ready.`;
+function addPolygonVertex(spot) {
+  state.polygonDraft.push([spot.lon, spot.lat]);
+  if (state.draftLayer) state.draftLayer.remove();
+  state.draftLayer = globe.addPath(state.polygonDraft, { stroke: LAND_STROKE, weight: 2, dashed: true });
+  const placed = state.polygonDraft.length;
+  const words = `${placed} corner${placed === 1 ? "" : "s"} placed.`;
+  document.querySelector("#area-label").textContent = `${words} Finish when ready.`;
+  document.querySelector("#map-hint").textContent =
+    placed < 3 ? `${words} Add at least three.` : `${words} Choose Finish boundary when the shape is right.`;
 }
 
 function finishPolygonDraw() {
   if (state.polygonDraft.length < 3) {
     document.querySelector("#area-label").textContent = "Add at least three corners before finishing.";
+    document.querySelector("#map-hint").textContent = "Add at least three corners before finishing.";
     return;
   }
-  state.drawing = false;
-  document.querySelector("#finish-draw").hidden = true;
-  setPolygon(state.polygonDraft, "Drawn land");
+  setDrawing(false);
+  state.placeName = null;
+  const draft = state.polygonDraft;
   state.polygonDraft = [];
   if (state.draftLayer) {
-    map.removeLayer(state.draftLayer);
+    state.draftLayer.remove();
     state.draftLayer = null;
   }
+  setPolygon(draft, "Drawn land");
+  openLandPanel({ tab: "where", focus: false });
 }
 
 function selectedPlatforms() {
@@ -558,7 +684,6 @@ function resetLandResult() {
   document.querySelector("#heat-inside").innerHTML = "";
   document.querySelector("#heat-nearby").innerHTML = "";
   document.querySelector("#heat-feeds").innerHTML = "";
-  document.querySelector("#see-where").hidden = true;
   document.querySelector("#weather-headline").textContent = "Checking your land…";
   document.querySelector("#weather-explanation").textContent =
     "Loading the fire-danger outlook and recent satellite heat.";
@@ -603,7 +728,12 @@ async function checkLand(options = {}) {
   const requestId = ++state.landRequestId;
   ++state.requestId;
   resetLandResult();
-  state.landLabel = options.label || "Your land";
+  state.landLabel = options.label || state.landLabel || "Your land";
+  state.checkingDay = date;
+  setChecking(true);
+  document.querySelector("#area-label").textContent =
+    `Checking satellite heat for ${formatObservationDay(date)}…`;
+  renderDaySummary();
   openLandPanel({ tab: state.panelTab || "where", focus: false });
   try {
     const response = await fetch("/api/check-land", {
@@ -621,9 +751,14 @@ async function checkLand(options = {}) {
     renderLandCheck(payload);
   } catch (error) {
     if (requestId !== state.landRequestId) return;
+    state.checkingDay = null;
+    setChecking(false);
+    document.querySelector("#area-label").textContent =
+      "The land check failed. Check your connection, then choose Check my land again.";
     document.querySelector("#weather-headline").textContent = "The land check failed.";
     document.querySelector("#weather-explanation").textContent = "Check your connection and try again.";
     document.querySelector("#weather-status").textContent = "Retry with Check my land.";
+    renderDaySummary();
   }
 }
 
@@ -635,6 +770,12 @@ function setResultLead(text) {
 function renderLandCheck(payload) {
   state.lastLandCheck = payload;
   state.forecast = payload.forecast || null;
+  state.checkingDay = null;
+  state.savedExample = Boolean(payload.fixture || payload.saved);
+  setChecking(false);
+  document.querySelector("#area-label").textContent =
+    `Checked for ${formatObservationDay(payload.observation_date || dayInput.value)}. Change the date or redraw to check again.`;
+  document.querySelector("#map-hint").textContent = "Click a heat dot, or any spot inside your boundary, for details.";
   const fixture = payload.fixture;
   const banner = document.querySelector("#fixture-banner");
   if (fixture?.label || payload.saved) {
@@ -655,18 +796,14 @@ function renderLandCheck(payload) {
   clearForecastMarker();
   const point = forecast.point || {};
   if (point.latitude != null && point.longitude != null) {
-    state.forecastMarker = L.circleMarker([point.latitude, point.longitude], {
-      radius: 6,
-      color: "#1e5a45",
-      weight: 2,
-      fillColor: "#fffdf9",
-      fillOpacity: 1,
+    state.forecastMarker = globe.addPoint(point.latitude, point.longitude, {
+      radius: 5,
+      fill: "#fffdf8",
+      stroke: CELL_STROKE,
+      weight: 2.5,
+      tooltip: point.label || "Weather near the center of your selection.",
     });
-    state.forecastMarker.bindTooltip(
-      point.label || "Weather near the center of your selection.",
-      { permanent: false }
-    );
-    if (state.showForecastPoint !== false) state.forecastMarker.addTo(map);
+    syncForecastMarkerVisibility();
   }
   const researchPerf = document.querySelector("#research-performance");
   if (researchPerf) {
@@ -686,8 +823,6 @@ function renderLandCheck(payload) {
     heat.nearby || [],
     true
   );
-  const seeWhere = document.querySelector("#see-where");
-  seeWhere.hidden = !((heat.inside || []).length || (heat.nearby || []).length);
   document.querySelector("#incident-line").textContent = payload.incident?.line || "";
 
   // Same map rendering path as saved-place / Show hotspots: polygon-filtered areas + individuals.
@@ -754,7 +889,7 @@ function renderHeatGroup(title, rows, nearby = false) {
   if (!rows.length) {
     return `<p class="quiet">${nearby ? "No nearby detections within 5 km." : "No detections inside the boundary."}</p>`;
   }
-  return `<h3 class="heat-group-title">${escapeHtml(title)}</h3>
+  return `<h5 class="heat-group-title">${escapeHtml(title)}</h5>
     <ul class="heat-items">${rows.map((row) => `
       <li>
         <strong>${escapeHtml(row.platform)}</strong>
@@ -863,6 +998,10 @@ function renderOutlook(forecast, selectors) {
   const regional = document.querySelector("#weather-regional-ref");
 
   state.forecast = forecast || null;
+  if (forecast?.fixture || forecast?.saved) state.savedExample = true;
+  // History's calendar and Future list read the same forecast days.
+  renderObservationCalendar();
+  renderFutureDays();
   const point = forecast?.point || {};
   const tz = forecastTimezone(forecast);
   const valuesAvailable = forecast?.values_available !== false && (forecast?.days || []).some((day) => {
@@ -952,11 +1091,12 @@ function renderOutlook(forecast, selectors) {
     button.type = "button";
     button.className = "day-chip";
     button.dataset.date = day.valid_date;
-    button.setAttribute("role", "listitem");
+    button.setAttribute("aria-pressed", "false");
     const summary = valuesAvailable ? dayCardSummary(day) : "No values";
-    button.innerHTML = `<strong>${escapeHtml(summary)}</strong><span>${escapeHtml(
+    const peak = day.valid_date === forecast.attention_day ? " · peak" : "";
+    button.innerHTML = `<span class="day-date">${escapeHtml(
       formatShortForecastDay(day.valid_date, tz)
-    )}</span>`;
+    )}</span><span class="day-level">${escapeHtml(summary + peak)}</span>`;
     if (!valuesAvailable) button.disabled = true;
     if (day.valid_date === forecast.attention_day) button.classList.add("peak");
     if (!day.danger_level) button.classList.add("fwi-missing");
@@ -1030,12 +1170,24 @@ function showOutlookDay(day, forecast, selectors) {
   const gust = gustKmhField(day);
   const direction = day.wind_direction_text || null;
   const recent = forecast?.recent_rain || {};
+  const ratingNote = day.danger_level
+    ? "The rating describes weather that could affect a vegetation fire if one starts. It is not a wildfire probability."
+    : "No fire-danger rating was published for this day.";
   detail.innerHTML = `
-    <h3>${escapeHtml(formatShortForecastDay(day.valid_date, tz))}${
-      day.danger_level ? ` · ${escapeHtml(day.danger_level)} fire danger` : ""
-    }</h3>
-    <p class="quiet">${escapeHtml(pointLabel(forecast))}</p>
-    <p>${escapeHtml(day.explanation || "")}</p>
+    <p class="reading-label">${escapeHtml(formatShortForecastDay(day.valid_date, tz))} · Fire-weather danger</p>
+    <p class="reading-value">${escapeHtml(day.danger_level || "Not rated")}</p>
+    <dl class="stat-grid">
+      <div><dt>Temperature</dt><dd>${statText(day.temperature_max_c, "°C")}</dd></div>
+      <div><dt>Humidity</dt><dd>${statText(day.relative_humidity_min_percent, "%")}</dd></div>
+      <div><dt>Wind</dt><dd>${statText(wind, "km/h")}${
+        direction ? `<small>${escapeHtml(direction)}</small>` : ""
+      }</dd></div>
+      <div><dt>Rain / 24 h</dt><dd>${statText(day.forecast_rain_mm, "mm", 1)}</dd></div>
+    </dl>
+    ${day.explanation ? `<p>${escapeHtml(day.explanation)}</p>` : ""}
+    <p class="quiet">${escapeHtml(pointLabel(forecast))} ${ratingNote}</p>
+    <details class="fold">
+    <summary>All measurements</summary>
     <ul class="outlook-measures">
       ${fieldLine("Air temperature", day.temperature_max_c, "°C", day.temperature_period || "daily maximum")}
       ${fieldLine("Relative humidity", day.relative_humidity_min_percent, "%", day.humidity_period || "daily minimum")}
@@ -1061,10 +1213,20 @@ function showOutlookDay(day, forecast, selectors) {
       <li><strong>Update / archive time</strong> · ${escapeHtml(
         fire.issue_time || forecast?.forecast_status?.text || "not supplied"
       )}</li>
-    </ul>`;
+    </ul>
+    </details>`;
   daysHost.querySelectorAll(".day-chip").forEach((node) => {
-    node.classList.toggle("on", node.dataset.date === day.valid_date);
+    const on = node.dataset.date === day.valid_date;
+    node.classList.toggle("on", on);
+    node.setAttribute("aria-pressed", on ? "true" : "false");
   });
+}
+
+// One reading for the stat grid: a value with its unit, or the word "Missing".
+function statText(field, unit, digits = 0) {
+  if (!field || field.status === "missing" || field.value == null) return "Missing";
+  const value = Number(field.value).toFixed(digits);
+  return unit === "%" ? `${value}%` : `${value} ${escapeHtml(unit)}`;
 }
 
 function pointLabel(forecast) {
@@ -1073,11 +1235,7 @@ function pointLabel(forecast) {
 
 function syncForecastMarkerVisibility() {
   if (!state.forecastMarker) return;
-  if (state.showForecastPoint === false) {
-    map.removeLayer(state.forecastMarker);
-  } else if (!map.hasLayer(state.forecastMarker)) {
-    state.forecastMarker.addTo(map);
-  }
+  state.forecastMarker.setVisible(state.showForecastPoint !== false);
 }
 
 function forecastHasUsefulValues(forecast) {
@@ -1101,7 +1259,10 @@ async function loadWeatherOutlook(options = {}) {
   const retry = document.querySelector("#weather-retry");
   if (!state.box) {
     renderOutlook(null, weatherSelectors());
-    location.textContent = "Confirm land on the My land view to load a seven-day outlook near the center of your plot.";
+    document.querySelector("#weather-headline").textContent = "No land selected yet";
+    document.querySelector("#weather-explanation").textContent =
+      "Search for a place or draw a boundary on the globe to see its fire-weather outlook.";
+    location.textContent = "Check your land to load a seven-day outlook near the center of your plot.";
     if (retry) retry.hidden = true;
     return;
   }
@@ -1210,35 +1371,31 @@ function highlightLandHeat() {
   const heat = state.lastLandCheck?.heat;
   if (!heat) return;
   clearMemberPoints();
-  state.memberPointLayer = L.layerGroup().addTo(map);
   const points = [...(heat.inside || []), ...(heat.nearby || [])];
-  points.forEach((spot) => {
-    const marker = L.circleMarker([spot.lat, spot.lon], {
-      radius: spot.relation === "inside" ? 7 : 6,
-      color: "#fffdf9",
-      weight: 2,
-      fillColor: spot.relation === "inside" ? "#d4551a" : "#1f6f8b",
-      fillOpacity: 1,
-    });
-    marker.bindTooltip(
-      `${spot.platform} · ${spot.acq_time || ""} UTC · ${spot.relation}${spot.relation === "nearby" ? ` · ${spot.distance_km} km` : ""}`,
-      { sticky: true }
-    );
-    marker.addTo(state.memberPointLayer);
-  });
+  state.memberPointLayer = points.map((spot) => globe.addPoint(spot.lat, spot.lon, {
+    radius: spot.relation === "inside" ? 7 : 6,
+    fill: spot.relation === "inside" ? HEAT_FILL : "#1f6f8b",
+    stroke: "#fffdf8",
+    weight: 2,
+    tooltip: `${spot.platform} · ${spot.acq_time || ""} UTC · ${spot.relation}${spot.relation === "nearby" ? ` · ${spot.distance_km} km` : ""}`,
+  }));
   if (points.length) {
-    map.fitBounds(L.latLngBounds(points.map((spot) => [spot.lat, spot.lon])), {
-      padding: [40, 40],
-      maxZoom: 12,
-    });
+    const lats = points.map((spot) => Number(spot.lat));
+    const lons = points.map((spot) => Number(spot.lon));
+    flyToBounds({
+      west: Math.min(...lons),
+      south: Math.min(...lats),
+      east: Math.max(...lons),
+      north: Math.max(...lats),
+    }, { minSpan: 0.22 });
   }
 }
 
 function clearMapLayers() {
-  state.areaLayers.forEach((layer) => map.removeLayer(layer));
+  state.areaLayers.forEach((layer) => layer.remove());
   state.areaLayers = [];
   state.markerByCell.clear();
-  state.individualMarkers.forEach((marker) => map.removeLayer(marker));
+  state.individualMarkers.forEach((marker) => marker.remove());
   state.individualMarkers = [];
   clearSelectedSquare();
   clearMemberPoints();
@@ -1246,14 +1403,14 @@ function clearMapLayers() {
 
 function clearMemberPoints() {
   if (state.memberPointLayer) {
-    map.removeLayer(state.memberPointLayer);
+    state.memberPointLayer.forEach((point) => point.remove());
     state.memberPointLayer = null;
   }
 }
 
 function clearSelectedSquare() {
-  if (state.selectedSquare) map.removeLayer(state.selectedSquare);
-  if (state.selectedLabel) map.removeLayer(state.selectedLabel);
+  if (state.selectedSquare) state.selectedSquare.remove();
+  if (state.selectedLabel) state.selectedLabel.remove();
   state.selectedSquare = null;
   state.selectedLabel = null;
 }
@@ -1310,7 +1467,9 @@ function renderPublicResult(payload) {
   const multi = document.querySelector("#result-multi");
   const support = document.querySelector("#result-support");
   const filterHost = document.querySelector("#result-filter");
+  const count = document.querySelector("#result-count");
   if (!payload) {
+    count.textContent = "";
     lead.textContent = "Choose a place and date, then show hotspots.";
     multi.textContent = "";
     support.textContent = "";
@@ -1324,6 +1483,15 @@ function renderPublicResult(payload) {
   const multiCount = Number(areas.multiple_satellite_area_count || 0);
   const detections = Number(areas.detection_count || 0);
   const selected = selectedPlatforms();
+  // A returned empty result with unknown coverage is "no detections returned", never "no heat".
+  count.textContent = publicResult.kind === "unknown_empty"
+    ? "No detections returned"
+    : `${total} area${total === 1 ? "" : "s"} with heat`;
+  if (payload.date) {
+    state.checkedDays.set(payload.date, { total, multi: multiCount, kind: publicResult.kind || "" });
+    renderObservationCalendar();
+    renderDaySummary();
+  }
 
   if (publicResult.kind === "unknown_empty") {
     lead.textContent = publicResult.text || publicResult.lead;
@@ -1345,7 +1513,9 @@ function renderPublicResult(payload) {
       ? `${detections} individual satellite detection${detections === 1 ? "" : "s"} remain accessible.`
       : "Turn off the filter to restore hotspot markers.";
   } else if (multiCount === 0 && total > 0) {
-    lead.textContent = `Satellites detected heat in ${total} areas. Each area was reported by one satellite.`;
+    lead.textContent = total === 1
+      ? "Satellites detected heat in 1 area, reported by one satellite."
+      : `Satellites detected heat in ${total} areas. Each area was reported by one satellite.`;
     multi.textContent = "";
     support.textContent = `${detections} satellite detection${detections === 1 ? "" : "s"} in total.`;
   } else {
@@ -1390,27 +1560,26 @@ function maybeCompareButton(host, selected) {
   host.append(button);
 }
 
-function heatIcon(area, selected) {
+// A heat marker is a real button on top of the globe: an ember dot for one
+// satellite, the same dot with an outer ring when two or more saw heat there.
+function heatMarkerElement(area) {
   const count = Number(area.satellite_count || 1);
-  const label = count === 1 ? "1 sat" : `${count} sats`;
-  const multi = count > 1;
-  const className = `heat-marker ember${multi ? " multi" : ""}${selected ? " selected" : ""}`;
-  const shape = multi ? "square" : "circle";
-  const aria = `Observed heat detected by ${count} satellite${count === 1 ? "" : "s"}`;
-  return L.divIcon({
-    className: "heat-div-icon",
-    html: `<div class="${className}" data-shape="${shape}" role="img" aria-label="${aria}"><span class="heat-wave"><span class="heat-wave-icon" aria-hidden="true">♨</span></span><span class="sat-badge">${label}</span></div>`,
-    iconSize: [46, 46],
-    iconAnchor: [23, 23],
-  });
+  const readings = Number(area.detection_count || 0);
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `heat-marker${count > 1 ? " multi" : ""}`;
+  button.innerHTML = '<span class="heat-dot"></span>';
+  button.title = `Heat seen by ${count} satellite${count === 1 ? "" : "s"}`;
+  button.setAttribute("aria-pressed", "false");
+  button.setAttribute(
+    "aria-label",
+    `Heat detected by ${joinPlatformNames(area.platforms)}. ${readings} reading${readings === 1 ? "" : "s"}. Show details.`
+  );
+  return button;
 }
 
-function activateArea(area, event) {
-  if (event) {
-    L.DomEvent.stopPropagation(event);
-    if (event.originalEvent) L.DomEvent.preventDefault(event);
-  }
-  // touchend + synthesized click can both arrive; keep one open for this cell.
+function activateArea(area) {
+  // Two activations of the same cell in quick succession open it once.
   const token = `${area?.cell_id || ""}:${area?.observation_day || ""}`;
   const now = Date.now();
   if (token && token === state.lastActivateToken && now - state.lastActivateAt < 400) {
@@ -1423,63 +1592,28 @@ function activateArea(area, event) {
   showArea(area);
 }
 
-function areaForMarker(marker, fallback) {
-  const cellId = marker?.options?.velaAreaId || fallback?.cell_id;
-  return (
-    (state.lastPayload?.hotspot_areas?.areas || []).find((item) => item.cell_id === cellId) ||
-    fallback
-  );
-}
-
-function bindHeatMarkerInteractions(marker, area) {
-  const element = marker.getElement();
-  if (!element) return;
-  L.DomEvent.disableClickPropagation(element);
-  L.DomEvent.disableScrollPropagation(element);
-  const openFromDom = (domEvent) => {
-    domEvent.stopPropagation();
-    domEvent.preventDefault();
-    activateArea(areaForMarker(marker, area), { originalEvent: domEvent });
-  };
-  // Capture-phase click/touch so the map's empty-square handler never wins.
-  element.addEventListener("click", openFromDom, true);
-  element.addEventListener("touchend", openFromDom, { capture: true, passive: false });
-  element.addEventListener("keydown", (domEvent) => {
-    if (domEvent.key === "Enter" || domEvent.key === " ") openFromDom(domEvent);
-  });
-  element.setAttribute("tabindex", "0");
-  element.setAttribute("role", "button");
-  element.setAttribute(
-    "aria-label",
-    `Heat detected by ${joinPlatformNames(area.platforms)}. ${area.detection_count} reading${area.detection_count === 1 ? "" : "s"}.`
-  );
-}
-
 function renderAreas(hotspotAreas) {
   const areas = visibleAreas(hotspotAreas);
   areas.forEach((area) => {
-    const selected = state.selectedArea && state.selectedArea.cell_id === area.cell_id;
-    const marker = L.marker([area.center_lat, area.center_lon], {
-      icon: heatIcon(area, selected),
-      keyboard: true,
-      title: `Heat detected by ${area.satellite_count} satellite${area.satellite_count === 1 ? "" : "s"}`,
-      alt: `Heat detected by ${joinPlatformNames(area.platforms)}`,
-      riseOnHover: true,
-      velaAreaId: area.cell_id,
+    const element = heatMarkerElement(area);
+    element.addEventListener("click", (event) => {
+      event.stopPropagation();
+      // Resolve from the latest payload so a stale marker never opens old data.
+      const current =
+        (state.lastPayload?.hotspot_areas?.areas || []).find((item) => item.cell_id === area.cell_id) || area;
+      activateArea(current);
     });
-    marker.on("click", (event) => {
-      activateArea(areaForMarker(event.target, area), event);
-    });
-    marker.on("keydown", (event) => {
-      if (event.originalEvent.key === "Enter" || event.originalEvent.key === " ") {
-        activateArea(areaForMarker(event.target, area), event);
-      }
-    });
-    marker.addTo(map);
-    bindHeatMarkerInteractions(marker, area);
+    const marker = globe.addOverlay(area.center_lat, area.center_lon, element);
     state.areaLayers.push(marker);
     state.markerByCell.set(area.cell_id, marker);
   });
+  refreshMarkerSelection();
+  // The legend stays folded until there is heat on the globe to explain; it opens once.
+  if (areas.length && !state.legendShown) {
+    state.legendShown = true;
+    const legend = document.querySelector(".legend");
+    if (legend && !window.matchMedia("(max-width: 860px)").matches) legend.open = true;
+  }
 }
 
 function detectionKey(spot) {
@@ -1492,7 +1626,7 @@ function locationKey(spot) {
 }
 
 function renderIndividuals(payload) {
-  state.individualMarkers.forEach((marker) => map.removeLayer(marker));
+  state.individualMarkers.forEach((marker) => marker.remove());
   state.individualMarkers = [];
   if (!state.showIndividuals || !payload) return;
   const visible = visibleAreas(payload.hotspot_areas);
@@ -1513,26 +1647,20 @@ function renderIndividuals(payload) {
   });
   groups.forEach((spots) => {
     const primary = spots[0];
-    const marker = L.circleMarker([primary.lat, primary.lon], {
+    const marker = globe.addPoint(primary.lat, primary.lon, {
       radius: spots.length > 1 ? 6 : 4,
-      color: "#fffdf9",
+      fill: READING_FILL,
+      stroke: DOT_EDGE,
       weight: 1,
-      fillColor: INDIVIDUAL_COLORS[primary.platform] || INDIVIDUAL_COLORS.Unrecognized,
-      fillOpacity: 0.95,
-    });
-    marker.bindTooltip(
-      spots.length === 1
+      tooltip: spots.length === 1
         ? `${primary.platform} · ${primary.acq_time || ""} UTC`
         : `${spots.length} readings at this location`,
-      { sticky: true }
-    );
-    marker.on("click", (event) => {
-      L.DomEvent.stopPropagation(event);
-      guardMapClick();
-      if (spots.length === 1) showDetection(spots[0]);
-      else showDetectionStack(spots);
+      onClick: () => {
+        guardMapClick();
+        if (spots.length === 1) showDetection(spots[0]);
+        else showDetectionStack(spots);
+      },
     });
-    marker.addTo(map);
     state.individualMarkers.push(marker);
   });
 }
@@ -1661,37 +1789,30 @@ function platformStatuses(area, payload) {
 function outlineSquare(area, labelText) {
   clearSelectedSquare();
   const bounds = area.bounds;
-  // Orbit teal marks the clicked 5 km grid cell; keep the marker uncovered.
-  state.selectedSquare = L.rectangle(
-    [[bounds.south, bounds.west], [bounds.north, bounds.east]],
-    {
-      color: "#0f766e",
-      weight: 3,
-      fillColor: "#14b8a6",
-      fillOpacity: 0.1,
-      className: "selected-cell-outline",
-    }
-  ).addTo(map);
+  // Teal marks the clicked 5 km grid cell; keep the marker uncovered.
+  state.selectedSquare = globe.addArea(
+    [
+      [bounds.west, bounds.south],
+      [bounds.east, bounds.south],
+      [bounds.east, bounds.north],
+      [bounds.west, bounds.north],
+    ],
+    { stroke: CELL_STROKE, weight: 3, fill: CELL_STROKE, fillOpacity: 0.1 }
+  );
   // Small corner badge instead of a wide tooltip over the heat marker.
-  state.selectedLabel = L.marker([bounds.south, bounds.west], {
-    icon: L.divIcon({
-      className: "",
-      html: `<div class="selected-cell-badge">${escapeHtml(labelText || "5 km cell")}</div>`,
-      iconSize: [72, 18],
-      iconAnchor: [0, -4],
-    }),
-    interactive: false,
-  }).addTo(map);
+  state.selectedLabel = globe.addOverlay(
+    bounds.south,
+    bounds.west,
+    mapBadge(labelText || "5 km cell", "selected-cell-badge"),
+    "below-right"
+  );
 }
 
 function refreshMarkerSelection() {
   state.markerByCell.forEach((marker, cellId) => {
-    const area = (state.lastPayload?.hotspot_areas?.areas || []).find((item) => item.cell_id === cellId);
-    if (!area) return;
-    const selected = state.selectedArea && state.selectedArea.cell_id === cellId;
-    marker.setIcon(heatIcon(area, selected));
-    // setIcon replaces the DOM node; re-bind so taps still open THIS area.
-    bindHeatMarkerInteractions(marker, area);
+    const selected = Boolean(state.selectedArea && state.selectedArea.cell_id === cellId);
+    marker.element.classList.toggle("selected", selected);
+    marker.element.setAttribute("aria-pressed", selected ? "true" : "false");
   });
 }
 
@@ -1714,26 +1835,17 @@ function showMemberPoints(area, options = {}) {
   const activePass = options.pass || null;
   const members = activePass ? activePass.members : area.members || [];
   if (!members.length) return;
-  state.memberPointLayer = L.layerGroup().addTo(map);
-  members.forEach((spot) => {
-    const marker = L.circleMarker([spot.lat, spot.lon], {
-      radius: activePass ? 7 : 5,
-      color: "#fffdf9",
-      weight: 2,
-      fillColor: INDIVIDUAL_COLORS[spot.platform] || INDIVIDUAL_COLORS.Unrecognized,
-      fillOpacity: 1,
-    });
-    marker.bindTooltip(
-      `${spot.platform} · ${spot.acq_time} UTC · ${Number(spot.lat).toFixed(4)}, ${Number(spot.lon).toFixed(4)} (satellite-reported pixel center)`,
-      { sticky: true }
-    );
-    marker.on("click", (event) => {
-      L.DomEvent.stopPropagation(event);
+  state.memberPointLayer = members.map((spot) => globe.addPoint(spot.lat, spot.lon, {
+    radius: activePass ? 7 : 5,
+    fill: READING_FILL,
+    stroke: DOT_EDGE,
+    weight: 2,
+    tooltip: `${spot.platform} · ${spot.acq_time} UTC · ${Number(spot.lat).toFixed(4)}, ${Number(spot.lon).toFixed(4)} (satellite-reported pixel center)`,
+    onClick: () => {
       guardMapClick();
       showDetection(spot);
-    });
-    marker.addTo(state.memberPointLayer);
-  });
+    },
+  }));
 }
 
 function renderReplayTimeline(area) {
@@ -1812,19 +1924,30 @@ function toggleReplay() {
   }, 1400);
 }
 
+// Move the globe only when the selected square sits under the card or off the plate.
 function panSelectionClearOfPanel(area) {
-  if (!area?.center_lat || area.center_lon == null) return;
-  const panel = document.querySelector("#area-panel");
-  if (!panel || panel.hidden) return;
-  const mobile = window.matchMedia("(max-width: 900px)").matches;
-  const sheetHeight = panel.getBoundingClientRect().height || 280;
-  const panelWidth = panel.getBoundingClientRect().width || 360;
-  const point = map.project([area.center_lat, area.center_lon], map.getZoom());
-  // Mobile: lift selection above the bottom sheet. Desktop: keep it left of the side panel.
-  const target = mobile
-    ? L.point(point.x, point.y + sheetHeight * 0.35)
-    : L.point(point.x + panelWidth * 0.45, point.y);
-  map.panTo(map.unproject(target, map.getZoom()), { animate: true });
+  if (area?.center_lat == null || area.center_lon == null || !area.bounds) return;
+  syncGlobeInsets();
+  const plate = document.querySelector("#plate").getBoundingClientRect();
+  const spot = globe.screenPosition(area.center_lat, area.center_lon);
+  const margin = 32;
+  const clear =
+    spot
+    && spot.x > state.insets.left + margin
+    && spot.x < plate.width - state.insets.right - margin
+    && spot.y > state.insets.top + margin
+    && spot.y < plate.height - state.insets.bottom - margin;
+  if (clear) return;
+  flyToBounds(area.bounds, { minSpan: 0.45 });
+}
+
+// Selected-square details live in the Burn activity pane; bring them into view.
+function revealCellDetail() {
+  openLandPanel({ tab: "where", focus: false });
+  const detail = document.querySelector("#cell-detail");
+  detail.hidden = false;
+  const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  detail.scrollIntoView({ block: "start", behavior: calm ? "auto" : "smooth" });
 }
 
 function setPanelMode(mode) {
@@ -1972,7 +2095,7 @@ async function showArea(area) {
   refreshMarkerSelection();
 
   setPanelMode("detected");
-  openLandPanel({ tab: "where", focus: false });
+  revealCellDetail();
   // Defer pan until the panel is laid out so width/height are accurate.
   requestAnimationFrame(() => panSelectionClearOfPanel(matched));
   const members = matched.members || [];
@@ -2136,12 +2259,14 @@ function renderAreaWeather(forecast, observationDay) {
 
 function closeAreaPanel() {
   document.querySelector("#area-panel").hidden = true;
+  document.querySelector("#cell-detail").hidden = true;
   state.selectedArea = null;
   stopReplayTimer();
   state.replayPasses = [];
   clearSelectedSquare();
   clearMemberPoints();
   refreshMarkerSelection();
+  syncGlobeInsets();
 }
 
 async function askAboutPoint(lat, lon) {
@@ -2157,7 +2282,7 @@ async function askAboutPoint(lat, lon) {
   const requestId = state.requestId;
   const date = dayInput.value;
   const panel = document.querySelector("#area-panel");
-  panel.hidden = false;
+  revealCellDetail();
   setPanelMode("empty");
   document.querySelector("#area-sentence").textContent =
     `No heat detection was reported in this square on ${formatObservationDay(date)}.`;
@@ -2250,8 +2375,7 @@ function renderStatuses(results) {
 }
 
 function showDetection(spot) {
-  const panel = document.querySelector("#area-panel");
-  panel.hidden = false;
+  revealCellDetail();
   document.querySelector("#area-sentence").textContent =
     `${spot.platform} recorded an individual detection at ${spot.acq_time} UTC.`;
   beginPlaceLookup({ mode: "point", lat: spot.lat, lon: spot.lon });
@@ -2276,8 +2400,7 @@ function showDetection(spot) {
 }
 
 function showDetectionStack(spots) {
-  const panel = document.querySelector("#area-panel");
-  panel.hidden = false;
+  revealCellDetail();
   const first = spots[0];
   document.querySelector("#area-sentence").textContent =
     `${spots.length} satellite readings overlap at this location.`;
@@ -2487,6 +2610,8 @@ async function loadCalendar() {
   }
   const [west, south, east, north] = state.box;
   const year = document.querySelector("#year").value;
+  // Reading the weekly tables takes several seconds; say so instead of showing a blank pane.
+  host.innerHTML = `<p class="quiet weeks-loading">Loading weekly history for ${escapeHtml(year)}…</p>`;
   let payload;
   try {
     const response = await fetch(`/api/calendar?west=${west}&south=${south}&east=${east}&north=${north}&year=${year}`);
@@ -2494,6 +2619,7 @@ async function loadCalendar() {
     payload = await response.json();
   } catch (_error) {
     if (requestId !== state.calendarRequestId) return;
+    host.innerHTML = "";
     renderEmptyCalendar(year, "The weekly request failed. Check your connection and try again.", state.calendarYears);
     return;
   }
@@ -2504,6 +2630,7 @@ async function loadCalendar() {
   const published = state.weeks.filter((week) => week.activity_status === "complete" || week.activity_status === "partial");
   const availableYears = await loadAvailableCalendarYears();
   if (requestId !== state.calendarRequestId) return;
+  host.innerHTML = "";
   if (payload.status === "not_processed" || !published.length) {
     const reason = emptyCalendarReason(payload, state.weeks);
     state.calendarEmptyReason = reason;
@@ -2560,7 +2687,7 @@ function showWeek(week, button) {
         ? "Partial estimate — some days in the week lack usable coverage."
         : "No published weekly estimate for this week.";
   detail.innerHTML = `
-    <h3>${escapeHtml(formatWeekRange(week.week_start, week.week_end))}</h3>
+    <h4>${escapeHtml(formatWeekRange(week.week_start, week.week_end))}</h4>
     <p class="result-lead">${escapeHtml(completeness)} Measured activity: ${escapeHtml(activityText(week))}.</p>
     <p><strong>What was measured for this area and week?</strong><br>${escapeHtml(activityText(week))}</p>
     <p><strong>How much usable coverage was there?</strong><br>${escapeHtml(coverageSentence(week))}</p>
@@ -2647,7 +2774,7 @@ async function showTrace() {
   const response = await fetch("/api/trace");
   const payload = await response.json();
   if (!payload.available || !(payload.examples || []).length) {
-    detail.innerHTML = "<h3>No traced cell yet</h3><p class='quiet'>Run the one-pass verification after Earthdata login.</p>";
+    detail.innerHTML = "<h4>No traced cell yet</h4><p class='quiet'>Run the one-pass verification after Earthdata login.</p>";
     return;
   }
   state.traces = payload;
@@ -2668,7 +2795,7 @@ function renderTrace(outcome) {
       ? "Brazilian Cerrado development example."
       : `Region ${example.region_id || "unknown"}.`;
   body.innerHTML = `
-    <h3>${escapeHtml(example.title)} · cell ${escapeHtml(example.cell_id)}</h3>
+    <h4>${escapeHtml(example.title)} · cell ${escapeHtml(example.cell_id)}</h4>
     <p class="quiet">${escapeHtml(regionNote)} Local date ${escapeHtml(example.local_date || "—")}.</p>
     <p><strong>What each satellite observed</strong><br>
       Aqua/MODIS: ${escapeHtml(example.modis_time_local || example.modis_time_utc || "no usable observation recorded")}.<br>
@@ -2682,15 +2809,22 @@ function renderTrace(outcome) {
       This cell-day is one of the usable squares that can raise or leave unchanged the weekly activity percentage.
       Development validation compared estimates with held-out observations; independent final testing is recorded separately when completed.
     </p>`;
-  traceLayer.clearLayers();
+  if (state.traceOutline) {
+    state.traceOutline.remove();
+    state.traceOutline = null;
+  }
   const bounds = example.bounds;
   if (!bounds) return;
-  L.rectangle([[bounds.south, bounds.west], [bounds.north, bounds.east]], {
-    color: "#1c1612",
-    weight: 2,
-    fillOpacity: 0,
-  }).addTo(traceLayer);
-  map.fitBounds([[bounds.south, bounds.west], [bounds.north, bounds.east]], { maxZoom: 10, padding: [28, 28] });
+  state.traceOutline = globe.addArea(
+    [
+      [bounds.west, bounds.south],
+      [bounds.east, bounds.south],
+      [bounds.east, bounds.north],
+      [bounds.west, bounds.north],
+    ],
+    { stroke: LAND_STROKE, weight: 2 }
+  );
+  flyToBounds(bounds, { minSpan: 0.9 });
 }
 
 function snapshotLandSelection() {
@@ -2735,9 +2869,10 @@ async function loadZambiaWeeklyExample() {
     relation: "inside",
     status: "ok",
   };
+  state.savedExample = true;
   updateSelectionBanner();
+  state.historyView = "past";
   openLandPanel({ tab: "weekly" });
-  await loadCalendar();
 }
 
 async function restoreSavedLandSelection() {
@@ -2771,3 +2906,169 @@ async function restoreSavedLandSelection() {
   updateSelectionBanner();
 }
 
+
+// ---------- History: Past (weekly activity), Present (observation calendar), Future (forecast days) ----------
+
+function setHistoryView(name) {
+  state.historyView = name;
+  document.querySelectorAll("[data-history]").forEach((button) => {
+    const on = button.dataset.history === name;
+    button.classList.toggle("on", on);
+    button.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  ["past", "present", "future"].forEach((view) => {
+    document.querySelector(`#history-${view}`).hidden = view !== name;
+  });
+  if (name === "past") loadCalendar();
+  if (name === "present") {
+    renderObservationCalendar();
+    renderDaySummary();
+  }
+  if (name === "future") {
+    if (state.box && !state.forecast) loadWeatherOutlook();
+    renderFutureDays();
+  }
+}
+
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function shiftCalendarMonth(delta) {
+  const [year, month] = (state.calendarMonth || todayIso().slice(0, 7)).split("-").map(Number);
+  const moved = new Date(Date.UTC(year, month - 1 + delta, 1));
+  state.calendarMonth = moved.toISOString().slice(0, 7);
+  renderObservationCalendar();
+}
+
+// The month grid doubles as the date picker for satellite observations.
+// A dot marks a day this session checked and found heat, a ring a checked day
+// with none returned, and a dash a day covered by the loaded forecast.
+function renderObservationCalendar() {
+  const grid = document.querySelector("#cal-grid");
+  const title = document.querySelector("#cal-title");
+  if (!grid || !title) return;
+  const selected = dayInput.value;
+  if (!state.calendarMonth) state.calendarMonth = (selected || todayIso()).slice(0, 7);
+  const [year, month] = state.calendarMonth.split("-").map(Number);
+  const first = new Date(Date.UTC(year, month - 1, 1));
+  title.textContent = new Intl.DateTimeFormat("en-GB", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(first);
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const today = todayIso();
+  const forecastDays = new Set((state.forecast?.days || []).map((day) => day.valid_date));
+  const cells = ["S", "M", "T", "W", "T", "F", "S"].map(
+    (letter) => `<span class="cal-weekday" aria-hidden="true">${letter}</span>`
+  );
+  for (let blank = 0; blank < first.getUTCDay(); blank += 1) cells.push("<span></span>");
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const iso = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const checked = state.checkedDays.get(iso);
+    const isForecast = forecastDays.has(iso);
+    const classes = ["cal-day"];
+    const notes = [];
+    if (iso === today) {
+      classes.push("today");
+      notes.push("today");
+    }
+    if (iso === selected) {
+      classes.push("selected");
+      notes.push("selected observation date");
+    }
+    if (checked && checked.total > 0) {
+      classes.push("heat");
+      notes.push(`${checked.total} area${checked.total === 1 ? "" : "s"} with heat`);
+    } else if (checked) {
+      classes.push("checked");
+      notes.push("checked, no heat returned");
+    } else if (isForecast) {
+      classes.push("forecast");
+      notes.push("forecast day");
+    }
+    const disabled = iso > today && !isForecast;
+    const label = `${formatObservationDay(iso)}${notes.length ? `, ${notes.join(", ")}` : ""}`;
+    cells.push(
+      `<button type="button" class="${classes.join(" ")}" data-day="${iso}" aria-label="${escapeHtml(label)}"`
+      + `${iso === selected ? ' aria-pressed="true"' : ""}${disabled ? " disabled" : ""}>${day}</button>`
+    );
+  }
+  grid.innerHTML = cells.join("");
+}
+
+function chooseCalendarDay(iso) {
+  if (iso > todayIso()) {
+    openForecastDay(iso);
+    return;
+  }
+  dayInput.value = iso;
+  updateDayWords();
+  // Keep the globe and the calendar on the same day: a new date means a new check.
+  if (state.polygon && state.polygon.length >= 4) checkLand();
+}
+
+function openForecastDay(iso) {
+  const day = (state.forecast?.days || []).find((item) => item.valid_date === iso);
+  switchPanelTab("weather");
+  if (day) showOutlookDay(day, state.forecast, weatherSelectors());
+}
+
+function renderDaySummary() {
+  const dateNode = document.querySelector("#day-summary-date");
+  const countNode = document.querySelector("#day-summary-count");
+  const noteNode = document.querySelector("#day-summary-note");
+  const button = document.querySelector("#day-summary-check");
+  if (!dateNode || !countNode || !noteNode || !button) return;
+  const iso = dayInput.value;
+  const checked = state.checkedDays.get(iso);
+  dateNode.textContent = iso ? formatObservationDay(iso) : "";
+  button.hidden = true;
+  if (state.checkingDay && state.checkingDay === iso) {
+    countNode.textContent = "Checking…";
+    noteNode.textContent = "Loading satellite heat for this day.";
+  } else if (checked && checked.kind === "unknown_empty") {
+    countNode.textContent = "No detections returned";
+    noteNode.textContent = "We don’t know how much of this land the satellites observed that day.";
+  } else if (checked) {
+    countNode.textContent = `${checked.total} area${checked.total === 1 ? "" : "s"} with heat`;
+    if (checked.multi) {
+      noteNode.textContent = `${checked.multi} seen by more than one satellite in this selection.`;
+    } else if (checked.total) {
+      noteNode.textContent = "Each area was reported by one satellite.";
+    } else {
+      noteNode.textContent = "No heat detections were returned inside this selection.";
+    }
+  } else if (state.polygon && state.polygon.length >= 4) {
+    countNode.textContent = "Not checked yet";
+    noteNode.textContent = "Load satellite heat for this day to see it here and on the globe.";
+    button.hidden = false;
+  } else {
+    countNode.textContent = "No land selected";
+    noteNode.textContent = "Search for a place or draw a boundary on the globe first.";
+  }
+}
+
+function renderFutureDays() {
+  const list = document.querySelector("#future-days");
+  const note = document.querySelector("#future-note");
+  if (!list || !note) return;
+  const forecast = state.forecast;
+  const days = forecast?.days || [];
+  if (!days.length) {
+    list.innerHTML = "";
+    note.textContent = state.box
+      ? "No forecast days are loaded for this land yet. Open Weather outlook to load them."
+      : "Check your land to load the fire-weather outlook for the days ahead.";
+    return;
+  }
+  const tz = forecastTimezone(forecast);
+  note.textContent =
+    "Fire-weather danger near the center of your selection. It describes weather, not a wildfire probability.";
+  list.innerHTML = days.map((day) => `
+    <li><button type="button" class="future-day" data-forecast-day="${escapeHtml(day.valid_date)}">
+      <span>${escapeHtml(formatShortForecastDay(day.valid_date, tz))}</span>
+      <strong>${escapeHtml(day.danger_level || "Not rated")}</strong>
+    </button></li>`).join("");
+}
