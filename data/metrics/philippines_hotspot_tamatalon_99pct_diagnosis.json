@@ -1,0 +1,454 @@
+{
+  "title": "Tamatalon 2399:175 November 2026 99% diagnosis",
+  "ph_clock": "2026-11-14",
+  "place": "Tamatalon",
+  "selected_cell": "2399:175",
+  "cell_bounds": {
+    "west": 124.31819289549767,
+    "south": 6.874848636706163,
+    "east": 124.37001373455374,
+    "north": 6.9143196606660515
+  },
+  "study": {
+    "id": "mindanao_maguindanao_compact_v1",
+    "label": "Compact Maguindanao / western Mindanao study box",
+    "bbox": {
+      "west": 123.6,
+      "south": 6.3,
+      "east": 124.7,
+      "north": 7.4
+    },
+    "clip_preset": "mindanao"
+  },
+  "days": {
+    "2026-11-14": {
+      "issue_date_ph": "2026-11-14",
+      "cell_id": "2399:175",
+      "in_study": true,
+      "model_version": "hist_gradient_boosting",
+      "model_hash": "3c1e4896964db152",
+      "class_order": [
+        0,
+        1
+      ],
+      "unrounded_probability": 0.986937459761874,
+      "displayed_percent": 99,
+      "archived_vs_reconstructed": "preserved_archive",
+      "archive_payload_percent": 99,
+      "features": {
+        "heat_detections_1d": {
+          "raw": 0.0,
+          "used_after_impute": 0.0,
+          "was_missing": false
+        },
+        "heat_detections_3d": {
+          "raw": 0.0,
+          "used_after_impute": 0.0,
+          "was_missing": false
+        },
+        "heat_detections_7d": {
+          "raw": 0.0,
+          "used_after_impute": 0.0,
+          "was_missing": false
+        },
+        "neighbor_heat_1d": {
+          "raw": 0.0,
+          "used_after_impute": 0.0,
+          "was_missing": false
+        },
+        "neighbor_heat_3d": {
+          "raw": 0.0,
+          "used_after_impute": 0.0,
+          "was_missing": false
+        },
+        "hours_since_last_detection": {
+          "raw": 179.11666666666667,
+          "used_after_impute": 179.11666666666667,
+          "was_missing": false
+        },
+        "hours_since_last_usable_pass": {
+          "raw": 35.333333333333336,
+          "used_after_impute": 35.333333333333336,
+          "was_missing": false
+        },
+        "coverage_days_7d": {
+          "raw": 0.0,
+          "used_after_impute": 0.0,
+          "was_missing": false
+        },
+        "distinct_satellites_7d": {
+          "raw": 0.0,
+          "used_after_impute": 0.0,
+          "was_missing": false
+        },
+        "persistence_heat_yesterday": {
+          "raw": 0.0,
+          "used_after_impute": 0.0,
+          "was_missing": false
+        },
+        "month_sin": {
+          "raw": -0.5000000000000004,
+          "used_after_impute": -0.5000000000000004,
+          "was_missing": false
+        },
+        "month_cos": {
+          "raw": 0.8660254037844384,
+          "used_after_impute": 0.8660254037844384,
+          "was_missing": false
+        }
+      },
+      "feature_vs_train": {
+        "heat_detections_1d": {
+          "train_median": 0.0,
+          "train_p10": 0.0,
+          "train_p90": 0.0,
+          "percentile_rank_of_used": 90.46497939964685
+        },
+        "heat_detections_3d": {
+          "train_median": 0.0,
+          "train_p10": 0.0,
+          "train_p90": 2.0,
+          "percentile_rank_of_used": 78.63449087698646
+        },
+        "heat_detections_7d": {
+          "train_median": 0.0,
+          "train_p10": 0.0,
+          "train_p90": 3.0,
+          "percentile_rank_of_used": 69.57033549146556
+        },
+        "neighbor_heat_1d": {
+          "train_median": 0.0,
+          "train_p10": 0.0,
+          "train_p90": 3.0,
+          "percentile_rank_of_used": 64.94997057092408
+        },
+        "neighbor_heat_3d": {
+          "train_median": 1.0,
+          "train_p10": 0.0,
+          "train_p90": 10.0,
+          "percentile_rank_of_used": 42.81930547380812
+        },
+        "hours_since_last_detection": {
+          "train_median": 107.03333333333333,
+          "train_p10": 10.85,
+          "train_p90": 8171.451666666667,
+          "percentile_rank_of_used": 59.82042648709316
+        },
+        "hours_since_last_usable_pass": {
+          "train_median": 11.45,
+          "train_p10": 10.516666666666667,
+          "train_p90": 83.05,
+          "percentile_rank_of_used": 74.34464976364417
+        },
+        "coverage_days_7d": {
+          "train_median": 2.0,
+          "train_p10": 0.0,
+          "train_p90": 4.0,
+          "percentile_rank_of_used": 16.804002354326077
+        },
+        "distinct_satellites_7d": {
+          "train_median": 0.0,
+          "train_p10": 0.0,
+          "train_p90": 2.0,
+          "percentile_rank_of_used": 69.57033549146556
+        },
+        "persistence_heat_yesterday": {
+          "train_median": 0.0,
+          "train_p10": 0.0,
+          "train_p90": 0.0,
+          "percentile_rank_of_used": 90.46497939964685
+        },
+        "month_sin": {
+          "train_median": 1.0,
+          "train_p10": 0.8660254037844386,
+          "train_p90": 1.0,
+          "percentile_rank_of_used": 5.061801059446734
+        },
+        "month_cos": {
+          "train_median": 6.123233995736766e-17,
+          "train_p10": 6.123233995736766e-17,
+          "train_p90": 0.5000000000000001,
+          "percentile_rank_of_used": 100.0
+        }
+      },
+      "support": {
+        "geographic_support": {
+          "in_study_region": true,
+          "study": {
+            "id": "mindanao_maguindanao_compact_v1",
+            "label": "Compact Maguindanao / western Mindanao study box",
+            "bbox": {
+              "west": 123.6,
+              "south": 6.3,
+              "east": 124.7,
+              "north": 7.4
+            },
+            "clip_preset": "mindanao"
+          },
+          "cell_id": "2399:175"
+        },
+        "input_cutoff_utc": "2026-11-13T16:00:00+00:00",
+        "input_cutoff_manila": "2026-11-14T00:00:00+08:00",
+        "newest_available_input_utc": "2026-11-12T04:40:00+00:00",
+        "newest_cell_detection_utc": "2026-11-06T04:53:00+00:00",
+        "prior_detection_count_study": 1908,
+        "prior_detection_count_cell": 29,
+        "firms_regional_query_ok": true,
+        "firms_empty_is_not_clear_coverage": true,
+        "fire_mask_coverage_for_cell": true,
+        "fire_mask_coverage_square_days_study": 9,
+        "availability_assumption": "acquisition\u2248availability unless a publication delay is applied"
+      },
+      "most_recent_usable_local_observations": [
+        {
+          "utc": "2025-02-17T04:33:00+00:00",
+          "platform": "Suomi-NPP"
+        },
+        {
+          "utc": "2025-02-24T04:25:00+00:00",
+          "platform": "NOAA-20"
+        },
+        {
+          "utc": "2025-03-07T05:11:00+00:00",
+          "platform": "NOAA-21"
+        },
+        {
+          "utc": "2026-11-02T05:25:00+00:00",
+          "platform": "NOAA-20"
+        },
+        {
+          "utc": "2026-11-06T04:53:00+00:00",
+          "platform": "NOAA-21"
+        }
+      ],
+      "missing_value_handling": "None features replaced with train imputer_means before predict_proba[:,1]",
+      "june_contrast_probability": 0.03075109958945856,
+      "why": "November month_sin/month_cos extreme vs Feb/Mar training; coverage_days_7d=0; HGB ~0.99. June contrast ~3%. classes_=[0,1] OK."
+    },
+    "2026-11-15": {
+      "issue_date_ph": "2026-11-15",
+      "cell_id": "2399:175",
+      "in_study": true,
+      "model_version": "hist_gradient_boosting",
+      "model_hash": "3c1e4896964db152",
+      "class_order": [
+        0,
+        1
+      ],
+      "unrounded_probability": 0.9905447627508353,
+      "displayed_percent": 99,
+      "archived_vs_reconstructed": "would_be_newly_issued_or_reconstruction",
+      "archive_payload_percent": null,
+      "features": {
+        "heat_detections_1d": {
+          "raw": 1.0,
+          "used_after_impute": 1.0,
+          "was_missing": false
+        },
+        "heat_detections_3d": {
+          "raw": 1.0,
+          "used_after_impute": 1.0,
+          "was_missing": false
+        },
+        "heat_detections_7d": {
+          "raw": 1.0,
+          "used_after_impute": 1.0,
+          "was_missing": false
+        },
+        "neighbor_heat_1d": {
+          "raw": 5.0,
+          "used_after_impute": 5.0,
+          "was_missing": false
+        },
+        "neighbor_heat_3d": {
+          "raw": 5.0,
+          "used_after_impute": 5.0,
+          "was_missing": false
+        },
+        "hours_since_last_detection": {
+          "raw": 11.016666666666667,
+          "used_after_impute": 11.016666666666667,
+          "was_missing": false
+        },
+        "hours_since_last_usable_pass": {
+          "raw": 10.3,
+          "used_after_impute": 10.3,
+          "was_missing": false
+        },
+        "coverage_days_7d": {
+          "raw": 0.0,
+          "used_after_impute": 0.0,
+          "was_missing": false
+        },
+        "distinct_satellites_7d": {
+          "raw": 1.0,
+          "used_after_impute": 1.0,
+          "was_missing": false
+        },
+        "persistence_heat_yesterday": {
+          "raw": 1.0,
+          "used_after_impute": 1.0,
+          "was_missing": false
+        },
+        "month_sin": {
+          "raw": -0.5000000000000004,
+          "used_after_impute": -0.5000000000000004,
+          "was_missing": false
+        },
+        "month_cos": {
+          "raw": 0.8660254037844384,
+          "used_after_impute": 0.8660254037844384,
+          "was_missing": false
+        }
+      },
+      "feature_vs_train": {
+        "heat_detections_1d": {
+          "train_median": 0.0,
+          "train_p10": 0.0,
+          "train_p90": 0.0,
+          "percentile_rank_of_used": 96.17422012948794
+        },
+        "heat_detections_3d": {
+          "train_median": 0.0,
+          "train_p10": 0.0,
+          "train_p90": 2.0,
+          "percentile_rank_of_used": 89.0818128310771
+        },
+        "heat_detections_7d": {
+          "train_median": 0.0,
+          "train_p10": 0.0,
+          "train_p90": 3.0,
+          "percentile_rank_of_used": 81.51854031783402
+        },
+        "neighbor_heat_1d": {
+          "train_median": 0.0,
+          "train_p10": 0.0,
+          "train_p90": 3.0,
+          "percentile_rank_of_used": 95.32077692760448
+        },
+        "neighbor_heat_3d": {
+          "train_median": 1.0,
+          "train_p10": 0.0,
+          "train_p90": 10.0,
+          "percentile_rank_of_used": 79.635079458505
+        },
+        "hours_since_last_detection": {
+          "train_median": 107.03333333333333,
+          "train_p10": 10.85,
+          "train_p90": 8171.451666666667,
+          "percentile_rank_of_used": 12.2334455667789
+        },
+        "hours_since_last_usable_pass": {
+          "train_median": 11.45,
+          "train_p10": 10.516666666666667,
+          "train_p90": 83.05,
+          "percentile_rank_of_used": 3.6957455951869362
+        },
+        "coverage_days_7d": {
+          "train_median": 2.0,
+          "train_p10": 0.0,
+          "train_p90": 4.0,
+          "percentile_rank_of_used": 16.804002354326077
+        },
+        "distinct_satellites_7d": {
+          "train_median": 0.0,
+          "train_p10": 0.0,
+          "train_p90": 2.0,
+          "percentile_rank_of_used": 85.69746909947028
+        },
+        "persistence_heat_yesterday": {
+          "train_median": 0.0,
+          "train_p10": 0.0,
+          "train_p90": 0.0,
+          "percentile_rank_of_used": 100.0
+        },
+        "month_sin": {
+          "train_median": 1.0,
+          "train_p10": 0.8660254037844386,
+          "train_p90": 1.0,
+          "percentile_rank_of_used": 5.061801059446734
+        },
+        "month_cos": {
+          "train_median": 6.123233995736766e-17,
+          "train_p10": 6.123233995736766e-17,
+          "train_p90": 0.5000000000000001,
+          "percentile_rank_of_used": 100.0
+        }
+      },
+      "support": {
+        "geographic_support": {
+          "in_study_region": true,
+          "study": {
+            "id": "mindanao_maguindanao_compact_v1",
+            "label": "Compact Maguindanao / western Mindanao study box",
+            "bbox": {
+              "west": 123.6,
+              "south": 6.3,
+              "east": 124.7,
+              "north": 7.4
+            },
+            "clip_preset": "mindanao"
+          },
+          "cell_id": "2399:175"
+        },
+        "input_cutoff_utc": "2026-11-14T16:00:00+00:00",
+        "input_cutoff_manila": "2026-11-15T00:00:00+08:00",
+        "newest_available_input_utc": "2026-11-14T05:42:00+00:00",
+        "newest_cell_detection_utc": "2026-11-14T04:59:00+00:00",
+        "prior_detection_count_study": 1923,
+        "prior_detection_count_cell": 30,
+        "firms_regional_query_ok": false,
+        "firms_empty_is_not_clear_coverage": true,
+        "fire_mask_coverage_for_cell": true,
+        "fire_mask_coverage_square_days_study": 9,
+        "availability_assumption": "acquisition\u2248availability unless a publication delay is applied"
+      },
+      "most_recent_usable_local_observations": [
+        {
+          "utc": "2025-02-24T04:25:00+00:00",
+          "platform": "NOAA-20"
+        },
+        {
+          "utc": "2025-03-07T05:11:00+00:00",
+          "platform": "NOAA-21"
+        },
+        {
+          "utc": "2026-11-02T05:25:00+00:00",
+          "platform": "NOAA-20"
+        },
+        {
+          "utc": "2026-11-06T04:53:00+00:00",
+          "platform": "NOAA-21"
+        },
+        {
+          "utc": "2026-11-14T04:59:00+00:00",
+          "platform": "NOAA-20"
+        }
+      ],
+      "missing_value_handling": "None features replaced with train imputer_means before predict_proba[:,1]",
+      "june_contrast_probability": null,
+      "why": "November month_sin/month_cos extreme vs Feb/Mar training; coverage_days_7d=0; HGB ~0.99. June contrast ~3%. classes_=[0,1] OK."
+    }
+  },
+  "ui_bug": {
+    "history_month_rate": "forecast percent mislabeled as Month activity",
+    "month_api": "no PH-today gate"
+  },
+  "purged_future_archive_rows": [
+    {
+      "cell_id": "2399:175",
+      "issue_date_ph": "2026-11-15",
+      "probability": 0.9905447627508353
+    },
+    {
+      "cell_id": "2399:175",
+      "issue_date_ph": "2026-11-20",
+      "probability": 0.9793396647140449
+    },
+    {
+      "cell_id": "2399:175",
+      "issue_date_ph": "2026-11-30",
+      "probability": 0.9906216085803552
+    }
+  ]
+}

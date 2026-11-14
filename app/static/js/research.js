@@ -141,6 +141,10 @@ async function loadHotspotAnalytics() {
       );
     }
     const seasonal = claimable?.baseline_brier_score;
+    const highAudit = payload?.high_probability_audit || {};
+    const highBand = highAudit.high_band || {};
+    const highNote = highAudit.serving_policy?.limitation_for_research
+      || "Scores ≥90% and months outside the dry-season training distribution are labeled experimental.";
     v2.innerHTML = [
       `<p><strong>Selected model holdout (claimable)</strong></p>`,
       `<p>${_metricLine("Identical claimable rows", claimable)}</p>`,
@@ -148,6 +152,14 @@ async function loadHotspotAnalytics() {
       `<p>${_metricLine("Recent-heat squares", holdout.recent_heat_squares)}</p>`,
       `<p>${_metricLine("No recent heat (cold)", holdout.no_recent_heat_squares)}</p>`,
       `<p class="quiet">Full test including sealed reserve is retained for audit only; do not tune on the v2.2 reserve.</p>`,
+      `<p><strong>High percentages (experimental)</strong></p>`,
+      `<p class="quiet">Claimable 0.9–1.0 band: n ${highBand.n ?? "—"} · mean predicted ${_fmtNum(highBand.mean_predicted)} · observed ${_fmtNum(highBand.observed_detection_frequency)}. ${escapeHtml(highNote)}</p>`,
+      highAudit.label_construction_bias?.note
+        ? `<p class="quiet">${escapeHtml(highAudit.label_construction_bias.note)}</p>`
+        : "",
+      payload?.supported_areas?.regions
+        ? `<p class="quiet">Supported-area map: ${(payload.supported_areas.regions || []).map((r) => escapeHtml(r.id || r.label || "")).filter(Boolean).join(" · ") || "Maguindanao compact only"}.</p>`
+        : "",
     ].join("");
     const v1board = (archived.leaderboard || [])
       .map((row) => `${row.name}: Brier ${Number(row.brier).toFixed(4)}`)

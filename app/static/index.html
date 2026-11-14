@@ -136,6 +136,23 @@
                 <p id="square-heat" class="square-heat" hidden></p>
                 <p id="activity-note" class="quiet"></p>
               </div>
+              <p id="summary-boundary-label" class="quiet">Drawn boundary</p>
+              <p id="summary-square-label" class="secondary-note">Selected 5 km square</p>
+              <p id="summary-cell-id" class="quiet"></p>
+
+              <section id="hotspot-forecast-block" class="sub-block" aria-live="polite">
+                <h5>Satellite heat forecast (next 24 hours)</h5>
+                <p id="hotspot-forecast-label" class="reading-label">Chance satellites record a hotspot in this square.</p>
+                <p id="hotspot-forecast-value" class="reading-value is-words">Checking…</p>
+                <p id="hotspot-forecast-meta" class="quiet"></p>
+                <p id="hotspot-forecast-issue" class="quiet"></p>
+                <p id="hotspot-forecast-outcome" class="quiet"></p>
+                <p id="hotspot-forecast-note" class="quiet"></p>
+                <button type="button" id="replay-hotspot-forecast" class="filter-button" hidden>Replay yesterday’s forecast</button>
+              </section>
+              <p id="summary-observed-heat" class="quiet"></p>
+              <p id="summary-latest-pass" class="quiet"></p>
+              <p id="summary-weather-stamp" class="quiet"></p>
 
               <div class="hours">
                 <h4 id="hours-title">Today at this land</h4>
@@ -267,16 +284,6 @@
               <ul id="area-pass-list" class="week-pass-list"></ul>
               <p id="area-model-note" class="quiet"></p>
 
-              <section id="hotspot-forecast-block" class="sub-block" aria-live="polite">
-                <h5>Satellite heat forecast (next 24 hours)</h5>
-                <p id="hotspot-forecast-label" class="reading-label">Chance of satellite-detected heat</p>
-                <p id="hotspot-forecast-value" class="reading-value is-words">Checking…</p>
-                <p id="hotspot-forecast-meta" class="quiet"></p>
-                <p id="hotspot-forecast-outcome" class="quiet"></p>
-                <p id="hotspot-forecast-note" class="quiet"></p>
-                <button type="button" id="replay-hotspot-forecast" class="filter-button" hidden>Replay yesterday’s forecast</button>
-              </section>
-
               <section id="onset-block" class="sub-block" aria-live="polite">
                 <h5>Wildfire-onset forecast (next 24 hours)</h5>
                 <p id="onset-label" class="reading-label">Estimated chance of a new wildfire in the next 24 hours</p>
@@ -363,16 +370,22 @@
                 <button type="button" id="cal-next" class="icon-button framed" aria-label="Next month"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5"/></svg></button>
               </div>
               <div id="cal-grid" class="cal-grid" role="group" aria-labelledby="cal-title"></div>
-              <ul class="history-key" aria-label="Burning activity calendar legend">
+              <ul id="history-activity-key" class="history-key" aria-label="Burning activity calendar legend">
                 <li><span class="history-swatch active" aria-hidden="true"></span>Estimated burning activity</li>
                 <li><span class="history-swatch zero" aria-hidden="true"></span>Usable zero estimate</li>
                 <li><span class="history-swatch missing" aria-hidden="true"></span>Satellite heat readings / unchecked / gap</li>
               </ul>
+              <ul id="history-forecast-key" class="history-key" aria-label="Hotspot forecast calendar legend" hidden>
+                <li><span class="history-swatch forecast-issued" aria-hidden="true"></span>Issued forecast</li>
+                <li><span class="history-swatch forecast-reconstructed" aria-hidden="true"></span>Historical reconstruction</li>
+                <li><span class="history-swatch forecast-upcoming" aria-hidden="true"></span>Upcoming</li>
+                <li><span class="history-swatch missing" aria-hidden="true"></span>Insufficient inputs / gap</li>
+              </ul>
               <p id="history-status" class="quiet" aria-live="polite"></p>
               <button id="history-retry" type="button" class="filter-button" hidden>Retry history</button>
               <dl class="history-stats">
-                <div><dt>Month's activity</dt><dd id="history-month-rate">—</dd></div>
-                <div><dt>Days with estimates</dt><dd id="history-days-count">—</dd></div>
+                <div id="history-activity-stat"><dt>Month's activity</dt><dd id="history-month-rate">—</dd></div>
+                <div><dt id="history-days-label">Days with activity estimates</dt><dd id="history-days-count">—</dd></div>
               </dl>
               <div id="day-summary" class="day-summary" aria-live="polite">
                 <p id="day-summary-date" class="reading-label"></p>

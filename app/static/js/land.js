@@ -294,6 +294,11 @@ function clearLand() {
   state.historyKey = null;
   state.historyLoading = false;
   state.historyError = false;
+  state.hotspotMonthCellId = null;
+  state.hotspotMonthKey = null;
+  state.hotspotMonth = null;
+  state.lastHotspotForecast = null;
+  state.hotspotForecastRequestId = (state.hotspotForecastRequestId || 0) + 1;
   state.box = null;
   state.polygon = null;
   state.polygonDraft = [];

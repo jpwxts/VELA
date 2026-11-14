@@ -112,8 +112,14 @@
 .cal-day.heat::after { width: 5px; height: 5px; border-radius: 50%; background: var(--ember); }
 .cal-day.checked::after { width: 6px; height: 6px; border-radius: 50%; border: 1.5px solid var(--ink-faint); }
 .cal-day.forecast::after { width: 10px; height: 2px; background: var(--teal); }
+.cal-day.forecast-issued:not(.selected) { border-color: var(--teal); }
+.cal-day.forecast-reconstructed:not(.selected) { border-style: dashed; border-color: var(--teal); }
+.cal-day.forecast-upcoming:not(.selected) { color: var(--ink-faint); border-style: dotted; }
 .cal-day.selected.heat::after { background: var(--ember-wash); }
 .cal-day.selected.checked::after { border-color: var(--on-teal); }
+.history-swatch.forecast-issued { background: var(--teal); }
+.history-swatch.forecast-reconstructed { background: transparent; border: 1.5px dashed var(--teal); }
+.history-swatch.forecast-upcoming { background: transparent; border: 1.5px dotted var(--ink-faint); }
 
 .cal-day.activity-day {
   display: flex;

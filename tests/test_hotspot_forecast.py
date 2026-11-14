@@ -85,3 +85,77 @@ def test_study_cells_are_land_clipped():
     assert len(neighbor_ids(cells[0])) == 8
     assert STUDY["id"].startswith("mindanao_")
     freeze_rules()
+
+
+def test_month_future_days_are_upcoming_not_percent():
+    from vela.hotspot_forecast_serve import month_forecasts_for_cell
+
+    month = month_forecasts_for_cell("2399:175", "2026-11", ph_today="2026-11-14")
+    future = [row for row in month["days"] if row["date"] > "2026-11-14"]
+    assert len(future) == 16
+    assert all(row["calendar_state"] == "upcoming" for row in future)
+    assert all(row.get("probability_percent") is None for row in future)
+
+
+def test_future_square_forecast_refuses_archive_write():
+    from vela.hotspot_forecast_serve import HotspotForecastStore, forecast_for_cell
+
+    payload = forecast_for_cell(
+        cell_id="2399:175",
+        issue_date_ph="2026-11-20",
+        ph_today="2026-11-14",
+    )
+    assert payload["status"] == "upcoming"
+    assert payload.get("probability_percent") is None
+    assert HotspotForecastStore().get("2399:175", "2026-11-20") is None
+
+
+def test_outside_study_is_unsupported():
+    from vela.hotspot_forecast_serve import forecast_for_cell
+
+    payload = forecast_for_cell(
+        cell_id="2100:200",
+        issue_date_ph="2026-11-14",
+        ph_today="2026-11-14",
+    )
+    assert payload["status"] == "unsupported"
+    assert payload.get("probability_percent") is None
+    assert "Outside Maguindanao" in (payload.get("reason") or "")
+
+
+def test_high_probability_audit_and_diagnosis_exist():
+    audit = ROOT / "data" / "metrics" / "philippines_hotspot_high_probability_audit.json"
+    diagnosis = ROOT / "data" / "metrics" / "philippines_hotspot_tamatalon_99pct_diagnosis.json"
+    assert audit.is_file()
+    assert diagnosis.is_file()
+    payload = json.loads(audit.read_text(encoding="utf-8"))
+    assert payload["high_band"]["n"] >= 1
+    assert payload["serving_policy"]["do_not_cap_or_rescale"] is True
+    diag = json.loads(diagnosis.read_text(encoding="utf-8"))
+    assert diag["selected_cell"] == "2399:175"
+    assert "2026-11-14" in diag["days"]
+
+
+def test_history_month_rate_never_uses_forecast_percent_helper():
+    """Guardrail: forecast percents must not be labeled as month activity."""
+
+    # Documentation-level guard: the History UI must use activity_rate for Month's activity.
+    history_js = (ROOT / "app" / "static" / "js" / "history.js").read_text(encoding="utf-8")
+    assert "Never put a single-day forecast percent under “Month's activity”." in history_js
+    assert "lastHotspotForecast?.probability_percent" not in history_js
+
+
+def test_multi_region_registry_frozen_before_outcomes():
+    path = ROOT / "data" / "manifests" / "mindanao_hotspot_regions_v1.json"
+    assert path.is_file()
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert payload["registered_before_looking_at_outcomes"] is True
+    ids = [row["id"] for row in payload["regions"]]
+    assert "maguindanao_compact_v1" in ids
+    assert "bukidnon_compact_v1" in ids
+    assert "davao_norte_compact_v1" in ids
+    supported = ROOT / "data" / "metrics" / "mindanao_hotspot_supported_areas.json"
+    assert supported.is_file()
+    areas = json.loads(supported.read_text(encoding="utf-8"))
+    mag = next(row for row in areas["regions"] if row["id"] == "maguindanao_compact_v1")
+    assert mag["evaluated"] is True

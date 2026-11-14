@@ -58,7 +58,7 @@ Activity (%) = 100 × (sum of Aqua activity indicators + sum of eligible calibra
 ### Philippine satellite-hotspot forecast (MODIS/VIIRS, Mindanao-first)
 
 Public question: *For this 5 km square, what is the estimated chance that MODIS or VIIRS will detect heat in the next 24 hours?*  
-Label shown in the UI: **Chance of satellite-detected heat.**
+Label shown in the UI: **Chance satellites record a hotspot in this square.**
 
 This product is **separate** from Aqua–Suomi harmonization and from the Philippine wildfire-onset research pipeline. It uses **NASA MODIS/VIIRS only** (no BFP, no weather APIs).
 
@@ -73,9 +73,15 @@ This product is **separate** from Aqua–Suomi harmonization and from the Philip
 | v2.1 comparison | `data/metrics/philippines_hotspot_model_comparison.json` |
 | Count reconciliation | `data/metrics/philippines_hotspot_count_reconciliation.json` |
 | Generalization audit | `data/metrics/philippines_hotspot_generalization_audit.json` |
+| High-% audit | `data/metrics/philippines_hotspot_high_probability_audit.json` |
+| Tamatalon 99% diagnosis | `data/metrics/philippines_hotspot_tamatalon_99pct_diagnosis.json` |
 | Sealed v2.2 reserve | `data/manifests/philippines_hotspot_holdout_v2_2_reserve.json` |
+| Multi-region registry | `data/manifests/mindanao_hotspot_regions_v1.json` |
+| Supported-area map | `data/metrics/mindanao_hotspot_supported_areas.json` |
 | Flawed v1 archive | `data/metrics/philippines_hotspot_model_comparison_v1_flawed_negatives.json` |
 | API | `GET /api/hotspot-forecast`, `/replay`, `/metrics`, `/month` |
+
+**Eligibility (square, month, map, replay).** One check: in Maguindanao study box; Philippine issue date ≤ today (else **Upcoming**, no percent); model/inputs available. Outside the box → unsupported (readings + weather only). Percentages are never capped; scores ≥90% or OOD months are labeled **experimental** (see high-% audit). History never puts a forecast percent under “Month's activity.”
 
 **Study region.** Compact Maguindanao box `123.6–124.7°E, 6.3–7.4°N`. FIRMS windows 2023–2026; fire-mask recovery prioritized on **2023–2024** dry-season Aqua MYD14/MYD03 pairs. March 2019 is **reader smoke-test only**.
 
@@ -93,7 +99,9 @@ This product is **separate** from Aqua–Suomi harmonization and from the Philip
 
 **v2.2 sealed reserve.** Test-only rows with x≥2398 **or** issue months 2025-02/03 / 2026-11 (**1284** reserved / **524** claimable). Registered before further tuning; excluded from imputation, threshold, model selection, and promotion claims.
 
-**Analytics.** Research tab shows v2.1 six-model board and **“Archived experiment — coverage labels revised”** for the six v1 models. Preserved `2393:174` 1% replay keeps v1 `extra_trees` and distinguishes recorded creation time from the Manila midnight issue slot.
+**Analytics.** Research tab shows v2.1 six-model board, high-% experimental limitations, and **“Archived experiment — coverage labels revised”** for the six v1 models. Preserved `2393:174` 1% replay keeps v1 `extra_trees` and distinguishes recorded creation time from the Manila midnight issue slot.
+
+**Tamatalon calendar fix.** Cell `2399:175` on 2026-11-14 can still show a high Live % (OOD November seasonality; see diagnosis JSON) marked experimental; **15–30 Nov show Upcoming**, not issued percents. June contrast for the same sparse cell is ~3%.
 
 ```bash
 conda activate vela
@@ -103,7 +111,9 @@ python -m scripts.build_hotspot_forecast_dataset
 python -m scripts.train_hotspot_forecast
 ```
 
-**Demo clicks.** Live → Maguindanao land → cell `2396:181` (coverage-backed negative day **2024-02-25** → **64%** HGB) / `2393:174` (preserved Live → **2%** v1 Extra Trees; Replay 2026-11-07 → **1%**) → Satellite heat forecast · Research → Model performance (six v2.1 classifiers + claimable holdout).
+**Demo clicks (UI fix).** Live → Maguindanao / Tamatalon → cell `2399:175` (Nov calendar: Upcoming after today) · `2396:181` (2024-02-25) · `2393:174` · one outside-box place → History legend “Days with forecasts” · Research → Model performance.
+
+**Geographic expansion (separate).** See `mindanao_hotspot_regions_v1.json` / `mindanao_hotspot_supported_areas.json` — Bukidnon + Davao del Norte boxes frozen before outcomes; Maguindanao v2.1 selection is not overwritten.
 
 ### Philippine 24-hour wildfire-onset forecast (Mindanao-first)
 

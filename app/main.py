@@ -392,6 +392,12 @@ def hotspot_forecast_metrics():
     reconciliation = DATA_DIR / "metrics" / "philippines_hotspot_count_reconciliation.json"
     generalization = DATA_DIR / "metrics" / "philippines_hotspot_generalization_audit.json"
     reserve = DATA_DIR / "manifests" / "philippines_hotspot_holdout_v2_2_reserve.json"
+    high_prob = DATA_DIR / "metrics" / "philippines_hotspot_high_probability_audit.json"
+    supported = DATA_DIR / "metrics" / "mindanao_hotspot_supported_areas.json"
+    diagnosis = DATA_DIR / "metrics" / "philippines_hotspot_tamatalon_99pct_diagnosis.json"
+    multi = DATA_DIR / "metrics" / "mindanao_hotspot_multi_region_comparison.json"
+    multi_inv = DATA_DIR / "metrics" / "mindanao_hotspot_multi_region_inventory.json"
+    regions = DATA_DIR / "manifests" / "mindanao_hotspot_regions_v1.json"
     return {
         "comparison": comparison,
         "rules": rules,
@@ -401,6 +407,15 @@ def hotspot_forecast_metrics():
         "count_reconciliation": _json.loads(reconciliation.read_text()) if reconciliation.is_file() else None,
         "generalization_audit": _json.loads(generalization.read_text()) if generalization.is_file() else None,
         "v2_2_reserve": _json.loads(reserve.read_text()) if reserve.is_file() else None,
+        "high_probability_audit": _json.loads(high_prob.read_text()) if high_prob.is_file() else None,
+        "supported_areas": _json.loads(supported.read_text()) if supported.is_file() else {
+            "regions": [{"id": "maguindanao_compact_v1", "bbox": (rules or {}).get("study", {}).get("bbox")}],
+            "note": "Maguindanao compact study only until multi-region expansion artifacts are published.",
+        },
+        "tamatalon_diagnosis": _json.loads(diagnosis.read_text()) if diagnosis.is_file() else None,
+        "multi_region_comparison": _json.loads(multi.read_text()) if multi.is_file() else None,
+        "multi_region_inventory": _json.loads(multi_inv.read_text()) if multi_inv.is_file() else None,
+        "region_registry": _json.loads(regions.read_text()) if regions.is_file() else None,
     }
 
 

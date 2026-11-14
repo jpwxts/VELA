@@ -3,7 +3,7 @@
 Question: For this 5 km square, what is the estimated chance that MODIS or VIIRS
 will detect heat in the next 24 hours?
 
-Public label: “Chance of satellite-detected heat.”
+Public label: “Chance satellites record a hotspot in this square.”
 Distinct from Aqua–Suomi harmonization and Philippine wildfire-onset research.
 No BFP records or weather APIs.
 """
