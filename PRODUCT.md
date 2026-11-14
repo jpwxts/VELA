@@ -37,7 +37,7 @@ Vela keeps satellite heat, fire-danger weather, weekly activity estimates and of
 
 - Name: Vela. Wordmark in lowercase with a flame mark.
 - The user pinned a visual reference on 2026-11-14 (four "Vela · Fire atlas" screenshots): a left rail with four destinations (Burn activity map, History, Weather outlook, Research), flat water, land drawn with contour lines, ember-red heat dots, a teal active state, serif display headings and small monospace labels on a floating detail card. The old interface is not a reference.
-- Later the same day the user revised that reference, and these revisions win over the screenshots: the whole interface is dark; the rail shows icons only, with names in tooltips; the header carries only the wordmark; the globe has no reset, zoom or compass controls; Draw area is a pencil icon; standing hint text and the footer source line are removed.
+- Later the same day the user revised that reference, and these revisions win over the screenshots: the whole interface is dark; the rail shows icons only, with names in tooltips; the header carries only the wordmark; the globe has no reset, zoom or compass controls; Draw area is a pencil icon; standing hint text and the footer source line are removed; the legend opens from a button at the foot of the rail; search uses a magnifier icon; a subtle star field sits behind the globe; the bottom-right credit texts are removed and the map data credit lives inside the legend panel.
 
 ## Evidence on Hand
 

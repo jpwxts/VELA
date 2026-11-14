@@ -90,6 +90,21 @@ document.querySelector("#basemap-satellite")?.addEventListener("change", (event)
 });
 window.addEventListener("resize", syncGlobeInsets);
 
+// The legend opens and closes from its button at the foot of the rail.
+function setLegend(open) {
+  document.querySelector("#legend-panel").hidden = !open;
+  document.querySelector("#legend-toggle").setAttribute("aria-expanded", open ? "true" : "false");
+}
+document.querySelector("#legend-toggle").addEventListener("click", () => {
+  setLegend(document.querySelector("#legend-panel").hidden);
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape" || document.querySelector("#legend-panel").hidden) return;
+  if (!event.target.closest("#legend-panel, #legend-toggle")) return;
+  setLegend(false);
+  document.querySelector("#legend-toggle").focus();
+});
+
 const dayInput = document.querySelector("#day");
 const today = new Date();
 today.setDate(today.getDate() - 7);
@@ -1608,11 +1623,10 @@ function renderAreas(hotspotAreas) {
     state.markerByCell.set(area.cell_id, marker);
   });
   refreshMarkerSelection();
-  // The legend stays folded until there is heat on the globe to explain; it opens once.
+  // The legend stays closed until there is heat on the globe to explain; it opens once.
   if (areas.length && !state.legendShown) {
     state.legendShown = true;
-    const legend = document.querySelector(".legend");
-    if (legend && !window.matchMedia("(max-width: 860px)").matches) legend.open = true;
+    if (!window.matchMedia("(max-width: 860px)").matches) setLegend(true);
   }
 }
 

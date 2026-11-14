@@ -179,9 +179,30 @@ code { font-family: var(--font-data); font-size: 0.8125rem; }
 .rail {
   position: relative;
   z-index: 5;
+  display: flex;
+  flex-direction: column;
   padding: 14px 0;
   border-right: 1px solid var(--line);
 }
+
+/* The legend button sits at the foot of the rail; its panel opens beside it. */
+.rail-button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 48px;
+  margin-top: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+  transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+.rail-button svg { width: 22px; height: 22px; }
+.rail-button:hover { background: color-mix(in srgb, var(--teal-wash) 60%, transparent); color: var(--ink); }
+.rail-button[aria-expanded="true"] { background: var(--teal-wash); color: var(--teal-deep); }
+.rail-button[aria-expanded="true"]::after { display: none; }
 
 .panel-tabs { display: grid; gap: 6px; }
 
@@ -200,7 +221,8 @@ code { font-family: var(--font-data); font-size: 0.8125rem; }
   transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out);
 }
 .panel-tab svg { width: 22px; height: 22px; }
-.panel-tab > span {
+.panel-tab > span,
+.rail-button > span {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -483,23 +505,30 @@ svg .solid { fill: currentColor; stroke: none; }
   position: absolute;
   left: var(--gap);
   bottom: var(--gap);
-  z-index: 1;
-  min-width: 142px;
-  max-width: 250px;
+  z-index: 3;
+  width: 252px;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
   background: var(--card);
-  box-shadow: var(--shadow-control);
+  box-shadow: var(--shadow-card);
   font-size: 0.8125rem;
+  transform-origin: left bottom;
+  animation: legend-in 180ms var(--ease-out);
 }
-.legend summary {
-  padding: 9px 12px;
-  font-weight: 700;
-  cursor: pointer;
+@keyframes legend-in {
+  from { opacity: 0; transform: translateX(-8px); }
 }
-.legend ul { display: grid; gap: 7px; padding: 2px 12px 10px; }
+.legend-title { padding: 11px 12px 8px; font: 700 0.8125rem/1.3 var(--font-ui); }
+.legend ul { display: grid; gap: 7px; padding: 0 12px 10px; }
 .legend li { display: flex; align-items: center; gap: 10px; }
 .legend .check { padding: 7px 12px; border-top: 1px solid var(--line); }
+.legend-credits {
+  padding: 9px 12px 10px;
+  border-top: 1px solid var(--line);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--ink-faint);
+}
 
 .swatch { flex: none; width: 22px; height: 16px; display: grid; place-items: center; }
 .swatch::before { content: ""; display: block; }
@@ -768,7 +797,7 @@ input[type="date"], input[type="number"] {
 .fold, .research-q, .tech-details {
   border-top: 1px solid var(--line);
 }
-.fold summary, .research-q summary, .tech-details summary, .legend summary {
+.fold summary, .research-q summary, .tech-details summary {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -777,9 +806,8 @@ input[type="date"], input[type="number"] {
 }
 .fold summary::-webkit-details-marker,
 .research-q summary::-webkit-details-marker,
-.tech-details summary::-webkit-details-marker,
-.legend summary::-webkit-details-marker { display: none; }
-.fold summary::before, .research-q summary::before, .tech-details summary::before, .legend summary::before {
+.tech-details summary::-webkit-details-marker { display: none; }
+.fold summary::before, .research-q summary::before, .tech-details summary::before {
   content: "";
   flex: none;
   width: 7px;
@@ -796,7 +824,7 @@ details[open] > summary::before { transform: translateY(-2px) rotate(45deg); }
 .panel-pane > .fold { margin-top: 22px; }
 .panel-pane > .fold + .fold, .fold + .fold { margin-top: 0; }
 
-.research-q summary { padding: 15px 0; font-weight: 700; font-size: 1rem; line-height: 1.3; }
+.research-q summary { padding: 15px 0; font-weight: 700; font-size: 0.9375rem; line-height: 1.3; }
 .research-q[open] { padding-bottom: 16px; }
 .research-q > * + * { margin-top: 10px; }
 .research-pane > .research-q { margin-top: 0; }
@@ -963,7 +991,7 @@ button.timeline-item:hover { background: var(--teal-wash); }
   transition: background-color 120ms var(--ease-out), border-color 120ms var(--ease-out);
 }
 .cal-day:hover:not(:disabled) { border-color: var(--teal); background: var(--teal-wash); }
-.cal-day:disabled { opacity: 1; background: none; color: #6f7b74; cursor: default; }
+.cal-day:disabled { opacity: 1; background: none; color: var(--ink-faint); cursor: default; }
 .cal-day.today { border-color: var(--ink-faint); font-weight: 700; }
 .cal-day.selected { border-color: var(--teal); background: var(--teal); color: var(--on-teal); font-weight: 700; }
 .cal-day::after {
@@ -976,7 +1004,7 @@ button.timeline-item:hover { background: var(--teal-wash); }
 .cal-day.heat::after { width: 5px; height: 5px; border-radius: 50%; background: var(--ember); }
 .cal-day.checked::after { width: 6px; height: 6px; border-radius: 50%; border: 1.5px solid var(--ink-faint); }
 .cal-day.forecast::after { width: 10px; height: 2px; background: var(--teal); }
-.cal-day.selected.heat::after { background: #8f2c12; }
+.cal-day.selected.heat::after { background: var(--ember-wash); }
 .cal-day.selected.checked::after { border-color: var(--on-teal); }
 
 .cal-key { display: grid; gap: 4px; font-size: 0.8125rem; color: var(--ink-soft); }
@@ -1028,7 +1056,7 @@ button.timeline-item:hover { background: var(--teal-wash); }
   font-size: 0.875rem;
 }
 .week-detail > * + * { margin-top: 10px; }
-.week-detail h4 { font-size: 1.125rem; }
+.week-detail h4 { font-size: 1.0625rem; }
 
 .numbers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .numbers div { display: grid; gap: 2px; }
@@ -1108,38 +1136,6 @@ button.timeline-item:hover { background: var(--teal-wash); }
 
 #weather-meta-body { display: grid; gap: 6px; font-size: 0.875rem; }
 
-/* ---------- data credits (required by the map data licences) ---------- */
-
-.globe-credits {
-  position: absolute;
-  right: 10px;
-  bottom: 8px;
-  z-index: 1;
-  padding: 2px 8px;
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--plate) 72%, transparent);
-  font-size: 0.75rem;
-  line-height: 1.5;
-  color: var(--ink-soft);
-  white-space: nowrap;
-  transition: right 260ms var(--ease-out);
-}
-.plate.card-open .globe-credits { right: calc(var(--card-width) + 2 * var(--gap)); }
-.globe-credits .cesium-widget-credits,
-.globe-credits .cesium-credit-textContainer {
-  position: static;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0;
-  font: inherit;
-  color: inherit;
-  text-shadow: none;
-}
-.globe-credits .cesium-credit-logoContainer { display: inline-flex; align-items: center; }
-.globe-credits img { height: 14px; width: auto; }
-.globe-credits a, .globe-credits .cesium-credit-expand-link { color: var(--ink-soft); text-decoration: underline; }
-
 /* ---------- narrow screens: rail becomes a tab bar, card becomes a sheet ---------- */
 
 @media (max-width: 860px) {
@@ -1148,8 +1144,20 @@ button.timeline-item:hover { background: var(--teal-wash); }
   .brand-mark { width: 26px; height: 26px; }
 
   .workspace { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
-  .rail { padding: 0; border-right: 0; border-bottom: 1px solid var(--line); }
-  .panel-tabs { grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0; }
+  .rail { flex-direction: row; padding: 0; border-right: 0; border-bottom: 1px solid var(--line); }
+  .panel-tabs { flex: 1; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0; }
+  .rail-button {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    width: 64px;
+    height: 56px;
+    margin-top: 0;
+    padding: 6px 4px;
+    font: 600 0.75rem/1.25 var(--font-ui);
+  }
+  .rail-button[data-tip]::after { display: none; }
   /* Touch has no hover, so the phone tab bar keeps short names under the icons. */
   .panel-tab {
     display: flex;
@@ -1161,7 +1169,8 @@ button.timeline-item:hover { background: var(--teal-wash); }
     font: 600 0.75rem/1.25 var(--font-ui);
     text-align: center;
   }
-  .panel-tab > span {
+  .panel-tab > span,
+  .rail-button > span {
     position: static;
     width: auto;
     height: auto;
@@ -1178,13 +1187,14 @@ button.timeline-item:hover { background: var(--teal-wash); }
   .card.peek .peek-only { display: inline-flex; margin-top: 12px; }
   .card.peek .card-head { border-bottom: 0; padding-bottom: 18px; }
 
-  .toolbar { top: 10px; left: 10px; max-width: calc(100% - 20px); }
+  .toolbar { top: 10px; left: 10px; right: 10px; max-width: none; }
   .toolbar { flex-wrap: nowrap; }
   .search { flex: 1; min-width: 0; }
   .search input { flex: 1; width: auto; min-width: 0; height: 44px; }
   .tool { height: 44px; }
   .map-hint { top: 64px; left: 10px; }
-  .legend { left: 10px; bottom: 10px; width: 232px; }
+  /* On a phone the legend drops from the tab bar, above the sheet. */
+  .legend { left: 10px; top: 64px; bottom: auto; z-index: 6; width: 244px; }
 
   .card {
     top: auto;
@@ -1203,8 +1213,6 @@ button.timeline-item:hover { background: var(--teal-wash); }
   .card-head { padding: 16px 56px 14px 18px; }
   .card-title { font-size: 1.5rem; }
   .card-body { padding: 18px 18px 26px; }
-  .plate.card-open .legend,
-  .plate.card-open .globe-credits { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

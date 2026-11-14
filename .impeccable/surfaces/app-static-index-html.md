@@ -21,7 +21,7 @@ OWN-WORLD: Atlas plate at night (user revision, 2026-11-14). Near-black green sh
 
 STORY: The visitor sees the whole Earth as one plate, turns it to their land, draws it, and reads four separate answers on one card without losing the map.
 
-FIRST VIEWPORT: 64px header with the wordmark only. 60px icon rail with four destinations named in tooltips. The globe fills the rest: search and a pencil Draw button top-left, legend bottom-left, data credits bottom-right. A 384px card floats top-right with the start state and the Check my land action.
+FIRST VIEWPORT: 64px header with the wordmark only. 60px icon rail with four destinations named in tooltips. The globe fills the rest over a faint star field: search with a magnifier and a pencil Draw button top-left. The legend opens beside its button at the foot of the rail and carries the data credit. A 384px card floats top-right with the start state and the Check my land action.
 
 FORM: Direction pinned by the user's four reference screenshots. Signature move: real terrain drawn as contour lines on a live globe, with spacing that adapts to zoom. seed:088fedbff81543f7
 

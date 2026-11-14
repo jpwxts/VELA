@@ -438,7 +438,7 @@
       {
         "name": "reposition",
         "value": "260ms",
-        "purpose": "The credits chip sliding aside when the card opens."
+        "purpose": "Reserved for a floating control that must move aside when the card opens; unused since the credits chip was removed."
       },
       {
         "name": "card-in",
@@ -542,7 +542,7 @@
   ],
   "narrative": {
     "northStar": "The Night Atlas You Can Spin",
-    "overview": "Vela is one screen in Operate mode: a visitor arrives with one piece of land in mind, turns a globe to it, draws it, and reads four separate answers on a card beside the map. The world is an atlas plate at night. The shell is near-black green, the water is flat deep sea-green, the land is dark olive drawn in fine light-green contour lines, the type is warm off-white, and the only hot colour on the sheet is the ember of a satellite heat detection. The globe is not a picture behind the interface; it is the drawing itself.\n\nThe theme is dark only. The user revised the original cream-paper direction to a dark one, and the build declares `color-scheme: dark` with no light branch. The globe is stripped of everything that would make it look like a rendering: no sky, no atmosphere, no sun lighting, no fog. What remains is a flat disc of sea and land on a ground slightly darker than the shell.\n\nThe chrome is as quiet as it can be. The header carries only the flame and the wordmark. The rail shows four icons and names them in tooltips. The globe has no reset, zoom or compass controls: it is dragged, scrolled, pinched or turned from the keyboard. Guidance text appears on the plate only while a boundary is being drawn. What is left on the plate is a search field, one pencil, a legend, a small credits chip and the card.",
+    "overview": "Vela is one screen in Operate mode: a visitor arrives with one piece of land in mind, turns a globe to it, draws it, and reads four separate answers on a card beside the map. The world is an atlas plate at night. The shell is near-black green, the water is flat deep sea-green, the land is dark olive drawn in fine light-green contour lines, the type is warm off-white, and the only hot colour on the sheet is the ember of a satellite heat detection. The globe is not a picture behind the interface; it is the drawing itself.\n\nThe theme is dark only. The user revised the original cream-paper direction to a dark one, and the build declares `color-scheme: dark` with no light branch. The globe is stripped of everything that would make it look like a rendering: no sky, no atmosphere, no sun lighting, no fog. What remains is a flat disc of sea and land on a ground slightly darker than the shell.\n\nThe chrome is as quiet as it can be. The header carries only the flame and the wordmark. The rail shows four icons and names them in tooltips. The globe has no reset, zoom or compass controls: it is dragged, scrolled, pinched or turned from the keyboard. Guidance text appears on the plate only while a boundary is being drawn. What is left on the plate is a search field with a magnifier, one pencil and the card; the legend opens from a button at the foot of the rail. Behind the globe the plate carries a faint star field.",
     "keyCharacteristics": [
       "One screen: a wordmark-only masthead, a 60px icon rail, the globe plate, a floating detail card.",
       "Real terrain drawn as contour lines on a live globe, with the interval following the zoom.",

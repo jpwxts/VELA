@@ -9,7 +9,7 @@
   <link rel="preload" href="/static/fonts/source-sans-3-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/static/fonts/source-serif-4-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cesium@1.147.0/Build/Cesium/Widgets/widgets.css">
-  <link rel="stylesheet" href="/static/styles.css?v=atlas-6">
+  <link rel="stylesheet" href="/static/styles.css?v=atlas-9">
 </head>
 <body>
   <header class="masthead">
@@ -42,6 +42,10 @@
           <span>Research</span>
         </button>
       </div>
+      <button type="button" id="legend-toggle" class="rail-button" aria-expanded="false" aria-controls="legend-panel" data-tip="Map legend">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle class="solid" cx="4.500" cy="5.500" r="1.500"/><circle class="solid" cx="4.500" cy="10" r="1.500"/><circle class="solid" cx="4.500" cy="14.500" r="1.500"/><path d="M8.500 5.500h8M8.500 10h8M8.500 14.500h8"/></svg>
+        <span>Legend</span>
+      </button>
     </nav>
 
     <main class="plate" id="plate">
@@ -51,7 +55,9 @@
         <form id="search-form" class="search" role="search">
           <label class="visually-hidden" for="search">Find a place</label>
           <input id="search" type="search" placeholder="Find a city, park, forest or farm" autocomplete="off">
-          <button id="search-button" type="submit" class="tool">Find</button>
+          <button id="search-button" type="submit" class="tool tool-icon tip-below" aria-label="Find place" data-tip="Find place">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.800" cy="8.800" r="5.300"/><path d="m12.800 12.800 4 4"/></svg>
+          </button>
           <ul id="places" class="places" aria-label="Matching places"></ul>
         </form>
         <button id="draw" type="button" class="tool tool-icon tip-below" aria-label="Draw area" aria-pressed="false" data-tip="Draw area">
@@ -61,8 +67,8 @@
       </div>
       <p id="map-hint" class="map-hint" aria-live="polite" hidden></p>
 
-      <details class="legend">
-        <summary>Map legend</summary>
+      <section id="legend-panel" class="legend" aria-labelledby="legend-title" hidden>
+        <h2 id="legend-title" class="legend-title">Map legend</h2>
         <ul>
           <li><span class="swatch swatch-heat" aria-hidden="true"></span>Heat seen by one satellite</li>
           <li><span class="swatch swatch-heat multi" aria-hidden="true"></span>Heat seen by 2+ satellites</li>
@@ -74,9 +80,10 @@
         <label class="check"><input type="checkbox" id="toggle-forecast-point" checked> Show forecast point</label>
         <label class="check"><input type="checkbox" id="show-individuals"> Show individual detections</label>
         <label class="check"><input type="checkbox" id="basemap-satellite"> Satellite imagery</label>
-      </details>
+        <p class="legend-credits">Map data: Esri, © OpenStreetMap contributors, Natural Earth. Globe: CesiumJS.</p>
+      </section>
 
-      <div id="globe-credits" class="globe-credits"></div>
+      <div id="globe-credits" hidden></div>
 
       <article id="area-panel" class="card" tabindex="-1" aria-labelledby="selection-place">
         <header class="card-head">
@@ -368,7 +375,7 @@
 
   <script>window.CESIUM_BASE_URL = "https://cdn.jsdelivr.net/npm/cesium@1.147.0/Build/Cesium/";</script>
   <script src="https://cdn.jsdelivr.net/npm/cesium@1.147.0/Build/Cesium/Cesium.js"></script>
-  <script src="/static/globe.js?v=atlas-6"></script>
-  <script src="/static/app.js?v=atlas-6"></script>
+  <script src="/static/globe.js?v=atlas-9"></script>
+  <script src="/static/app.js?v=atlas-9"></script>
 </body>
 </html>

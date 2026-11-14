@@ -122,6 +122,49 @@
     return 1000;
   }
 
+  /* A faint, fixed star field behind the globe. The six faces are drawn once
+     from a seeded generator, so the sky is the same on every visit, and
+     because it is a real sky box the stars turn as the globe is turned. */
+  function starField(Cesium) {
+    let seed = 20261114;
+    const random = () => {
+      seed = (seed + 0x6d2b79f5) | 0;
+      let value = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value;
+      return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+    };
+    const face = () => {
+      const size = 1024;
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const context = canvas.getContext("2d");
+      context.fillStyle = PLATE;
+      context.fillRect(0, 0, size, size);
+      for (let index = 0; index < 230; index += 1) {
+        const bright = random() > 0.93;
+        const radius = bright ? 0.9 + random() * 0.5 : 0.45 + random() * 0.4;
+        const alpha = bright ? 0.5 + random() * 0.25 : 0.14 + random() * 0.26;
+        const tint = random() > 0.7 ? "154, 205, 196" : "232, 235, 225";
+        context.fillStyle = `rgba(${tint}, ${alpha.toFixed(2)})`;
+        context.beginPath();
+        context.arc(4 + random() * (size - 8), 4 + random() * (size - 8), radius, 0, Math.PI * 2);
+        context.fill();
+      }
+      return canvas;
+    };
+    return new Cesium.SkyBox({
+      sources: {
+        positiveX: face(),
+        negativeX: face(),
+        positiveY: face(),
+        negativeY: face(),
+        positiveZ: face(),
+        negativeZ: face(),
+      },
+    });
+  }
+
   function stubGlobe(container, message) {
     const note = document.createElement("p");
     note.className = "globe-failed";
@@ -196,6 +239,11 @@
     globe.maximumScreenSpaceError = 1.6;
 
     scene.backgroundColor = Cesium.Color.fromCssColorString(PLATE);
+    try {
+      scene.skyBox = starField(Cesium);
+    } catch (_error) {
+      /* Without the star field the plate stays a plain dark ground. */
+    }
     globe.baseColor = Cesium.Color.fromCssColorString(SEA);
     globe.showGroundAtmosphere = false;
     globe.enableLighting = false;

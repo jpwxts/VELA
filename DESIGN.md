@@ -242,7 +242,7 @@ Vela is one screen in Operate mode: a visitor arrives with one piece of land in 
 
 The theme is dark only. The user revised the original cream-paper direction to a dark one, and the build declares `color-scheme: dark` with no light branch. The globe is stripped of everything that would make it look like a rendering: no sky, no atmosphere, no sun lighting, no fog. What remains is a flat disc of sea and land on a ground slightly darker than the shell.
 
-The chrome is as quiet as it can be. The header carries only the flame and the wordmark. The rail shows four icons and names them in tooltips. The globe has no reset, zoom or compass controls: it is dragged, scrolled, pinched or turned from the keyboard. Guidance text appears on the plate only while a boundary is being drawn. What is left on the plate is a search field, one pencil, a legend, a small credits chip and the card.
+The chrome is as quiet as it can be. The header carries only the flame and the wordmark. The rail shows four icons and names them in tooltips. The globe has no reset, zoom or compass controls: it is dragged, scrolled, pinched or turned from the keyboard. Guidance text appears on the plate only while a boundary is being drawn. What is left on the plate is a search field with a magnifier, one pencil and the card; the legend opens from a button at the foot of the rail. Behind the globe the plate carries a faint star field.
 
 **Key Characteristics:**
 - One screen: a wordmark-only masthead, a 60px icon rail, the globe plate, a floating detail card.
@@ -305,7 +305,7 @@ A night palette of green-blacks and warm off-white with one working accent and o
 - **Pane headline** (serif 500, 1.75rem, 1.15): the title of the open pane (Burn activity, History, Weather outlook, Research).
 - **Title** (serif 500, 1.5rem, 1.15): stat values in the weather grid. A 1.25rem step carries the one-sentence finding for a selected square; a 1.0625rem step carries small figures in week and forecast rows.
 - **Section** (serif 600, 1.0625rem, 1.3): block headings inside a pane. Sub-blocks under them use sans 700 at 0.875rem.
-- **Body** (sans 400, 0.9375rem, 1.5): running text; lede paragraphs are capped at 60ch. Supporting text is 0.875rem and source stamps 0.8125rem, both in Soft Ink. The credits chip is 0.75rem.
+- **Body** (sans 400, 0.9375rem, 1.5): running text; lede paragraphs are capped at 60ch. Supporting text is 0.875rem and source stamps 0.8125rem, both in Soft Ink. The credit line inside the legend is 0.75rem.
 - **Control** (sans 600, 0.9375rem): button labels; toolbar tools are 500. Tooltips are 600 at 0.8125rem; the phone tab bar's labels are 600 at 0.75rem.
 - **Label** (mono 500, 0.75rem, 0.1em, uppercase, Soft Ink): the name of a measurement directly above its value (Temperature, Wind, Rain / 24 h), a date used as a label, and the country and region breadcrumb above the place name.
 - **Data** (mono 400 to 600, 0.75rem, no tracking, tabular figures): the boundary's coordinates, map badges, calendar weekday letters.
@@ -324,16 +324,16 @@ The page is a fixed two-row grid that fills the viewport exactly (100dvh): a 64p
 
 The workspace is two columns: a 60px rail of four icon tabs (48px tall, 6px apart), then the plate, which takes all remaining space and clips its contents. Everything else floats on the plate:
 
-- **Top-left, 16px in:** the toolbar: the search field joined to its Find button, then the 42px pencil that starts a boundary, 8px apart. While a boundary is being drawn a teal Finish boundary button joins the row and a one-line hint appears beneath it, counting the corners placed. The hint is hidden at all other times.
+- **Top-left, 16px in:** the toolbar: the search field joined to a 42px magnifier button, then the 42px pencil that starts a boundary, 8px apart. While a boundary is being drawn a teal Finish boundary button joins the row and a one-line hint appears beneath it, counting the corners placed. The hint is hidden at all other times.
 - **Top-right, 16px in:** the 384px detail card, at most the plate's height minus the two insets.
-- **Bottom-left, 16px in:** the collapsible map legend.
-- **Bottom-right (10px, 8px):** a small credits chip for the map data licences, which slides to the left of the card while the card is open.
+- **Bottom-left, 16px in:** the map legend panel, shown and hidden by the legend button at the foot of the rail, so it opens and closes in the same place beside its button. It opens by itself the first time heat markers appear.
+- **Behind the globe:** a faint, fixed star field (a seeded sky box of small off-white and pale teal points on Plate Ground) that turns as the globe is turned. Nothing sits at the bottom-right; the map data credit is the last line of the legend panel.
 
 The globe is told which part of the plate the card covers, so the home view and every flight to a place frame the land in the free area rather than under the card.
 
 Inside the card the rhythm is: 24px side padding, 22px between blocks with a hairline and 20px of padding above each new block, 18px and 16px for sub-blocks, 10px between elements inside a block, and 6px to 8px between sibling controls. The card head sets the boundary's four coordinates as a two-by-two mono grid (W and S above E and N, 18px between columns).
 
-**Narrow screens (860px and below).** The masthead drops to 54px. The rail becomes a four-column tab bar under the masthead, 56px tall, and here each icon keeps a short 0.75rem label beneath it because touch has no hover; the active marker moves from the left edge to the bottom edge. The card becomes a bottom sheet (full width, at most 52% of the plate, 14px top corners) that first appears in a peek state showing only its title and one "Get started" button. The search field stretches to share one toolbar row with the pencil, tools grow to 44px, and the legend and credits chip hide while the sheet is open.
+**Narrow screens (860px and below).** The masthead drops to 54px. The rail becomes a tab bar under the masthead, 56px tall, with the four sections and the legend button at its end, and here each icon keeps a short 0.75rem label beneath it because touch has no hover; the active marker moves from the left edge to the bottom edge. The card becomes a bottom sheet (full width, at most 52% of the plate, 14px top corners) that first appears in a peek state showing only its title and one "Get started" button. The search field stretches to share one toolbar row with the pencil, tools grow to 44px, and the legend drops from the tab bar above the sheet.
 
 **The Map Stays Rule.** Detail opens beside the map, never instead of it. No pane, dialog or state may cover the whole plate.
 
@@ -355,7 +355,7 @@ Depth is tonal first. Surfaces get lighter as they come forward: Plate Ground be
 
 ## Shapes
 
-Corners are barely eased, like trimmed card stock: 4px on every control, 6px on the detail card, 3px on calendar days, tooltips and the credits chip, 2px on map badges. The only large radius is the 14px top edge of the mobile sheet. Circles are reserved for things that are points on the Earth: heat dots, reading dots, the forecast point, boundary corners.
+Corners are barely eased, like trimmed card stock: 4px on every control, 6px on the detail card, 3px on calendar days and tooltips, 2px on map badges. The only large radius is the 14px top edge of the mobile sheet. Circles are reserved for things that are points on the Earth: heat dots, reading dots, the forecast point, boundary corners.
 
 Borders are 1px throughout: Strong Hairline on controls, Hairline on the card and on dividers. A dashed border means "provisional or not the full picture": the visitor's drawn boundary, a week with partial data, a week with none.
 
@@ -397,7 +397,7 @@ Plain and compact, like the keys of an instrument.
 - **Notices:** setup and saved-example notes are Plate Ground boxes with a Hairline border in Soft Ink. They are information, not errors, and stay in neutral tones.
 
 ### Inputs / Fields
-- **Style:** Field fill, 1px Strong Hairline, 4px radius, 42px tall. The search field is 268px wide and joined to its Find button (shared edge, outer corners eased). Date and number inputs use tabular figures.
+- **Style:** Field fill, 1px Strong Hairline, 4px radius, 42px tall. The search field is 268px wide and joined to its magnifier button (shared edge, outer corners eased). Date and number inputs use tabular figures.
 - **Focus:** the 2px Chart Teal outline, drawn inside the edge on the search field.
 - **Checkboxes:** native, 16px, tinted Chart Teal, in rows at least 32px tall.
 - **Search results:** a Card list under the field with card lift, hairline-separated rows, Teal Wash on hover.
@@ -424,8 +424,8 @@ Plain and compact, like the keys of an instrument.
 ### Disclosures
 Hairline-topped rows with the chevron marker and a sans 600 summary; research questions use 700 at 1rem. Technical detail nests inside its answer as a quieter Light Chart Teal disclosure.
 
-### Credits chip
-A single line of 0.75rem sans in Soft Ink on Plate Ground at 72% opacity, 3px corners, at the plate's bottom-right. It holds the globe's data attribution and nothing else.
+### Legend panel
+A 252px panel on Card Surface with a 1px Strong Hairline, opened and closed by the legend button at the foot of the rail. It holds the map key, three layer checkboxes, and a last line of 0.75rem Faint Ink text crediting the map data (Esri, OpenStreetMap contributors, Natural Earth) and CesiumJS. That line is the only place the credit appears, by the user's direction.
 
 ### The Globe (signature)
 A CesiumJS 1.147.0 globe loaded from the jsDelivr CDN, with no Cesium ion token. Everything it draws comes from keyless Esri services.
