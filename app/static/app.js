@@ -48,6 +48,7 @@ const state = {
   calendarEmptyReason: null,
   calendarRequestId: 0,
   savedLandSnapshot: null,
+  publicSnapshot: null,
   usingSavedExample: false,
   // Atlas shell
   insets: { top: 64, right: 0, bottom: 0, left: 0 },
@@ -187,6 +188,16 @@ if (window.ResizeObserver && document.querySelector("#hours-strip")) {
   }).observe(document.querySelector("#hours-strip"));
 }
 document.querySelector("#try-example").addEventListener("click", loadCompetitionDemo);
+document.querySelector("#try-philippines")?.addEventListener("click", () => loadPhilippinesPublicExample());
+document.querySelectorAll("[data-public-region]").forEach((button) => {
+  button.addEventListener("click", () => {
+    if (!state.publicSnapshot?.day) return;
+    loadPhilippinesPublicExample({
+      day: state.publicSnapshot.day,
+      region: button.dataset.publicRegion,
+    });
+  });
+});
 document.querySelector("#draw").addEventListener("click", startPolygonDraw);
 document.querySelector("#finish-draw").addEventListener("click", finishPolygonDraw);
 document.querySelector("#clear-area").addEventListener("click", clearLand);
@@ -648,6 +659,9 @@ function clearLand() {
   state.lastPlace = null;
   state.placeName = null;
   state.landLabel = null;
+  state.publicSnapshot = null;
+  const regionFilters = document.querySelector("#philippines-region-filters");
+  if (regionFilters) regionFilters.hidden = true;
   state.placeRequestId += 1;
   state.checkedDays.clear();
   state.checkingDay = null;
@@ -797,6 +811,58 @@ async function loadCompetitionDemo() {
     if (requestId !== state.landRequestId) return;
     document.querySelector("#fixture-banner").hidden = false;
     document.querySelector("#fixture-banner").textContent = "Demo fixture failed to load.";
+  }
+}
+
+
+async function loadPhilippinesPublicExample(options = {}) {
+  const day = options.day || "2026-11-07";
+  const region = options.region || "philippines";
+  const requestId = ++state.landRequestId;
+  state.publicSnapshot = { day, region };
+  state.savedExample = true;
+  openLandPanel({ tab: "where", focus: false });
+  const regionFilters = document.querySelector("#philippines-region-filters");
+  if (regionFilters) regionFilters.hidden = false;
+  document.querySelector("#area-label").textContent =
+    region === "mindanao"
+      ? "Loading Mindanao filter of the Philippine snapshot…"
+      : "Loading Philippine satellite snapshot…";
+  try {
+    const response = await fetch(
+      `/api/public/philippines/${encodeURIComponent(day)}?region=${encodeURIComponent(region)}`
+    );
+    const payload = await response.json();
+    if (requestId !== state.landRequestId) return;
+    if (!response.ok) throw new Error(payload.detail || "Snapshot failed to load");
+    dayInput.value = payload.observation_date || day;
+    updateDayWords();
+    const ring = payload.display_ring || payload.polygon?.coordinates?.[0] || [];
+    if (ring.length) setPolygon(ring, payload.label || "Philippines snapshot");
+    else if (payload.bbox) {
+      const box = payload.bbox;
+      setPolygonFromBox([box.west, box.south, box.east, box.north], payload.label || "Philippines snapshot");
+    }
+    state.showIndividuals = true;
+    const individuals = document.querySelector("#show-individuals");
+    if (individuals) individuals.checked = true;
+    renderLandCheck(payload);
+    const counts = payload.counts || {};
+    document.querySelector("#area-label").textContent =
+      `Saved snapshot · ${payload.region_label || payload.label || "Philippines"} · ${formatObservationDay(day)} · `
+      + `${counts.detections ?? "—"} detections`
+      + (counts.areas != null ? ` · ${counts.areas} areas` : "")
+      + " · no FIRMS key required.";
+    const banner = document.querySelector("#fixture-banner");
+    if (banner) {
+      banner.hidden = false;
+      banner.textContent = payload.fixture?.label
+        || "Philippines · 7 Nov 2026 · NASA FIRMS snapshot (no map key required)";
+    }
+  } catch (error) {
+    if (requestId !== state.landRequestId) return;
+    document.querySelector("#area-label").textContent =
+      "The Philippine snapshot could not be loaded.";
   }
 }
 
@@ -2528,22 +2594,43 @@ function renderStatuses(results) {
 function showDetection(spot) {
   revealCellDetail(squareAround(Number(spot.lat), Number(spot.lon)), [{ lat: Number(spot.lat), lon: Number(spot.lon) }],
     { state: "seen", platforms: [spot.platform] });
+  const place = spot.place_name || spot.place_or_coordinates
+    || (spot.lat != null && spot.lon != null ? `${Number(spot.lat).toFixed(5)}, ${Number(spot.lon).toFixed(5)}` : "Location unavailable");
+  const localStamp = spot.acq_date_ph && spot.acq_time_ph
+    ? `${formatObservationDay(spot.acq_date_ph)} · ${spot.acq_time_ph} PH time`
+    : `${spot.acq_date || ""} ${spot.acq_time || ""} UTC`;
   document.querySelector("#area-sentence").textContent =
-    `${spot.platform} recorded an individual detection at ${spot.acq_time} UTC.`;
-  beginPlaceLookup({ mode: "point", lat: spot.lat, lon: spot.lon });
+    `${spot.platform} recorded an individual detection at ${spot.acq_time || "—"} UTC.`;
+  if (spot.place_name) {
+    const label = document.querySelector("#area-place");
+    const meta = document.querySelector("#area-place-meta");
+    if (label) {
+      label.hidden = false;
+      label.textContent = spot.place_name;
+    }
+    if (meta) {
+      meta.hidden = false;
+      meta.textContent = "Named place saved with this snapshot";
+    }
+  } else {
+    beginPlaceLookup({ mode: "point", lat: spot.lat, lon: spot.lon });
+  }
   document.querySelector("#area-square-note").textContent = "This is one original reading, not a wildfire count.";
-  document.querySelector("#area-when").textContent =
-    `${spot.platform} · ${spot.acq_date} ${spot.acq_time} UTC`;
-  document.querySelector("#area-latest").textContent = "";
-  document.querySelector("#area-readings").textContent = "";
+  document.querySelector("#area-when").textContent = `${spot.platform} · ${localStamp}`;
+  document.querySelector("#area-latest").textContent =
+    `${spot.acq_date || ""} ${spot.acq_time || ""} UTC`
+    + (spot.acq_date_ph ? ` · Philippine calendar ${spot.acq_date_ph}` : "");
+  document.querySelector("#area-readings").textContent = place;
   document.querySelector("#area-timeline").innerHTML = `
-    <p class="timeline-item"><strong>${escapeHtml(spot.platform)}</strong><span>${escapeHtml(spot.acq_date)} ${escapeHtml(spot.acq_time)} UTC</span></p>`;
+    <p class="timeline-item"><strong>${escapeHtml(spot.platform)}</strong><span>${escapeHtml(localStamp)}</span></p>`;
   document.querySelector("#area-members-body").innerHTML = `
     <table class="member-table">
       <tbody>
+        <tr><th>Place</th><td>${escapeHtml(place)}</td></tr>
+        <tr><th>UTC</th><td>${escapeHtml(spot.acq_date || "")} ${escapeHtml(spot.acq_time || "")}</td></tr>
         <tr><th>Confidence</th><td>${escapeHtml(spot.confidence || "—")}</td></tr>
         <tr><th>FRP</th><td>${spot.frp ?? "—"}</td></tr>
-        <tr><th>Source</th><td>${escapeHtml(spot.source || "—")}</td></tr>
+        <tr><th>Source</th><td>${escapeHtml(spot.source || "NASA FIRMS")}</td></tr>
       </tbody>
     </table>`;
   document.querySelector("#area-members").open = true;

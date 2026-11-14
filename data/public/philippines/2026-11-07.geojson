@@ -1,0 +1,1436 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          123.03014,
+          10.47828
+        ]
+      },
+      "properties": {
+        "satellite": "Terra",
+        "satellite_code": "Terra",
+        "instrument": "MODIS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "00:34",
+        "acq_datetime_utc": "2026-11-07T00:34:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "08:34",
+        "timezone": "Asia/Manila",
+        "confidence": "64",
+        "frp": 8.93,
+        "brightness": 311.27,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "10.47828, 123.03014",
+        "coordinates_text": "10.47828, 123.03014",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          125.28118,
+          6.76577
+        ]
+      },
+      "properties": {
+        "satellite": "Terra",
+        "satellite_code": "Terra",
+        "instrument": "MODIS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "00:37",
+        "acq_datetime_utc": "2026-11-07T00:37:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "08:37",
+        "timezone": "Asia/Manila",
+        "confidence": "58",
+        "frp": 11.2,
+        "brightness": 310.37,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "6.76577, 125.28118",
+        "coordinates_text": "6.76577, 125.28118",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          124.88007,
+          6.03876
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-21",
+        "satellite_code": "N21",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "04:33",
+        "acq_datetime_utc": "2026-11-07T04:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "12:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 7.83,
+        "brightness": 333.71,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "6.03876, 124.88007",
+        "coordinates_text": "6.03876, 124.88007",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          124.87898,
+          6.03937
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-21",
+        "satellite_code": "N21",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "04:33",
+        "acq_datetime_utc": "2026-11-07T04:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "12:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 6.74,
+        "brightness": 330.03,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "6.03937, 124.87898",
+        "coordinates_text": "6.03937, 124.87898",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          124.99257,
+          6.16643
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-21",
+        "satellite_code": "N21",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "04:33",
+        "acq_datetime_utc": "2026-11-07T04:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "12:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 3.08,
+        "brightness": 328.08,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "6.16643, 124.99257",
+        "coordinates_text": "6.16643, 124.99257",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          124.05852,
+          6.85779
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-21",
+        "satellite_code": "N21",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "04:33",
+        "acq_datetime_utc": "2026-11-07T04:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "12:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 13.89,
+        "brightness": 338.82,
+        "daynight": "D",
+        "place_name": "Maguindanao del Norte, Bangsamoro",
+        "place_or_coordinates": "Maguindanao del Norte, Bangsamoro",
+        "coordinates_text": "6.85779, 124.05852",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          124.25303,
+          7.08782
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-21",
+        "satellite_code": "N21",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "04:33",
+        "acq_datetime_utc": "2026-11-07T04:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "12:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 8.93,
+        "brightness": 339.4,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "7.08782, 124.25303",
+        "coordinates_text": "7.08782, 124.25303",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          122.50641,
+          10.76618
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-21",
+        "satellite_code": "N21",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "04:33",
+        "acq_datetime_utc": "2026-11-07T04:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "12:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 7.0,
+        "brightness": 329.71,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "10.76618, 122.50641",
+        "coordinates_text": "10.76618, 122.50641",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          122.50935,
+          10.76673
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-21",
+        "satellite_code": "N21",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "04:33",
+        "acq_datetime_utc": "2026-11-07T04:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "12:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 6.12,
+        "brightness": 336.29,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "10.76673, 122.50935",
+        "coordinates_text": "10.76673, 122.50935",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          124.77765,
+          11.95896
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-21",
+        "satellite_code": "N21",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "04:33",
+        "acq_datetime_utc": "2026-11-07T04:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "12:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 4.32,
+        "brightness": 331.83,
+        "daynight": "D",
+        "place_name": "Biringan, Pagsanghan",
+        "place_or_coordinates": "Biringan, Pagsanghan",
+        "coordinates_text": "11.95896, 124.77765",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          123.71458,
+          12.01808
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-21",
+        "satellite_code": "N21",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "04:33",
+        "acq_datetime_utc": "2026-11-07T04:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "12:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 6.1,
+        "brightness": 332.83,
+        "daynight": "D",
+        "place_name": "Dalipe, Masbate",
+        "place_or_coordinates": "Dalipe, Masbate",
+        "coordinates_text": "12.01808, 123.71458",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.0583,
+          12.41067
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-21",
+        "satellite_code": "N21",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "04:36",
+        "acq_datetime_utc": "2026-11-07T04:36:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "12:36",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 2.67,
+        "brightness": 333.17,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "12.41067, 121.05830",
+        "coordinates_text": "12.41067, 121.05830",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.05798,
+          12.41383
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-21",
+        "satellite_code": "N21",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "04:36",
+        "acq_datetime_utc": "2026-11-07T04:36:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "12:36",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 5.71,
+        "brightness": 346.06,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "12.41383, 121.05798",
+        "coordinates_text": "12.41383, 121.05798",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.2067,
+          12.6929
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-21",
+        "satellite_code": "N21",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "04:36",
+        "acq_datetime_utc": "2026-11-07T04:36:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "12:36",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 2.32,
+        "brightness": 330.07,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "12.69290, 121.20670",
+        "coordinates_text": "12.69290, 121.20670",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.54256,
+          15.13933
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-21",
+        "satellite_code": "N21",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "04:36",
+        "acq_datetime_utc": "2026-11-07T04:36:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "12:36",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 7.45,
+        "brightness": 345.6,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "15.13933, 120.54256",
+        "coordinates_text": "15.13933, 120.54256",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.71307,
+          15.83815
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-21",
+        "satellite_code": "N21",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "04:36",
+        "acq_datetime_utc": "2026-11-07T04:36:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "12:36",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 2.33,
+        "brightness": 337.36,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "15.83815, 120.71307",
+        "coordinates_text": "15.83815, 120.71307",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          125.58055,
+          6.24241
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:29",
+        "acq_datetime_utc": "2026-11-07T05:29:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:29",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 3.97,
+        "brightness": 340.85,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "6.24241, 125.58055",
+        "coordinates_text": "6.24241, 125.58055",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          124.43863,
+          6.80229
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:29",
+        "acq_datetime_utc": "2026-11-07T05:29:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:29",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 3.28,
+        "brightness": 332.31,
+        "daynight": "D",
+        "place_name": "Ampatuan, Maguindanao del Sur",
+        "place_or_coordinates": "Ampatuan, Maguindanao del Sur",
+        "coordinates_text": "6.80229, 124.43863",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          124.30238,
+          6.81609
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:29",
+        "acq_datetime_utc": "2026-11-07T05:29:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:29",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 16.53,
+        "brightness": 335.52,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "6.81609, 124.30238",
+        "coordinates_text": "6.81609, 124.30238",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          124.05923,
+          6.88524
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:29",
+        "acq_datetime_utc": "2026-11-07T05:29:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:29",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 15.49,
+        "brightness": 331.14,
+        "daynight": "D",
+        "place_name": "Maguindanao del Norte, Bangsamoro",
+        "place_or_coordinates": "Maguindanao del Norte, Bangsamoro",
+        "coordinates_text": "6.88524, 124.05923",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          124.19762,
+          6.92953
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:29",
+        "acq_datetime_utc": "2026-11-07T05:29:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:29",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 2.92,
+        "brightness": 337.67,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "6.92953, 124.19762",
+        "coordinates_text": "6.92953, 124.19762",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          122.86122,
+          9.66857
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:31",
+        "acq_datetime_utc": "2026-11-07T05:31:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:31",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 4.55,
+        "brightness": 334.22,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "9.66857, 122.86122",
+        "coordinates_text": "9.66857, 122.86122",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          122.90984,
+          10.37665
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:31",
+        "acq_datetime_utc": "2026-11-07T05:31:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:31",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 9.52,
+        "brightness": 332.65,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "10.37665, 122.90984",
+        "coordinates_text": "10.37665, 122.90984",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          122.52884,
+          10.94219
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:31",
+        "acq_datetime_utc": "2026-11-07T05:31:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:31",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 2.67,
+        "brightness": 331.05,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "10.94219, 122.52884",
+        "coordinates_text": "10.94219, 122.52884",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          122.70676,
+          10.97143
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:31",
+        "acq_datetime_utc": "2026-11-07T05:31:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:31",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 33.08,
+        "brightness": 345.94,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "10.97143, 122.70676",
+        "coordinates_text": "10.97143, 122.70676",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          123.81071,
+          11.99802
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:31",
+        "acq_datetime_utc": "2026-11-07T05:31:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:31",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 6.01,
+        "brightness": 334.38,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "11.99802, 123.81071",
+        "coordinates_text": "11.99802, 123.81071",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          123.71716,
+          12.01192
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:31",
+        "acq_datetime_utc": "2026-11-07T05:31:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:31",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 6.94,
+        "brightness": 338.19,
+        "daynight": "D",
+        "place_name": "Dalipe, Masbate",
+        "place_or_coordinates": "Dalipe, Masbate",
+        "coordinates_text": "12.01192, 123.71716",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.09547,
+          12.7125
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:31",
+        "acq_datetime_utc": "2026-11-07T05:31:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:31",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 12.81,
+        "brightness": 337.94,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "12.71250, 121.09547",
+        "coordinates_text": "12.71250, 121.09547",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.09487,
+          12.71609
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:31",
+        "acq_datetime_utc": "2026-11-07T05:31:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:31",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 12.81,
+        "brightness": 343.59,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "12.71609, 121.09487",
+        "coordinates_text": "12.71609, 121.09487",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.17418,
+          12.72344
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:31",
+        "acq_datetime_utc": "2026-11-07T05:31:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:31",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 6.17,
+        "brightness": 340.97,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "12.72344, 121.17418",
+        "coordinates_text": "12.72344, 121.17418",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.58407,
+          13.47099
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:31",
+        "acq_datetime_utc": "2026-11-07T05:31:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:31",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 11.42,
+        "brightness": 343.71,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "13.47099, 120.58407",
+        "coordinates_text": "13.47099, 120.58407",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.35794,
+          14.48184
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:31",
+        "acq_datetime_utc": "2026-11-07T05:31:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:31",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 3.46,
+        "brightness": 332.05,
+        "daynight": "D",
+        "place_name": "Halayhayin, Pililla",
+        "place_or_coordinates": "Halayhayin, Pililla",
+        "coordinates_text": "14.48184, 121.35794",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.59423,
+          15.28701
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:33",
+        "acq_datetime_utc": "2026-11-07T05:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 2.98,
+        "brightness": 333.72,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "15.28701, 120.59423",
+        "coordinates_text": "15.28701, 120.59423",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.25214,
+          15.48558
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:33",
+        "acq_datetime_utc": "2026-11-07T05:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 8.33,
+        "brightness": 334.39,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "15.48558, 121.25214",
+        "coordinates_text": "15.48558, 121.25214",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.06313,
+          15.54128
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:33",
+        "acq_datetime_utc": "2026-11-07T05:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 2.93,
+        "brightness": 336.92,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "15.54128, 121.06313",
+        "coordinates_text": "15.54128, 121.06313",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.08744,
+          15.56733
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:33",
+        "acq_datetime_utc": "2026-11-07T05:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 3.62,
+        "brightness": 332.98,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "15.56733, 121.08744",
+        "coordinates_text": "15.56733, 121.08744",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          120.40475,
+          15.90242
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:33",
+        "acq_datetime_utc": "2026-11-07T05:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 2.57,
+        "brightness": 337.55,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "15.90242, 120.40475",
+        "coordinates_text": "15.90242, 120.40475",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.01938,
+          15.94469
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:33",
+        "acq_datetime_utc": "2026-11-07T05:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 3.82,
+        "brightness": 330.92,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "15.94469, 121.01938",
+        "coordinates_text": "15.94469, 121.01938",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          122.04816,
+          17.08911
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:33",
+        "acq_datetime_utc": "2026-11-07T05:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 2.61,
+        "brightness": 329.97,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "17.08911, 122.04816",
+        "coordinates_text": "17.08911, 122.04816",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.64211,
+          17.31197
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:33",
+        "acq_datetime_utc": "2026-11-07T05:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 6.49,
+        "brightness": 339.6,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "17.31197, 121.64211",
+        "coordinates_text": "17.31197, 121.64211",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.64466,
+          17.3127
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:33",
+        "acq_datetime_utc": "2026-11-07T05:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 7.7,
+        "brightness": 332.22,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "17.31270, 121.64466",
+        "coordinates_text": "17.31270, 121.64466",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.51675,
+          17.79898
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:33",
+        "acq_datetime_utc": "2026-11-07T05:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 4.13,
+        "brightness": 334.25,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "17.79898, 121.51675",
+        "coordinates_text": "17.79898, 121.51675",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.50632,
+          18.32865
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "05:33",
+        "acq_datetime_utc": "2026-11-07T05:33:00Z",
+        "acq_date_ph": "2026-11-07",
+        "acq_time_ph": "13:33",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 6.49,
+        "brightness": 332.9,
+        "daynight": "D",
+        "place_name": null,
+        "place_or_coordinates": "18.32865, 121.50632",
+        "coordinates_text": "18.32865, 121.50632",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          123.68568,
+          13.25606
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-21",
+        "satellite_code": "N21",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "17:09",
+        "acq_datetime_utc": "2026-11-07T17:09:00Z",
+        "acq_date_ph": "2026-11-08",
+        "acq_time_ph": "01:09",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 2.5,
+        "brightness": 324.4,
+        "daynight": "N",
+        "place_name": null,
+        "place_or_coordinates": "13.25606, 123.68568",
+        "coordinates_text": "13.25606, 123.68568",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          125.80276,
+          7.45633
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-21",
+        "satellite_code": "N21",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "17:11",
+        "acq_datetime_utc": "2026-11-07T17:11:00Z",
+        "acq_date_ph": "2026-11-08",
+        "acq_time_ph": "01:11",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 0.31,
+        "brightness": 301.55,
+        "daynight": "N",
+        "place_name": null,
+        "place_or_coordinates": "7.45633, 125.80276",
+        "coordinates_text": "7.45633, 125.80276",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          123.70026,
+          10.16289
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-21",
+        "satellite_code": "N21",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "17:11",
+        "acq_datetime_utc": "2026-11-07T17:11:00Z",
+        "acq_date_ph": "2026-11-08",
+        "acq_time_ph": "01:11",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 1.39,
+        "brightness": 306.92,
+        "daynight": "N",
+        "place_name": "San Isidro, San Fernando",
+        "place_or_coordinates": "San Isidro, San Fernando",
+        "coordinates_text": "10.16289, 123.70026",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.06795,
+          15.05172
+        ]
+      },
+      "properties": {
+        "satellite": "NOAA-20",
+        "satellite_code": "N20",
+        "instrument": "VIIRS",
+        "acq_date_utc": "2026-11-07",
+        "acq_time_utc": "18:06",
+        "acq_datetime_utc": "2026-11-07T18:06:00Z",
+        "acq_date_ph": "2026-11-08",
+        "acq_time_ph": "02:06",
+        "timezone": "Asia/Manila",
+        "confidence": "n",
+        "frp": 1.9,
+        "brightness": 303.01,
+        "daynight": "N",
+        "place_name": "Akle, San Ildefonso",
+        "place_or_coordinates": "Akle, San Ildefonso",
+        "coordinates_text": "15.05172, 121.06795",
+        "source": "NASA FIRMS",
+        "observation_day_utc": "2026-11-07"
+      }
+    }
+  ],
+  "metadata": {
+    "title": "Philippine NASA FIRMS satellite heat detections",
+    "observation_day_utc": "2026-11-07",
+    "boundary": "Philippines island-group geometry (config/boundaries/philippines.json)",
+    "source": "NASA FIRMS",
+    "source_record_count_raw_cache_rows": 416,
+    "source_record_count_unique": 66,
+    "exported_philippines_count": 47,
+    "mindanao_count_same_file_filtered": 12,
+    "counts_by_satellite": {
+      "Terra": 2,
+      "NOAA-21": 17,
+      "NOAA-20": 28
+    },
+    "mindanao_counts_by_satellite": {
+      "Terra": 1,
+      "NOAA-21": 6,
+      "NOAA-20": 5
+    },
+    "comparison_note": "Earlier live Burn-activity UI (Terra unchecked) reported 45 detections and 39 grouped areas. This export has 47 Philippine detections including Terra (2); without Terra the count is 45. Mindanao filter of this file: 12 detections (11 without Terra)."
+  }
+}

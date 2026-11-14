@@ -167,6 +167,14 @@
             <section class="pane-block examples">
               <h4>Saved examples</h4>
               <p class="quiet">These work without a FIRMS key.</p>
+              <button id="try-philippines" type="button" class="example-button">
+                <strong>Philippines · 7 Nov 2026</strong>
+                <span>NASA FIRMS snapshot · individual detections</span>
+              </button>
+              <div class="action-row" id="philippines-region-filters" hidden>
+                <button type="button" class="filter-button" data-public-region="philippines">All Philippines</button>
+                <button type="button" class="filter-button" data-public-region="mindanao">All Mindanao</button>
+              </div>
               <button id="try-example" type="button" class="example-button">
                 <strong>California foothills</strong>
                 <span>Competition example with a saved dated forecast</span>
@@ -451,6 +459,6 @@
   <script>window.CESIUM_BASE_URL = "https://cdn.jsdelivr.net/npm/cesium@1.147.0/Build/Cesium/";</script>
   <script src="https://cdn.jsdelivr.net/npm/cesium@1.147.0/Build/Cesium/Cesium.js"></script>
   <script src="/static/globe.js?v=atlas-18"></script>
-  <script src="/static/app.js?v=atlas-25"></script>
+  <script src="/static/app.js?v=atlas-26"></script>
 </body>
 </html>
