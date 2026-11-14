@@ -232,6 +232,7 @@ function clearLand() {
   state.activityRequestId += 1;
   state.outlookRequestId += 1;
   state.summarySquare = null;
+  syncLandPicture();
   document.querySelector("#area-label").textContent =
     "Search for a place or draw a boundary on the globe, then check it for satellite heat.";
   document.querySelector("#map-hint").textContent = "Turn the globe to your land, then search or draw its boundary.";

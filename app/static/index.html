@@ -107,13 +107,24 @@
         </header>
 
         <div class="card-body">
+          <!-- The picture of the land or square stays above every tab. -->
+          <section id="land-picture" class="land-picture" aria-label="Picture of the selection" hidden>
+            <button type="button" id="cell-back" class="link-button back-link" hidden>Back to land</button>
+            <canvas id="land-cutout" class="cutout" width="672" height="340" role="img" aria-label="The selected land, cut out of the map"></canvas>
+            <div id="land-3d" class="cutout cutout-3d" role="img" aria-label="The selection in 3D: satellite imagery on terrain. Drag to turn it." hidden></div>
+            <div class="segmented picture-modes" role="group" aria-label="Picture style">
+              <button type="button" class="on" data-picture="map" aria-pressed="true">Map</button>
+              <button type="button" data-picture="satellite" aria-pressed="false">Satellite</button>
+              <button type="button" data-picture="3d" aria-pressed="false">3D</button>
+            </div>
+            <p id="picture-credit" class="picture-credit" hidden></p>
+            <p id="picture-note" class="quiet picture-note" hidden>This tab covers the whole land, not only this square.</p>
+          </section>
+
           <!-- Burn activity -->
           <section id="pane-where" class="panel-pane" role="tabpanel" aria-labelledby="tab-where">
             <h3 class="pane-title visually-hidden">Burn activity</h3>
             <section id="land-summary" class="land-summary" aria-label="Summary of the selected land" hidden>
-              <button type="button" id="cell-back" class="link-button back-link" hidden>Back to land</button>
-              <canvas id="land-cutout" class="cutout" width="672" height="340" role="img" aria-label="The selected land, cut out of the map"></canvas>
-
               <div class="activity" aria-live="polite">
                 <p id="activity-label" class="activity-label">Burning activity</p>
                 <p id="activity-value" class="activity-value"></p>
@@ -477,6 +488,7 @@
   <script src="/static/js/square.js"></script>
   <script src="/static/js/history.js"></script>
   <script src="/static/js/summary.js"></script>
+  <script src="/static/js/picture.js"></script>
   <script src="/static/js/research.js"></script>
   <script src="/static/js/examples.js"></script>
   <script src="/static/js/main.js"></script>

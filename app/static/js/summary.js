@@ -18,6 +18,7 @@ function refreshLandSummary() {
   state.outlookRequestId += 1;
   section.hidden = !hasLand;
   document.querySelector("#land-secondary-content").hidden = hasLand;
+  syncLandPicture();
   if (!hasLand) return;
   drawLandCutout([]);
   loadWeeklyActivity();
@@ -64,28 +65,45 @@ async function drawLandCutout(areas) {
   const ring = target.ring;
   if (!canvas || !ring || ring.length < 4) return;
   const token = ++state.cutoutToken;
+  state.pictureAreas = areas;
   if (target.marks) areas = [];
-  if (!areas.length) drawLandOutline(ring, canvas);
   const marks = target.marks || areas.map((area) => ({
     lat: area.center_lat,
     lon: area.center_lon,
     multi: Boolean(area.multiple_satellites),
   }));
+  const mode = state.pictureMode;
+  showPictureStyle(mode, target.noun);
+  if (mode === "3d") {
+    showTerrainView(ring, marks);
+    return;
+  }
+  closeTerrainView();
+  if (!areas.length) drawLandOutline(ring, canvas);
   // Capture into a spare canvas so a superseded capture never paints over a newer one.
   const spare = document.createElement("canvas");
   spare.width = canvas.width;
   spare.height = canvas.height;
+  const capture = mode === "satellite" ? globe.satelliteCutout : globe.snapshot;
   const paint = async () => {
     if (token !== state.cutoutToken) return false;
-    const captured = await globe.snapshot(ring, spare, marks);
+    const captured = await capture(ring, spare, marks);
     if (!captured || token !== state.cutoutToken) return false;
     const context = canvas.getContext("2d");
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.drawImage(spare, 0, 0);
     return true;
   };
+  const painted = await paint();
+  if (mode === "satellite") {
+    if (!painted && token === state.cutoutToken) {
+      drawLandOutline(ring, canvas);
+      setPictureCredit("Satellite imagery could not load. Check your connection, then choose Satellite again.");
+    }
+    return;
+  }
   // Map tiles keep sharpening after the globe arrives, so take the picture again a few seconds later.
-  if (await paint()) window.setTimeout(paint, 5000);
+  if (painted) window.setTimeout(paint, 5000);
 }
 
 // The big figure: Vela's weekly burning-activity estimate for the week that
