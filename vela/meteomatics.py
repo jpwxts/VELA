@@ -14,9 +14,8 @@ from datetime import datetime, timezone
 from typing import Callable
 from urllib.parse import quote
 
-import httpx
-
 from app.db import ResponseCache
+from vela.network import retrying_get
 from vela.settings import DATA_DIR
 
 LOGGER = logging.getLogger(__name__)
@@ -250,9 +249,8 @@ class MeteomaticsClient:
 
     @staticmethod
     def _default_get(url: str, auth: tuple[str, str]) -> tuple[int, str]:
-        with httpx.Client(timeout=30.0, follow_redirects=True) as client:
-            response = client.get(url, auth=auth)
-            return response.status_code, response.text
+        response = retrying_get(url, auth=auth, timeout=30.0)
+        return response.status_code, response.text
 
     def fetch_point(
         self,

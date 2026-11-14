@@ -216,6 +216,7 @@ function revealCellDetail(bounds, marks = [], heat = null) {
     box: [west, south, east, north],
     marks,
   };
+  clearHotspotDetailSearches();
   document.querySelector("#cell-detail").hidden = true;
   document.querySelector("#land-secondary-content").hidden = true;
   document.querySelector("#satellite-picker").hidden = true;
@@ -226,8 +227,8 @@ function revealCellDetail(bounds, marks = [], heat = null) {
   setSquareHeat(heat);
   document.querySelector(".card-body")?.scrollTo({ top: 0 });
   drawLandCutout([]);
-  loadWeeklyActivity();
-  loadDayOutlook();
+  trackHotspotSearch("activity", loadWeeklyActivity);
+  trackHotspotSearch("outlook", loadDayOutlook);
 }
 
 // "Heat seen" / "No heat reported"; satellites are named only when the visitor chose their own set.
@@ -674,7 +675,7 @@ async function showArea(area) {
   }
   document.querySelector("#area-readings").textContent = readingSummary(matched);
   renderImmediatePassList(matched, members);
-  loadFindingsForArea(matched).then((findings) => {
+  trackHotspotSearch("findings", () => loadFindingsForArea(matched)).then((findings) => {
     if (detailId !== state.detailRequestId) return;
     state.lastFindings = findings;
     renderFindingsPanel(matched, findings);
@@ -748,6 +749,7 @@ async function showArea(area) {
     date: matched.observation_day || dayInput.value,
     cell_id: matched.cell_id,
   });
+  const finishContextSearch = beginHotspotSearch("context");
   try {
     const [wildfireResponse, contextResponse] = await Promise.all([
       fetch(`/api/wildfire-report?${contextParams}`),
@@ -771,6 +773,8 @@ async function showArea(area) {
     document.querySelector("#unusual-text").textContent =
       "Comparable fire-calendar history could not be loaded for this square.";
     document.querySelector("#area-weather-headline").textContent = "Upcoming fire weather unavailable.";
+  } finally {
+    finishContextSearch();
   }
 
   updateSelectionBanner();
@@ -975,6 +979,7 @@ function showDetection(spot) {
 }
 
 function showDetectionStack(spots) {
+  state.detailRequestId += 1;
   const first = spots[0];
   revealCellDetail(squareAround(Number(first.lat), Number(first.lon)), [
     { lat: Number(first.lat), lon: Number(first.lon), multi: spots.length > 1 },

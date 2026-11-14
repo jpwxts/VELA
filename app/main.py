@@ -9,7 +9,6 @@ import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, Response
@@ -26,6 +25,7 @@ from vela.forecast_store import ForecastArchive
 from vela.findings import ZAMBIA_BOX, ZAMBIA_CELL_ID, ZAMBIA_DATE, build_findings
 from vela.history import attach_heat_overlay, build_monthly_history
 from vela.meteomatics import MeteomaticsClient, credentials_configured as meteomatics_configured
+from vela.network import retrying_get
 from vela.preparedness import (
     build_day_outlook,
     build_forecast,
@@ -60,9 +60,8 @@ STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 
 def http_get(url: str) -> tuple[int, str]:
-    with httpx.Client(timeout=120.0, follow_redirects=True) as client:
-        response = client.get(url)
-        return response.status_code, response.text
+    response = retrying_get(url, timeout=60.0)
+    return response.status_code, response.text
 
 
 def build_firms() -> FirmsClient:

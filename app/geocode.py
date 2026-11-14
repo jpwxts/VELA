@@ -15,9 +15,8 @@ import threading
 import time
 from typing import Any, Callable
 
-import httpx
-
 from app.db import ResponseCache
+from vela.network import retrying_get
 
 USER_AGENT = "VelaFireTimeMachine/0.1 (local NASA Space Apps project; reverse-geocode)"
 NOMINATIM_SEARCH = "https://nominatim.openstreetmap.org/search"
@@ -123,8 +122,13 @@ def _throttle() -> None:
 def _http_get(url: str, params: dict, headers: dict, getter=None) -> Any:
     if getter is not None:
         return getter(url, params, headers)
-    _throttle()
-    response = httpx.get(url, params=params, headers=headers, timeout=20.0)
+    response = retrying_get(
+        url,
+        params=params,
+        headers=headers,
+        timeout=20.0,
+        before_attempt=_throttle,
+    )
     response.raise_for_status()
     return response.json()
 

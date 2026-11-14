@@ -8,6 +8,7 @@ from pathlib import Path
 
 from vela.forecast_store import ForecastArchive
 from vela.geotiff import read_center_value
+from vela.network import retrying_get
 from vela.settings import DATA_DIR
 
 OPEN_METEO = "https://api.open-meteo.com/v1/forecast"
@@ -371,7 +372,10 @@ def build_forecast(west: float, south: float, east: float, north: float, getter,
     latitude, longitude = forecast_point(west, south, east, north)
     performance = verification_status(report)
     url, params = weather_request(latitude, longitude)
-    status, body = getter(url, params)
+    try:
+        status, body = getter(url, params)
+    except Exception:  # network failures must not hide independent satellite findings
+        return _failed(latitude, longitude, performance, "The weather feed is temporarily unavailable.")
     if status != 200:
         return _failed(latitude, longitude, performance, "The weather feed did not respond.")
     try:
@@ -514,16 +518,8 @@ def regional_fwi_reference(west: float, south: float, east: float, north: float)
 
 
 def request_bytes(url: str, params: dict | None = None) -> tuple[int, bytes]:
-    import httpx
-
-    # GWIS EFFIS WMS currently serves an expired TLS certificate; verify is
-    # disabled only for that known host so FWI GeoTIFF reads can continue.
-    verify = True
-    if "maps.effis.emergency.copernicus.eu" in url:
-        verify = False
-    with httpx.Client(timeout=40.0, follow_redirects=True, verify=verify) as client:
-        response = client.get(url, params=params)
-        return response.status_code, response.content
+    response = retrying_get(url, params=params, timeout=40.0)
+    return response.status_code, response.content
 
 
 def _measure(label: str, field: dict, unit: str, quiet_zero: bool = False) -> str:

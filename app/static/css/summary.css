@@ -79,6 +79,8 @@
 .picture-note { font-size: 0.875rem; }
 
 .activity-label { font-size: 0.9375rem; color: var(--ink-soft); }
+/* Keep final estimates and empty states out of view until the card is ready. */
+.activity[aria-busy="true"] > :not(#square-heat) { display: none; }
 .square-heat { margin-top: 6px; font-weight: 600; color: var(--ink-soft); }
 .square-heat.seen { color: var(--ember); }
 .activity-value {

@@ -97,6 +97,17 @@ def test_missing_fwi_feed_leaves_weather_in_place():
     assert forecast["recent_rain"]["millimetres"] == 3
 
 
+def test_weather_connection_failure_returns_an_unavailable_forecast():
+    def getter(_url, _params):
+        raise OSError("offline")
+
+    forecast = build_forecast(124.2, 7.0, 124.4, 7.2, getter, {"validation": {}})
+
+    assert forecast["ok"] is False
+    assert forecast["days"] == []
+    assert forecast["message"] == "The weather feed is temporarily unavailable."
+
+
 def test_held_out_error_stays_pending_until_a_validation_score_exists():
     pending = verification_status({"validation": "pending", "chosen_model": None})
     assert pending["status"] == "pending_verification"

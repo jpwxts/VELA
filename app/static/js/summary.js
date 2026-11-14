@@ -16,14 +16,15 @@ function refreshLandSummary() {
   state.cutoutToken += 1;
   state.activityRequestId += 1;
   state.outlookRequestId += 1;
+  clearHotspotDetailSearches();
   section.hidden = !hasLand;
   document.querySelector("#land-secondary-content").hidden = hasLand;
   syncLandPicture();
   if (!hasLand) return;
   drawLandCutout(state.lastLandCheck?.heat?.hotspot_areas?.areas || []);
   if (state.lastLandCheck) applyLandSummaryFromCheck(state.lastLandCheck);
-  else loadWeeklyActivity();
-  loadDayOutlook();
+  else trackHotspotSearch("activity", loadWeeklyActivity);
+  trackHotspotSearch("outlook", loadDayOutlook);
 }
 
 // Plain outline of the land, drawn at once so the frame is never empty while
@@ -152,6 +153,7 @@ function applyLandActivity(activity) {
 function applyLandSummaryFromCheck(payload) {
   if (!payload || state.summarySquare) return;
   state.activityRequestId += 1;
+  clearHotspotSearches("activity");
   applyLandActivity(payload.activity);
 }
 

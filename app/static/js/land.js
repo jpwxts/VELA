@@ -4,7 +4,9 @@
 const hotspotSearches = new Map();
 
 function syncHotspotSearchProgress() {
-  document.querySelector("#hotspot-search-progress").hidden = hotspotSearches.size === 0;
+  const loading = hotspotSearches.size > 0;
+  document.querySelector("#hotspot-search-progress").hidden = !loading;
+  document.querySelector("#land-summary .activity").setAttribute("aria-busy", String(loading));
 }
 
 function beginHotspotSearch(scope) {
@@ -21,6 +23,22 @@ function beginHotspotSearch(scope) {
 function clearHotspotSearches(scope) {
   if (scope) hotspotSearches.delete(scope);
   else hotspotSearches.clear();
+  syncHotspotSearchProgress();
+}
+
+async function trackHotspotSearch(scope, load) {
+  const finishSearch = beginHotspotSearch(scope);
+  try {
+    return await load();
+  } finally {
+    finishSearch();
+  }
+}
+
+function clearHotspotDetailSearches() {
+  for (const scope of ["square", "activity", "outlook", "findings", "context"]) {
+    hotspotSearches.delete(scope);
+  }
   syncHotspotSearchProgress();
 }
 
@@ -100,9 +118,14 @@ function renderLiveTimestamps(payload) {
 }
 
 async function loadStatus() {
-  const response = await fetch("/api/status");
-  if (!response.ok) return;
-  const payload = await response.json();
+  let payload;
+  try {
+    const response = await fetch("/api/status");
+    if (!response.ok) return;
+    payload = await response.json();
+  } catch (_error) {
+    return;
+  }
   if (payload.live?.ph_today) state.phToday = payload.live.ph_today;
   if (payload.live?.timestamps) state.liveTimestamps = payload.live.timestamps;
   renderLiveTimestamps({ timestamps: state.liveTimestamps });
@@ -134,12 +157,15 @@ async function searchPlace() {
   const list = document.querySelector("#places");
   list.innerHTML = "";
   if (query.length < 2) return;
-  const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
-  if (!response.ok) {
+  let payload;
+  try {
+    const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
+    if (!response.ok) throw new Error("Place search failed");
+    payload = await response.json();
+  } catch (_error) {
     list.innerHTML = "<li>Place search failed. Check your connection, or draw the boundary instead.</li>";
     return;
   }
-  const payload = await response.json();
   payload.places.forEach((place) => {
     const item = document.createElement("li");
     const button = document.createElement("button");
