@@ -196,6 +196,55 @@ def test_select_one_allows_aqua_alone_without_suomi_pair():
     assert chosen["rule"] == "aqua_when_eligible"
 
 
+def test_tile_bbox_splits_mindanao_scale_box():
+    from vela.geo import tile_bbox
+
+    # Wider than max_span on both axes → multiple tiles.
+    tiles = tile_bbox(117.0, 4.0, 127.0, 12.0, max_span=8.0)
+    assert len(tiles) >= 2
+    for west, south, east, north in tiles:
+        assert east - west <= 8.0 + 1e-9
+        assert north - south <= 8.0 + 1e-9
+    # Compact Maguindanao-scale box stays one tile under an 8° cap.
+    assert len(tile_bbox(122.0, 5.5, 127.5, 10.5, max_span=8.0)) == 1
+    # Small plots stay a single tile.
+    assert len(tile_bbox(124.0, 6.8, 124.1, 6.9, max_span=8.0)) == 1
+
+
+def test_filter_payload_to_ph_day_keeps_distinct_zero_and_ok():
+    from vela.firms_day import filter_payload_to_ph_day
+
+    payload = {
+        "total_count": 1,
+        "results": [
+            {
+                "platform": "NOAA-21",
+                "status": "ok",
+                "count": 1,
+                "hotspots": [
+                    {
+                        "platform": "NOAA-21",
+                        "acq_date": "2026-11-07",
+                        "acq_time": "04:33",
+                        "lat": 6.86,
+                        "lon": 124.06,
+                    }
+                ],
+            },
+            {
+                "platform": "Aqua",
+                "status": "ok",
+                "count": 0,
+                "hotspots": [],
+            },
+        ],
+    }
+    filtered = filter_payload_to_ph_day(payload, "2026-11-07")
+    assert filtered["total_count"] == 1
+    aqua = next(row for row in filtered["results"] if row["platform"] == "Aqua")
+    assert aqua["status"] == "no_hotspots"
+
+
 def test_land_and_weather_share_annotated_forecast_fields():
     annotated = annotate_forecast_days(_low_forecast())
     payload = build_land_check(

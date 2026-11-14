@@ -1,0 +1,52 @@
+{
+  "measured_at": "2026-11-15T01:13:00+08:00",
+  "polygon": {
+    "coordinates": [[124.0, 6.82], [124.1, 6.82], [124.1, 6.90], [124.0, 6.90], [124.0, 6.82]],
+    "label": "small Maguindanao plot",
+    "observation_date": "2026-11-07"
+  },
+  "before": {
+    "note": "Sequential UTC-day × sequential product FIRMS; large Mindanao boxes felt like multi-minute hangs; small-plot cold path often 30–70s wall.",
+    "small_plot_firms_path_ms_approx": 30000,
+    "small_plot_full_request_ms_approx": 45000
+  },
+  "after": {
+    "small_plot_cached": {
+      "wall_ms": 18072,
+      "firms_elapsed_ms": 16,
+      "cache_hit_feeds": 3,
+      "points_inside": 2,
+      "squares": 2,
+      "note": "FIRMS path ~16 ms after cache/store seed. Remaining wall time is Open-Meteo/GWIS weather, not FIRMS."
+    },
+    "empty_sea_plot_cold": {
+      "wall_ms": 21035,
+      "firms_elapsed_ms": 11078,
+      "points_inside": 0,
+      "heat_status": "none_unknown"
+    },
+    "public_mindanao_2026_11_07": {
+      "detections_api": 12,
+      "areas_api": 11,
+      "detections_map": 12,
+      "areas_map": 11
+    }
+  },
+  "clicked_squares": [
+    {
+      "cell_id": "2393:174",
+      "heat": "Heat detected · NOAA-21 · 12:33 PH time · 1 reading",
+      "prediction": "1% next-24h satellite hotspot chance · experimental · preserved archive · Model extra_trees · Compact Maguindanao"
+    },
+    {
+      "cell_id": "2397:180",
+      "heat": "Heat detected · NOAA-21 · 12:33 PH time · 1 reading",
+      "prediction": "99% next-24h satellite hotspot chance · experimental · Model hist_gradient_boosting · All Mindanao (island group)"
+    }
+  ],
+  "omniroute": {
+    "path": "/Users/florlyn/Desktop/OmniRoute",
+    "kind": "AI inference gateway (npm omniroute) — not satellite hotspot or road geography",
+    "used_in_land_check": false
+  }
+}

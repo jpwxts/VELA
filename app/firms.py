@@ -8,10 +8,11 @@ import io
 import json
 import logging
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime, timedelta, timezone
 
 from app.db import ResponseCache
-from vela.geo import firms_boxes, format_hhmm, lon_span, round_box
+from vela.geo import format_hhmm, lon_span, round_box, tile_bbox
 
 logger = logging.getLogger("vela.firms")
 
@@ -261,9 +262,32 @@ class FirmsClient:
                 choices[platform] = (None, None)
                 continue
             choices[platform] = choose_processing(observed, availability, *PRODUCTS[platform])
+        product_jobs = sorted(
+            {(product, processing) for product, processing in choices.values() if product}
+        )
         fetched = {}
-        for product, processing in {(product, processing) for product, processing in choices.values() if product}:
-            fetched[(product, processing)] = self._fetch_product(product, processing, (west, south, east, north), day)
+        # Concurrent product pulls with a small worker pool (FIRMS rate limits).
+        workers = min(4, max(1, len(product_jobs)))
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            futures = {
+                pool.submit(self._fetch_product, product, processing, (west, south, east, north), day): (
+                    product,
+                    processing,
+                )
+                for product, processing in product_jobs
+            }
+            for future in as_completed(futures):
+                product, processing = futures[future]
+                try:
+                    fetched[(product, processing)] = future.result()
+                except Exception as exc:  # noqa: BLE001
+                    logger.info("FIRMS product worker failed product=%s: %s", product, exc.__class__.__name__)
+                    fetched[(product, processing)] = {
+                        "status": "request_failed",
+                        "message": redact(str(exc), self.key) or "Request failed.",
+                        "hotspots": [],
+                        "cached": False,
+                    }
         results = []
         total = 0
         reported_unknown = set()
@@ -376,49 +400,62 @@ class FirmsClient:
             return {}, "Availability response could not be read."
         return parsed, None
 
+    def _fetch_one_tile(self, product: str, processing: str, piece, day: str, max_age: float | None) -> tuple[str, bool]:
+        """Return (csv_body, from_cache) for one geographic tile."""
+
+        key = _cache_key("area", product, day, piece)
+        cached = self.cache.get(key, max_age_hours=max_age)
+        if cached is not None:
+            return cached, True
+        west, south, east, north = piece
+        area = f"{west},{south},{east},{north}"
+        url = f"{AREA_ROOT}/{self.key}/{product}/{area}/{self.day_range}/{day}"
+        try:
+            status, body = self.getter(url)
+        except Exception as exc:  # noqa: BLE001
+            logger.info("FIRMS area failed product=%s date=%s", product, day)
+            raise RuntimeError(redact(str(exc), self.key) or "Request failed.") from exc
+        logger.info(
+            "FIRMS area product=%s date=%s box=%s http_status=%s",
+            product,
+            day,
+            area,
+            status,
+        )
+        interpreted, message = _interpret(status, body, self.key)
+        if interpreted == "request_failed":
+            raise RuntimeError(message or "Request failed.")
+        self.cache.put(key, "area", body)
+        return body, False
+
     def _fetch_product(self, product: str, processing: str, box, day: str) -> dict:
-        pieces = []
         cached_flags = []
         max_age = None
         if processing == "near_real_time":
             recent = date.fromisoformat(day) >= datetime.now(timezone.utc).date() - timedelta(days=1)
             max_age = RECENT_NRT_MAX_AGE_HOURS if recent else NRT_MAX_AGE_HOURS
-        for piece in firms_boxes(*box):
-            key = _cache_key("area", product, day, piece)
-            cached = self.cache.get(key, max_age_hours=max_age)
-            if cached is not None:
-                body = cached
-                cached_flags.append(True)
-            else:
-                west, south, east, north = piece
-                area = f"{west},{south},{east},{north}"
-                url = f"{AREA_ROOT}/{self.key}/{product}/{area}/{self.day_range}/{day}"
+        # Tile large Mindanao-scale boxes so each FIRMS request stays manageable.
+        tile_span = min(float(self.max_span), 8.0)
+        tiles = tile_bbox(*box, max_span=tile_span)
+        bodies: list[str] = []
+        workers = min(4, max(1, len(tiles)))
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            futures = [pool.submit(self._fetch_one_tile, product, processing, tile, day, max_age) for tile in tiles]
+            for future in as_completed(futures):
                 try:
-                    status, body = self.getter(url)
+                    body, from_cache = future.result()
                 except Exception as exc:  # noqa: BLE001
-                    logger.info("FIRMS area failed product=%s date=%s", product, day)
                     return {
                         "status": "request_failed",
                         "message": redact(str(exc), self.key) or "Request failed.",
                         "hotspots": [],
                         "cached": False,
                     }
-                logger.info(
-                    "FIRMS area product=%s date=%s box=%s http_status=%s",
-                    product,
-                    day,
-                    area,
-                    status,
-                )
-                interpreted, message = _interpret(status, body, self.key)
-                if interpreted == "request_failed":
-                    return {"status": "request_failed", "message": message, "hotspots": [], "cached": False}
-                self.cache.put(key, "area", body)
-                cached_flags.append(False)
-            pieces.append(body)
+                bodies.append(body)
+                cached_flags.append(from_cache)
         hotspots = []
         seen = set()
-        for body in pieces:
+        for body in bodies:
             for item in parse_hotspots(body):
                 identity = (
                     round(item["lat"], 5),
@@ -432,7 +469,13 @@ class FirmsClient:
                     continue
                 seen.add(identity)
                 hotspots.append(item)
-        return {"status": "ok", "message": "", "hotspots": hotspots, "cached": all(cached_flags) and bool(cached_flags)}
+        return {
+            "status": "ok",
+            "message": "",
+            "hotspots": hotspots,
+            "cached": all(cached_flags) and bool(cached_flags),
+            "tiles": len(tiles),
+        }
 
 
 def _interpret(status: int, body: str, key: str) -> tuple[str, str]:

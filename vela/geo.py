@@ -37,6 +37,44 @@ def firms_boxes(
     ]
 
 
+def tile_bbox(
+    west: float,
+    south: float,
+    east: float,
+    north: float,
+    *,
+    max_span: float = 8.0,
+) -> list[tuple[float, float, float, float]]:
+    """Split a large axis-aligned box into manageable FIRMS tiles.
+
+    Dateline-crossing boxes are first split at ±180°, then each piece is
+    gridded so every tile’s lon and lat span is at most ``max_span``.
+    """
+
+    pieces: list[tuple[float, float, float, float]] = []
+    for piece_west, piece_south, piece_east, piece_north in firms_boxes(west, south, east, north):
+        width = piece_east - piece_west
+        height = piece_north - piece_south
+        if width <= 0 or height <= 0:
+            continue
+        if width <= max_span and height <= max_span:
+            pieces.append((piece_west, piece_south, piece_east, piece_north))
+            continue
+        cols = max(1, int(np.ceil(width / max_span)))
+        rows = max(1, int(np.ceil(height / max_span)))
+        # Prefer equal tile sizes over leftover thin strips.
+        col_step = width / cols
+        row_step = height / rows
+        for row in range(rows):
+            tile_south = piece_south + row * row_step
+            tile_north = piece_north if row == rows - 1 else piece_south + (row + 1) * row_step
+            for col in range(cols):
+                tile_west = piece_west + col * col_step
+                tile_east = piece_east if col == cols - 1 else piece_west + (col + 1) * col_step
+                pieces.append((tile_west, tile_south, tile_east, tile_north))
+    return pieces
+
+
 def in_bbox(lon, lat, west: float, south: float, east: float, north: float):
     lon_arr = np.asarray(lon, dtype=np.float64)
     lat_arr = np.asarray(lat, dtype=np.float64)

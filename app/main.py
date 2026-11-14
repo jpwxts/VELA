@@ -64,12 +64,19 @@ def http_get(url: str) -> tuple[int, str]:
     return response.status_code, response.text
 
 
+def firms_http_get(url: str) -> tuple[int, str]:
+    """FIRMS area pulls use a tighter timeout so one stalled feed cannot hang the land check."""
+
+    response = retrying_get(url, timeout=25.0, attempts=3)
+    return response.status_code, response.text
+
+
 def build_firms() -> FirmsClient:
     cfg = settings()
     return FirmsClient(
         os.environ.get("FIRMS_MAP_KEY", ""),
         ResponseCache(DATA_DIR / "cache" / "firms.sqlite"),
-        http_get,
+        firms_http_get,
         max_span=float(cfg["max_request_span_degrees"]),
         day_range=1,
     )
@@ -778,9 +785,6 @@ def check_land(body: CheckLandRequest):
     # Expand the FIRMS query slightly so "nearby" detections just outside the fence are returned.
     pad = 0.05
     query_box = (west - pad, south - pad, east + pad, north + pad)
-    forecast = build_forecast(west, south, east, north, request_bytes, load_model_report())
-    if forecast.get("ok"):
-        forecast = issue_forecast(ARCHIVE, forecast)
 
     observation_date = body.date
     if not observation_date:
@@ -792,23 +796,38 @@ def check_land(body: CheckLandRequest):
             observation_date = (date_cls.today() - timedelta(days=1)).isoformat()
 
     platforms = body.platforms or OBSERVATION_PLATFORMS
-    if body.include_hotspots:
+
+    def _load_forecast():
+        payload = build_forecast(west, south, east, north, request_bytes, load_model_report())
+        if payload.get("ok"):
+            payload = issue_forecast(ARCHIVE, payload)
+        return payload
+
+    def _load_hotspots():
+        if not body.include_hotspots:
+            return {
+                "configured": bool(FIRMS.key),
+                "date": observation_date,
+                "bbox": {"west": west, "south": south, "east": east, "north": north},
+                "total_count": 0,
+                "combined": {"coverage": "unknown"},
+                "results": [],
+            }
         if _ring_uses_manila_day(ring):
             # Philippine plots: query overlapping UTC dates, assign by Asia/Manila day.
-            hotspots_payload = fetch_firms_for_ph_day(
+            return fetch_firms_for_ph_day(
                 FIRMS, ring, observation_date, platforms, pad=pad
             )
-        else:
-            hotspots_payload = FIRMS.hotspots(*query_box, observation_date, platforms)
-    else:
-        hotspots_payload = {
-            "configured": bool(FIRMS.key),
-            "date": observation_date,
-            "bbox": {"west": west, "south": south, "east": east, "north": north},
-            "total_count": 0,
-            "combined": {"coverage": "unknown"},
-            "results": [],
-        }
+        return FIRMS.hotspots(*query_box, observation_date, platforms)
+
+    # Weather and FIRMS do not depend on each other — run them together.
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        forecast_future = pool.submit(_load_forecast)
+        hotspots_future = pool.submit(_load_hotspots)
+        forecast = forecast_future.result()
+        hotspots_payload = hotspots_future.result()
 
     payload = build_land_check(
         ring=ring,
@@ -892,21 +911,29 @@ def check_land(body: CheckLandRequest):
                 "last_successful_source_check_at": persist.get("checked_at")
                 or stamps.get("last_successful_source_check_at"),
             }
+            heat = payload.get("heat") or {}
             payload["live"] = {
                 "mode": "live",
                 "ph_date": str(observation_date)[:10],
                 "timezone": "Asia/Manila",
                 "store_path": str(store.path),
                 "feeds": feeds,
+                "timing": hotspots_payload.get("timing"),
+                "points_before_clip": int(hotspots_payload.get("total_count") or 0),
+                "points_inside": int(heat.get("inside_count") or len(heat.get("inside") or [])),
+                "points_nearby": int(heat.get("nearby_count") or len(heat.get("nearby") or [])),
+                "squares": len(((heat.get("hotspot_areas") or {}).get("areas") or [])),
                 "cache_note": (
-                    "cached=true means FIRMS ResponseCache served a still-valid entry "
-                    "(NRT TTL 3h; standard processing entries do not expire). "
-                    "Refresh now re-queries and records a new checked_at."
+                    "cached=true means FIRMS ResponseCache or the observation store served "
+                    "a still-valid entry (recent NRT TTL 30m; older NRT 3h; standard processing "
+                    "entries do not expire). Refresh now re-queries and records a new checked_at."
                 ),
             }
         except Exception as exc:  # noqa: BLE001 - Live path must not fail the land check.
             logging.getLogger(__name__).warning("observation store write skipped: %s", exc)
             payload["timestamps"] = {"error": "store_write_skipped"}
+    if hotspots_payload.get("timing"):
+        payload["firms_timing"] = hotspots_payload.get("timing")
     return payload
 
 

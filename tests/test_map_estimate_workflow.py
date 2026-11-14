@@ -86,7 +86,8 @@ def test_maguindanao_marker_findings_and_history_heat_overlay():
     assert day["activity_rate"] is None
     day8 = next(item for item in history["days"] if item["date"] == "2026-11-08")
     assert day8["display_kind"] == "heat"
-    assert day8["heat_count"] == 4
+    # Snapshot baseline is 4; the observation store may add later Live refreshes.
+    assert day8["heat_count"] >= 4
 
 
 def test_failed_feed_stays_failed_in_merge():

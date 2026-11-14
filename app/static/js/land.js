@@ -494,8 +494,8 @@ async function checkLand(options = {}) {
   document.querySelector("#year").value = date.slice(0, 4);
   const requestId = ++state.landRequestId;
   ++state.requestId;
+  // Keep previous heat markers until the new payload paints — never blank the map mid-flight.
   resetLandResult();
-  state.lastLandCheck = null;
   state.forecast = null;
   refreshLandSummary();
   state.landLabel = options.label || state.landLabel || "Your land";
@@ -503,6 +503,9 @@ async function checkLand(options = {}) {
   setChecking(true);
   document.querySelector("#area-label").textContent =
     `Checking satellite heat for ${formatObservationDay(date)}…`;
+  document.querySelector("#heat-feeds").innerHTML =
+    `<p class="quiet">Querying ${platforms.join(", ")} for overlapping UTC dates…</p>`;
+  document.querySelector("#heat-block").hidden = false;
   renderDaySummary();
   openLandPanel({ tab: state.panelTab || "where", focus: false });
   const finishSearch = beginHotspotSearch("land");
@@ -520,6 +523,7 @@ async function checkLand(options = {}) {
     });
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.detail || "Land check failed");
+    // Rapid redraw: drop older responses so they cannot replace the current plot.
     if (requestId !== state.landRequestId) return;
     renderLandCheck(payload);
   } catch (error) {

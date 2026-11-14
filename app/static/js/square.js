@@ -63,10 +63,15 @@ function formatGap(minutes) {
 
 function leadSentence(area) {
   const count = Number(area.satellite_count || (area.platforms || []).length || 0);
-  if (count === 2) return "Two satellites detected heat here.";
-  if (count > 2) return `${count} satellites detected heat here.`;
-  if (count === 1) return "One satellite detected heat here.";
-  return "Heat was detected in this square.";
+  const names = joinPlatformNames(area.platforms || []);
+  const members = area.members || [];
+  const phTimes = [...new Set(members.map((spot) => formatDetectionLocalTime(spot)).filter((text) => text && text !== "—"))].slice(0, 3);
+  const timeBit = phTimes.length ? ` · ${phTimes.join("; ")}` : "";
+  const readingBit = members.length ? ` · ${members.length} reading${members.length === 1 ? "" : "s"}` : "";
+  if (count === 2) return `Heat detected · ${names || "two satellites"}${timeBit}${readingBit}`;
+  if (count > 2) return `Heat detected · ${names || `${count} satellites`}${timeBit}${readingBit}`;
+  if (count === 1) return `Heat detected · ${names || "one satellite"}${timeBit}${readingBit}`;
+  return "Heat detected in this square.";
 }
 
 function latestObservation(area) {
@@ -297,31 +302,49 @@ function renderHotspotForecast(payload) {
   if (!value || !meta) return;
   if (label) {
     label.textContent = payload?.public_label
-      || "Chance satellites record a hotspot in this square.";
+      || "Chance satellites record a hotspot in this square in the next 24 hours.";
   }
+  const stampBits = [
+    payload?.issue_time_manila ? `Issued ${payload.issue_time_manila}` : "",
+    payload?.model_version ? `Model ${payload.model_version}` : "",
+    payload?.study?.label || payload?.study?.id || "",
+  ].filter(Boolean);
   if (payload?.status === "issued" && payload.probability_percent != null) {
     value.textContent = `${payload.probability_percent}%`;
     value.classList.remove("is-words");
-    // A flagged score keeps one honest word; the technical record stays in the API.
-    meta.textContent = payload.experimental ? "Experimental score" : "";
+    meta.textContent = [
+      payload.experimental ? "Experimental score" : "Next-24-hour satellite hotspot chance",
+      ...stampBits,
+    ].filter(Boolean).join(" · ");
   } else if (payload?.calendar_state === "upcoming" || payload?.status === "upcoming") {
     value.textContent = "Upcoming";
     value.classList.add("is-words");
-    meta.textContent = payload?.reason || "No issued percentage until that Philippine date.";
+    meta.textContent = [
+      payload?.reason || "No issued percentage until that Philippine date.",
+      ...stampBits,
+    ].filter(Boolean).join(" · ");
   } else if (payload?.calendar_state === "unsupported_location" || payload?.status === "unsupported") {
     value.textContent = "Not evaluated here";
     value.classList.add("is-words");
-    meta.textContent = payload?.reason
-      || "Outside Mindanao — satellite readings and weather remain available.";
+    meta.textContent = [
+      payload?.reason || "Outside the trained region — observed heat dots stay visible.",
+      ...stampBits,
+    ].filter(Boolean).join(" · ");
   } else if (payload?.calendar_state === "coverage_status_only" || payload?.status === "coverage_status_only") {
     value.textContent = "Coverage only";
     value.classList.add("is-words");
-    meta.textContent = payload?.reason
-      || "Inside Mindanao; percentages wait for island-wide evaluation. Readings and weather remain available.";
+    meta.textContent = [
+      payload?.reason
+        || "Inside Mindanao; percentages wait for island-wide evaluation. Observed heat stays visible.",
+      ...stampBits,
+    ].filter(Boolean).join(" · ");
   } else {
     value.textContent = payload?.calendar_state === "insufficient_inputs" ? "Insufficient inputs" : "Not available";
     value.classList.add("is-words");
-    meta.textContent = payload?.reason || "";
+    meta.textContent = [
+      payload?.reason || "No approved model score for this square and date. Observed heat stays visible.",
+      ...stampBits,
+    ].filter(Boolean).join(" · ");
   }
   meta.hidden = !meta.textContent;
   if (payload?.cell_id && typeof loadHotspotMonthForSquare === "function") {
@@ -453,7 +476,9 @@ function renderFindingsPanel(matched, findings) {
   const satellite = findings?.satellite || {};
   const model = findings?.model || {};
   const mismatch = findings?.date_mismatch || {};
-  if (satellite.lead) {
+  // Keep the richer “Heat detected · satellites · PH times” lead from showArea.
+  // Findings still supply pass lists and model notes below.
+  if (satellite.lead && !(document.querySelector("#area-sentence")?.textContent || "").startsWith("Heat detected")) {
     document.querySelector("#area-sentence").textContent = satellite.lead;
   }
   const passHost = document.querySelector("#area-pass-list");

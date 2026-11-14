@@ -36,6 +36,19 @@ Requires `FIRMS_MAP_KEY` in `.env`. Persistent store: `data/observations/philipp
 
 **Timestamps shown separately:** latest satellite observation · last successful source check · estimates processed through.
 
+### Land-check data flow (hotspots)
+
+1. Visitor draws a polygon (or opens **All Mindanao** / a saved example).
+2. `POST /api/check-land` loads **weather** and **FIRMS** concurrently.
+3. Philippine plots query the **smallest padded bbox**, split into ≤8° tiles when needed, for the two UTC dates that cover Asia/Manila today.
+4. Supported MODIS/VIIRS products fetch **concurrently** (bounded workers), with ResponseCache by product+UTC day+tile and reuse of `data/observations/philippines.sqlite` when rows already exist.
+5. Points are filtered to the Manila calendar day, then clipped to the **actual polygon** (inside vs nearby). Distinct satellite pixels/passes are kept; exact duplicates are dropped.
+6. Feed states stay distinct: readings · successful zero · failed · product unavailable.
+7. Heat is grouped into **5 km squares**. Clicking a square shows **Heat detected** (satellites, PH local times, reading count) and, beneath it, the **next-24-hour satellite hotspot chance** when the square is in a supported region. Observed heat never disappears when the prediction is unavailable.
+8. History’s **observed burning activity** chart stays a separate metric from the next-24-hour hotspot prediction.
+
+**OmniRoute note:** The `~/Desktop/OmniRoute` install is an **AI inference gateway** (npm `omniroute`, dashboard on `:20128`). It is **not** satellite hotspot, coverage, or road/route geography for Vela. Land checks use NASA FIRMS + the Philippine observation store; OmniRoute is unrelated to MODIS/VIIRS detections.
+
 ### Draw-land activity formula
 
 When eligible inputs exist for the drawn boundary:
@@ -58,7 +71,7 @@ Activity (%) = 100 × (sum of Aqua activity indicators + sum of eligible calibra
 ### Philippine satellite-hotspot forecast (MODIS/VIIRS, Mindanao-wide)
 
 Public question: *For this 5 km square, what is the estimated chance that MODIS or VIIRS will detect heat in the next 24 hours?*  
-Label shown in the UI: **Chance satellites record a hotspot in this square.**
+Label shown in the UI: **Chance satellites record a hotspot in this square in the next 24 hours.**
 
 This product is **separate** from Aqua–Suomi harmonization and from the Philippine wildfire-onset research pipeline. It uses **NASA MODIS/VIIRS only** (no BFP, no weather APIs). It is **not** a wildfire-onset probability.
 
