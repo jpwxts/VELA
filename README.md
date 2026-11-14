@@ -35,8 +35,7 @@ An earlier live Burn-activity screen (Terra unchecked) reported 45 detections an
 1. Start Vela and open **Burn activity**.
 2. Under **Saved examples**, choose **Philippines · 7 Nov 2026**.
 3. The map opens with **Show individual detections** enabled so the dots appear immediately. Toggle that checkbox off to return to the 5 km grouped view.
-4. Use **All Philippines** / **All Mindanao** under the saved example to filter the same snapshot. A Masbate point can appear nationwide and must disappear under Mindanao.
-5. Click a dot to see satellite name, Philippine local date/time, and place name or coordinates in the vertical location panel. The sidebar stays navigation-only.
+4. Click a dot to see satellite name, Philippine local date/time, and place name or coordinates in the vertical location panel. The sidebar stays navigation-only.
 
 **Team feedback**
 

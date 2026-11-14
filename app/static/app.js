@@ -48,7 +48,6 @@ const state = {
   calendarEmptyReason: null,
   calendarRequestId: 0,
   savedLandSnapshot: null,
-  publicSnapshot: null,
   usingSavedExample: false,
   // Atlas shell
   insets: { top: 64, right: 0, bottom: 0, left: 0 },
@@ -189,15 +188,6 @@ if (window.ResizeObserver && document.querySelector("#hours-strip")) {
 }
 document.querySelector("#try-example").addEventListener("click", loadCompetitionDemo);
 document.querySelector("#try-philippines")?.addEventListener("click", () => loadPhilippinesPublicExample());
-document.querySelectorAll("[data-public-region]").forEach((button) => {
-  button.addEventListener("click", () => {
-    if (!state.publicSnapshot?.day) return;
-    loadPhilippinesPublicExample({
-      day: state.publicSnapshot.day,
-      region: button.dataset.publicRegion,
-    });
-  });
-});
 document.querySelector("#draw").addEventListener("click", startPolygonDraw);
 document.querySelector("#finish-draw").addEventListener("click", finishPolygonDraw);
 document.querySelector("#clear-area").addEventListener("click", clearLand);
@@ -659,9 +649,6 @@ function clearLand() {
   state.lastPlace = null;
   state.placeName = null;
   state.landLabel = null;
-  state.publicSnapshot = null;
-  const regionFilters = document.querySelector("#philippines-region-filters");
-  if (regionFilters) regionFilters.hidden = true;
   state.placeRequestId += 1;
   state.checkedDays.clear();
   state.checkingDay = null;
@@ -817,20 +804,13 @@ async function loadCompetitionDemo() {
 
 async function loadPhilippinesPublicExample(options = {}) {
   const day = options.day || "2026-11-07";
-  const region = options.region || "philippines";
   const requestId = ++state.landRequestId;
-  state.publicSnapshot = { day, region };
   state.savedExample = true;
   openLandPanel({ tab: "where", focus: false });
-  const regionFilters = document.querySelector("#philippines-region-filters");
-  if (regionFilters) regionFilters.hidden = false;
-  document.querySelector("#area-label").textContent =
-    region === "mindanao"
-      ? "Loading Mindanao filter of the Philippine snapshot…"
-      : "Loading Philippine satellite snapshot…";
+  document.querySelector("#area-label").textContent = "Loading Philippine satellite snapshot…";
   try {
     const response = await fetch(
-      `/api/public/philippines/${encodeURIComponent(day)}?region=${encodeURIComponent(region)}`
+      `/api/public/philippines/${encodeURIComponent(day)}?region=philippines`
     );
     const payload = await response.json();
     if (requestId !== state.landRequestId) return;
