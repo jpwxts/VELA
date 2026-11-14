@@ -242,10 +242,13 @@ def forecast_for_cell(
             "status": "awaiting_observation",
             "label": "Outcome awaiting observation",
         }
+        existing["issuance_kind"] = "preserved_archive"
+        existing["feature_cutoff_manila"] = support.get("input_cutoff_manila")
+        existing["feature_cutoff_utc"] = support.get("input_cutoff_utc")
         if historical_simulation:
             existing["historical_simulation"] = False
             existing["label_note"] = (
-                "Preserved forecast as originally issued — not a fresh historical simulation."
+                "Preserved forecast as originally issued — not a fresh historical reconstruction."
             )
             existing["calendar_state"] = "forecast_available"
             return existing
@@ -292,14 +295,18 @@ def forecast_for_cell(
         "features": features,
         "calendar_state": "forecast_available",
         "reason": None,
+        "feature_cutoff_manila": support.get("input_cutoff_manila"),
+        "feature_cutoff_utc": support.get("input_cutoff_utc"),
     }
     if historical_simulation:
         payload["historical_simulation"] = True
+        payload["issuance_kind"] = "historical_reconstruction"
         payload["label_note"] = (
-            "Historical simulation — not an originally issued Vela forecast unless a preserved "
+            "Historical reconstruction — not an originally issued Vela forecast unless a preserved "
             "issue archive entry exists for this square and date."
         )
         return payload
+    already = archive.get(cell_id, day)
     stored = archive.put_if_absent(payload)
     stored = dict(stored)
     stored["outcome"] = archive.outcome(cell_id, day) or {
@@ -307,7 +314,103 @@ def forecast_for_cell(
         "label": "Outcome awaiting observation",
     }
     stored["support"] = support
+    stored["feature_cutoff_manila"] = support.get("input_cutoff_manila")
+    stored["feature_cutoff_utc"] = support.get("input_cutoff_utc")
+    stored["issuance_kind"] = "preserved_archive" if already is not None else "newly_issued"
+    if already is None:
+        stored["issued_at_utc"] = stored.get("issued_at_utc") or datetime.now(timezone.utc).isoformat()
     return stored
+
+
+def month_forecasts_for_cell(cell_id: str, year_month: str) -> dict[str, Any]:
+    """Daily hotspot-forecast states for one square and YYYY-MM (calendar agreement)."""
+
+    year_month = str(year_month)[:7]
+    year, month = [int(part) for part in year_month.split("-")]
+    from calendar import monthrange
+
+    days = monthrange(year, month)[1]
+    archive = HotspotForecastStore()
+    selection = load_selection()
+    reason = forecast_unavailable_reason(selection)
+    obs = ObservationStore()
+    detections = load_study_detections(obs)
+    mask_info = fire_mask_coverage_keys(study_cells())
+    coverage_days = {d for (_, d) in mask_info["square_days"]}
+    bundle = None
+    if not reason and selection and selection.get("model_artifact"):
+        bundle = joblib.load(selection["model_artifact"])
+        if bundle.get("kind") == "baseline" and bundle.get("winner_name") != "persistence_recent_heat":
+            comparison = json.loads(Path(selection["comparison_path"]).read_text(encoding="utf-8"))
+            rate = comparison.get("row_counts", {}).get("positive_train", 0) / max(
+                1, comparison.get("row_counts", {}).get("train", 1)
+            )
+            bundle = dict(bundle)
+            bundle["global_rate"] = rate
+
+    rows = []
+    for day_num in range(1, days + 1):
+        day = f"{year:04d}-{month:02d}-{day_num:02d}"
+        existing = archive.get(cell_id, day)
+        if existing is not None:
+            rows.append(
+                {
+                    "date": day,
+                    "probability_percent": existing.get("probability_percent"),
+                    "model_version": existing.get("model_version"),
+                    "calendar_state": existing.get("calendar_state") or "forecast_available",
+                    "issuance_kind": "preserved_archive",
+                    "issue_time_manila": existing.get("issue_time_manila"),
+                    "issued_at_utc": existing.get("issued_at_utc"),
+                    "feature_cutoff_manila": existing.get("feature_cutoff_manila")
+                    or existing.get("issue_time_manila"),
+                    "historical_simulation": False,
+                }
+            )
+            continue
+        if reason or bundle is None:
+            rows.append(
+                {
+                    "date": day,
+                    "probability_percent": None,
+                    "model_version": None,
+                    "calendar_state": "insufficient_inputs",
+                    "issuance_kind": "historical_reconstruction",
+                    "issue_time_manila": issue_datetime_manila(day).isoformat(),
+                    "historical_simulation": True,
+                    "reason": reason or "Model unavailable",
+                }
+            )
+            continue
+        features = build_feature_row(
+            cell_id=cell_id,
+            issue_date_ph=day,
+            detections=detections,
+            coverage_days=coverage_days,
+        )
+        probability = _predict_probability(bundle, features)
+        percent = int(round(max(0.0, min(1.0, probability)) * 100))
+        rows.append(
+            {
+                "date": day,
+                "probability_percent": percent,
+                "model_version": selection.get("chosen_model"),
+                "calendar_state": "forecast_available",
+                "issuance_kind": "historical_reconstruction",
+                "issue_time_manila": issue_datetime_manila(day).isoformat(),
+                "feature_cutoff_manila": issue_datetime_manila(day).isoformat(),
+                "historical_simulation": True,
+            }
+        )
+    return {
+        "cell_id": cell_id,
+        "year_month": year_month,
+        "days": rows,
+        "note": (
+            "Each calendar cell shows the forecast issued for that Manila date when archived; "
+            "otherwise a labeled historical reconstruction. Live observations may update separately."
+        ),
+    }
 
 
 def polygon_hotspot_summary(cell_ids: list[str], issue_date_ph: str | None = None) -> dict:

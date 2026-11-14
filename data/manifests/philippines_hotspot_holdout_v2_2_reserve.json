@@ -1,0 +1,54 @@
+{
+  "name": "philippines_hotspot_holdout_v2_2_reserve",
+  "registered_before_further_tuning": true,
+  "registered_at_utc": "2026-11-14T14:31:55.839248+00:00",
+  "status": "sealed_unused_for_tuning",
+  "scope": "test_split_only",
+  "rule": {
+    "geographic": "cell x_index >= 2398",
+    "temporal": "issue_date_ph starts with 2025-02, 2025-03, or 2026-11",
+    "union": "test row reserved if geographic OR temporal",
+    "excluded_from": [
+      "imputation",
+      "threshold",
+      "model_selection",
+      "further_tuning",
+      "promotion_claims"
+    ]
+  },
+  "n_reserved_test_rows": 1284,
+  "n_positives": 435,
+  "n_negatives": 849,
+  "n_claimable_test_rows": 524,
+  "claimable_holdout_metrics": {
+    "threshold": 0.1,
+    "positive_event_count": 218,
+    "brier_score": 0.22546698631904583,
+    "baseline_brier_score": 0.2798004930266451,
+    "brier_skill_vs_baseline": 0.1941866010308465,
+    "precision": 0.5152439024390244,
+    "recall": 0.7752293577981652,
+    "f1": 0.6190476190476191,
+    "accuracy": 0.6030534351145038,
+    "confusion_matrix_labels": [
+      0,
+      1
+    ],
+    "confusion_matrix": [
+      [
+        147,
+        159
+      ],
+      [
+        49,
+        169
+      ]
+    ],
+    "pr_curve_points": 281,
+    "pr_auc": 0.679797802034755,
+    "n": 524,
+    "positives": 218,
+    "negatives": 306
+  },
+  "note": "Sealed before further tuning. v2.1 promotion claims use claimable_ex_v22_reserve metrics."
+}

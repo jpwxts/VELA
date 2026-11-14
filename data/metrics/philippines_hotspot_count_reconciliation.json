@@ -1,0 +1,129 @@
+{
+  "v1_square_days": 63936,
+  "v2_1_square_days": 64368,
+  "delta": 432,
+  "added_days": [
+    "2026-10-01"
+  ],
+  "explanation": "Exactly one extra Philippine feed_check day \u00d7 432 study cells = +432. Day 2026-10-01 is present in observation-store feed_checks but was not in the Maguindanao hotspot backfill DATE_WINDOWS used for v1 (148 days). It entered via Live/national FIRMS refresh outside the compact training windows.",
+  "added_day_detail": {
+    "ph_date": "2026-10-01",
+    "cells": 432,
+    "in_planned_hotspot_windows": false,
+    "feed_checks": [
+      {
+        "platform": "Aqua",
+        "status": "ok_zero",
+        "count": 0,
+        "message": "ok",
+        "checked_at": "2026-11-14T14:13:25.422943+00:00"
+      },
+      {
+        "platform": "NOAA-20",
+        "status": "ok",
+        "count": 1,
+        "message": "ok",
+        "checked_at": "2026-11-14T14:13:25.422943+00:00"
+      },
+      {
+        "platform": "NOAA-21",
+        "status": "ok",
+        "count": 6,
+        "message": "ok",
+        "checked_at": "2026-11-14T14:13:25.422943+00:00"
+      },
+      {
+        "platform": "Suomi-NPP",
+        "status": "ok",
+        "count": 2,
+        "message": "ok",
+        "checked_at": "2026-11-14T14:13:25.422943+00:00"
+      }
+    ],
+    "label_on_that_day": {
+      "unknown": 432
+    }
+  },
+  "label_counts": {
+    "unknown": 60970,
+    "negative": 2211,
+    "positive": 1187
+  },
+  "by_month": {
+    "2023-02": {
+      "unknown": 5651,
+      "negative": 369,
+      "positive": 28
+    },
+    "2023-03": {
+      "unknown": 5297,
+      "negative": 633,
+      "positive": 118
+    },
+    "2023-08": {
+      "unknown": 12013,
+      "positive": 83
+    },
+    "2024-02": {
+      "unknown": 5974,
+      "positive": 292,
+      "negative": 214
+    },
+    "2024-03": {
+      "unknown": 4527,
+      "negative": 995,
+      "positive": 526
+    },
+    "2024-08": {
+      "unknown": 12053,
+      "positive": 43
+    },
+    "2025-02": {
+      "unknown": 6020,
+      "positive": 28
+    },
+    "2025-03": {
+      "unknown": 3001,
+      "positive": 23
+    },
+    "2026-10": {
+      "unknown": 432
+    },
+    "2026-11": {
+      "unknown": 6002,
+      "positive": 46
+    }
+  },
+  "by_split": {
+    "test": {
+      "unknown": 45050,
+      "negative": 1155,
+      "positive": 653
+    },
+    "train": {
+      "unknown": 10947,
+      "negative": 470,
+      "positive": 119
+    },
+    "validation": {
+      "unknown": 4973,
+      "negative": 586,
+      "positive": 415
+    }
+  },
+  "by_platform_scored": {
+    "Aqua": {
+      "negative": 2211,
+      "positive": 247
+    },
+    "FIRMS": {
+      "positive": 940
+    }
+  },
+  "positive_qualification": {
+    "firms_only": 1152,
+    "fire_mask_heat_only": 0,
+    "both": 35,
+    "rule": "A positive qualifies for scoring without a clear-pass requirement: FIRMS detection and/or fire-mask hotspot in the Manila day window. Negatives require a clear-pass (\u226550% visible land, zero detections). Unknowns are not scored."
+  }
+}

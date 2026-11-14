@@ -66,20 +66,55 @@ function _fmtPct(value) {
   return `${(Number(value) * 100).toFixed(1)}%`;
 }
 
+function _fmtNum(value, digits = 4) {
+  if (value == null || Number.isNaN(Number(value))) return "—";
+  return Number(value).toFixed(digits);
+}
+
 function _metricLine(label, metrics) {
   if (!metrics) return `${label}: no scores yet.`;
+  const cm = metrics.confusion_matrix;
+  const cmText = Array.isArray(cm) ? ` · CM [[${cm[0]}],[${cm[1]}]]` : "";
   return (
-    `${label}: Brier ${metrics.brier_score?.toFixed?.(4) ?? metrics.brier_score}`
-    + ` · P ${_fmtPct(metrics.precision)} · R ${_fmtPct(metrics.recall)} · F1 ${_fmtPct(metrics.f1)}`
+    `${label}: n ${metrics.n ?? "—"} (+${metrics.positives ?? metrics.positive_event_count ?? "—"})`
+    + ` · Acc ${_fmtPct(metrics.accuracy)} · P ${_fmtPct(metrics.precision)} · R ${_fmtPct(metrics.recall)}`
+    + ` · F1 ${_fmtPct(metrics.f1)} · Brier ${_fmtNum(metrics.brier_score)}`
     + (metrics.pr_auc != null ? ` · PR-AUC ${_fmtPct(metrics.pr_auc)}` : "")
+    + (metrics.baseline_brier_score != null ? ` · seasonal Brier ${_fmtNum(metrics.baseline_brier_score)}` : "")
     + (metrics.brier_skill_vs_baseline != null
-      ? ` · skill vs seasonal ${Number(metrics.brier_skill_vs_baseline).toFixed(3)}`
+      ? ` · skill ${Number(metrics.brier_skill_vs_baseline).toFixed(3)}`
       : "")
+    + cmText
   );
+}
+
+function _renderModelBoard(classifiers, baselines, validationN) {
+  const rows = [...(classifiers || []), ...(baselines || []).map((row) => ({ ...row, kind: "baseline" }))];
+  if (!rows.length) return "<p class='quiet'>Six-model board not available yet.</p>";
+  const head = `<table class="member-table"><thead><tr>
+    <th>Model</th><th>Thr</th><th>Acc</th><th>P</th><th>R</th><th>F1</th><th>Brier</th><th>n (val)</th>
+  </tr></thead><tbody>`;
+  const body = rows.map((row) => {
+    const m = row.metrics || {};
+    const n = m.n ?? validationN ?? "—";
+    return `<tr>
+      <td>${escapeHtml(row.name)}${row.kind === "baseline" ? " (baseline)" : ""}</td>
+      <td>${row.threshold ?? "—"}</td>
+      <td>${_fmtPct(m.accuracy)}</td>
+      <td>${_fmtPct(m.precision)}</td>
+      <td>${_fmtPct(m.recall)}</td>
+      <td>${_fmtPct(m.f1)}</td>
+      <td>${_fmtNum(m.brier_score)}</td>
+      <td>${n}</td>
+    </tr>`;
+  }).join("");
+  return `${head}${body}</tbody></table>
+    <p class="quiet">Validation board · same features/splits/tuning budget. Winner chosen by lowest Brier, not accuracy≈F1.</p>`;
 }
 
 async function loadHotspotAnalytics() {
   const summary = document.querySelector("#hotspot-analytics-summary");
+  const board = document.querySelector("#hotspot-model-board");
   const v2 = document.querySelector("#hotspot-analytics-v2");
   const v1 = document.querySelector("#hotspot-analytics-v1");
   const replay = document.querySelector("#hotspot-analytics-replay");
@@ -91,19 +126,28 @@ async function loadHotspotAnalytics() {
     const current = analytics.v2_1 || {};
     const archived = analytics.v1_archived_experiment || {};
     const holdout = current.holdout || {};
+    const claimable = holdout.claimable_ex_v22_reserve || holdout.metrics;
     summary.textContent =
       current.winner
-        ? `Selected coverage-backed model: ${current.winner.name} (threshold ${current.winner.threshold}). Scores below use fire-mask/geolocation negatives.`
-        : (payload?.comparison?.reason || "Hotspot-forecast analytics unavailable.");
-    const board = (current.leaderboard || [])
-      .map((row) => `${row.name}: Brier ${Number(row.brier).toFixed(4)}`)
-      .join(" · ");
+        ? `Selected coverage-backed model: ${current.winner.name} (threshold ${current.winner.threshold}). `
+          + `Validation n=${current.row_counts?.validation_n ?? current.row_counts?.validation ?? "—"}. `
+          + `Promotion claims use claimable holdout excluding the sealed v2.2 reserve.`
+        : (payload?.comparison?.reason || "Hotspot-forecast model performance unavailable.");
+    if (board) {
+      board.innerHTML = _renderModelBoard(
+        current.classifiers || payload?.comparison?.classifiers,
+        current.baselines || payload?.comparison?.baselines,
+        current.row_counts?.validation_n || current.row_counts?.validation,
+      );
+    }
+    const seasonal = claimable?.baseline_brier_score;
     v2.innerHTML = [
-      `<p><strong>Coverage-backed (v2.1)</strong></p>`,
-      `<p>${_metricLine("Independent holdout", holdout.metrics)}</p>`,
+      `<p><strong>Selected model holdout (claimable)</strong></p>`,
+      `<p>${_metricLine("Identical claimable rows", claimable)}</p>`,
+      seasonal != null ? `<p class="quiet">Seasonal baseline Brier on identical rows: ${_fmtNum(seasonal)}</p>` : "",
       `<p>${_metricLine("Recent-heat squares", holdout.recent_heat_squares)}</p>`,
       `<p>${_metricLine("No recent heat (cold)", holdout.no_recent_heat_squares)}</p>`,
-      board ? `<p class="quiet">Leaderboard · ${escapeHtml(board)}</p>` : "",
+      `<p class="quiet">Full test including sealed reserve is retained for audit only; do not tune on the v2.2 reserve.</p>`,
     ].join("");
     const v1board = (archived.leaderboard || [])
       .map((row) => `${row.name}: Brier ${Number(row.brier).toFixed(4)}`)
@@ -118,14 +162,14 @@ async function loadHotspotAnalytics() {
     const preserved = analytics.preserved_replay_example || {};
     if (replay) {
       replay.innerHTML = preserved.cell_id
-        ? `<p><strong>Preserved replay</strong> · cell ${escapeHtml(preserved.cell_id)} · `
+        ? `<p><strong>Preserved v1 replay</strong> · cell ${escapeHtml(preserved.cell_id)} · `
           + `issue slot ${escapeHtml(preserved.issue_date_ph)} 00:00 Asia/Manila · `
           + `${preserved.probability_percent}% from v1 model ${escapeHtml(preserved.v1_model_version || "—")}. `
           + `${escapeHtml(preserved.note || "")}</p>`
         : "";
     }
   } catch (_error) {
-    summary.textContent = "Hotspot-forecast analytics could not be loaded.";
+    summary.textContent = "Hotspot-forecast model performance could not be loaded.";
   }
 }
 

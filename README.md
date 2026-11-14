@@ -71,8 +71,11 @@ This product is **separate** from Aqua–Suomi harmonization and from the Philip
 | Training cell-days | `data/processed/philippines_hotspot_cell_days.parquet` |
 | Split + counts | `data/manifests/philippines_hotspot_split.json` |
 | v2.1 comparison | `data/metrics/philippines_hotspot_model_comparison.json` |
+| Count reconciliation | `data/metrics/philippines_hotspot_count_reconciliation.json` |
+| Generalization audit | `data/metrics/philippines_hotspot_generalization_audit.json` |
+| Sealed v2.2 reserve | `data/manifests/philippines_hotspot_holdout_v2_2_reserve.json` |
 | Flawed v1 archive | `data/metrics/philippines_hotspot_model_comparison_v1_flawed_negatives.json` |
-| API | `GET /api/hotspot-forecast`, `/replay`, `/metrics` |
+| API | `GET /api/hotspot-forecast`, `/replay`, `/metrics`, `/month` |
 
 **Study region.** Compact Maguindanao box `123.6–124.7°E, 6.3–7.4°N`. FIRMS windows 2023–2026; fire-mask recovery prioritized on **2023–2024** dry-season Aqua MYD14/MYD03 pairs. March 2019 is **reader smoke-test only**.
 
@@ -82,13 +85,15 @@ This product is **separate** from Aqua–Suomi harmonization and from the Philip
 
 **CMR inventory (2023–2024 recover windows).** 259 daytime complete fire+geo pairs; estimated full daytime transfer ~25.9 GB (exceeds free disk) → Aqua-only dry-season batches (~27 MB/pair). Pilot chosen by size/opportunity before fire outcomes.
 
-**Labels (revised counts).** positives **1187** · supported negatives **2211** · unknown **60970** · scored rows train/val/test **589 / 1001 / 1808**. Independent eval = odd x-index cells **or** dates ≥ 2024-08-01 (previously inspected v1 holdout stays archived).
+**Labels (revised counts).** positives **1187** · supported negatives **2211** · unknown **60970** · universe **64368** square-days (= v1 **63936** + **432** from Live-feed day **2026-10-01** × 432 study cells; that day is all-unknown). Scored rows train/val/test **589 / 1001 / 1808**. Independent eval = odd x-index cells **or** dates ≥ 2024-08-01 (previously inspected v1 holdout stays archived).
 
 **v2.1 leaderboard (validation Brier).** HistGradientBoosting **0.260** (winner) · Extra Trees 0.264 · calibrated SVM 0.283 · logistic 0.296 · RF 0.301 · seasonal 0.330 · persistence 0.383 · tree 0.425.
 
-**Independent holdout.** Brier **0.199** · P 0.483 · R 0.755 · F1 0.589 · PR-AUC 0.673. Cold squares: P 0.453 · R 0.714 · F1 0.554 · PR-AUC 0.654 · skill vs seasonal +0.168. Recent-heat: R 0.971 · PR-AUC 0.726 · skill +0.399.
+**Claimable holdout (ex v2.2 reserve).** Brier **0.225** · P 0.515 · R 0.775 · F1 0.619 · PR-AUC 0.680 · n **524**. Full test including sealed reserve (audit only) Brier **0.199**. Cold squares: P 0.453 · R 0.714 · F1 0.554 · PR-AUC 0.654 · skill vs seasonal +0.168. Recent-heat: R 0.971 · PR-AUC 0.726 · skill +0.399.
 
-**Analytics.** Research tab shows v2.1 scores and **“Archived experiment — coverage labels revised”** for the six v1 models. Preserved `2393:174` 1% replay keeps v1 `extra_trees` and distinguishes recorded creation time from the Manila midnight issue slot.
+**v2.2 sealed reserve.** Test-only rows with x≥2398 **or** issue months 2025-02/03 / 2026-11 (**1284** reserved / **524** claimable). Registered before further tuning; excluded from imputation, threshold, model selection, and promotion claims.
+
+**Analytics.** Research tab shows v2.1 six-model board and **“Archived experiment — coverage labels revised”** for the six v1 models. Preserved `2393:174` 1% replay keeps v1 `extra_trees` and distinguishes recorded creation time from the Manila midnight issue slot.
 
 ```bash
 conda activate vela
@@ -98,7 +103,7 @@ python -m scripts.build_hotspot_forecast_dataset
 python -m scripts.train_hotspot_forecast
 ```
 
-**Demo clicks.** Live → Maguindanao land → cell `2396:181` / `2393:174` → Satellite heat forecast · Research → Analytics · Replay 2026-11-07 preserved 1%.
+**Demo clicks.** Live → Maguindanao land → cell `2396:181` (coverage-backed negative day **2024-02-25** → **64%** HGB) / `2393:174` (preserved Live → **2%** v1 Extra Trees; Replay 2026-11-07 → **1%**) → Satellite heat forecast · Research → Model performance (six v2.1 classifiers + claimable holdout).
 
 ### Philippine 24-hour wildfire-onset forecast (Mindanao-first)
 

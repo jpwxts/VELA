@@ -1,0 +1,63 @@
+{
+  "2396:181|2024-02-25": {
+    "status": "issued",
+    "probability_percent": 64,
+    "model_version": "hist_gradient_boosting",
+    "issue_date_ph": "2024-02-25",
+    "issue_time_manila": "2024-02-25T00:00:00+08:00",
+    "feature_cutoff": "2024-02-25T00:00:00+08:00",
+    "created": "2026-11-14T14:27:39.814071+00:00",
+    "issuance_kind": "preserved_archive",
+    "in_study": true,
+    "label_note": "Preserved forecast as originally issued \u2014 not a fresh historical reconstruction.",
+    "calendar_day_percent": 64,
+    "calendar_agree": true
+  },
+  "2390:174|today": {
+    "status": "issued",
+    "probability_percent": 99,
+    "model_version": "hist_gradient_boosting",
+    "issue_date_ph": "2026-11-14",
+    "issue_time_manila": "2026-11-14T00:00:00+08:00",
+    "feature_cutoff": "2026-11-14T00:00:00+08:00",
+    "created": "2026-11-14T14:35:45.808893+00:00",
+    "issuance_kind": "newly_issued",
+    "in_study": true,
+    "label_note": null,
+    "calendar_day_percent": 99,
+    "calendar_agree": true
+  },
+  "2390:174|newly_issued": {
+    "status": "issued",
+    "probability_percent": 99,
+    "issuance_kind": "preserved_archive",
+    "created": "2026-11-14T14:35:45.808893+00:00",
+    "model_version": "hist_gradient_boosting",
+    "issue_time_manila": "2026-11-14T00:00:00+08:00",
+    "feature_cutoff": "2026-11-14T00:00:00+08:00"
+  },
+  "v1_replay": {
+    "note": "Preserved issued forecast replay.",
+    "genuinely_issued": true,
+    "percent": 1,
+    "model": "extra_trees",
+    "issuance_kind": "preserved_archive",
+    "created": "2026-11-14T13:43:56.482142+00:00",
+    "issue_slot": "2026-11-07T00:00:00+08:00",
+    "outcome": {
+      "status": "heat_detected",
+      "label": "Observed \u00b7 1 qualifying detection(s) after issue",
+      "detection_count": 1
+    }
+  },
+  "unsupported": {
+    "status": "issued",
+    "in_study": false,
+    "reason": "",
+    "meta_hint": "Outside Maguindanao study box"
+  },
+  "board_n": 6,
+  "winner": "hist_gradient_boosting",
+  "claimable_brier": 0.22546698631904583,
+  "reconciliation_delta": 432
+}

@@ -368,10 +368,20 @@ def hotspot_polygon_summary(body: HotspotPolygonRequest):
     return polygon_hotspot_summary(body.cell_ids, body.issue_date)
 
 
+@app.get("/api/hotspot-forecast/month")
+def hotspot_forecast_month(cell_id: str = Query(...), year_month: str = Query(...)):
+    """Daily Chance of satellite-detected heat for one square and month (calendar agreement)."""
+
+    from vela.hotspot_forecast_serve import month_forecasts_for_cell
+
+    return month_forecasts_for_cell(cell_id, year_month)
+
+
 @app.get("/api/hotspot-forecast/metrics")
 def hotspot_forecast_metrics():
     from vela.hotspot_forecast import COMPARISON_PATH, COMPARISON_V1_ARCHIVE, RULES_PATH
     from vela.hotspot_coverage import INVENTORY_PATH, PILOT_TRACE_PATH
+    from vela.settings import DATA_DIR
     import json as _json
 
     comparison = _json.loads(COMPARISON_PATH.read_text()) if COMPARISON_PATH.is_file() else None
@@ -379,12 +389,18 @@ def hotspot_forecast_metrics():
     v1 = _json.loads(COMPARISON_V1_ARCHIVE.read_text()) if COMPARISON_V1_ARCHIVE.is_file() else None
     inventory = _json.loads(INVENTORY_PATH.read_text()) if INVENTORY_PATH.is_file() else None
     pilot = _json.loads(PILOT_TRACE_PATH.read_text()) if PILOT_TRACE_PATH.is_file() else None
+    reconciliation = DATA_DIR / "metrics" / "philippines_hotspot_count_reconciliation.json"
+    generalization = DATA_DIR / "metrics" / "philippines_hotspot_generalization_audit.json"
+    reserve = DATA_DIR / "manifests" / "philippines_hotspot_holdout_v2_2_reserve.json"
     return {
         "comparison": comparison,
         "rules": rules,
         "v1_archived": v1,
         "granule_inventory": inventory,
         "pilot_trace": pilot,
+        "count_reconciliation": _json.loads(reconciliation.read_text()) if reconciliation.is_file() else None,
+        "generalization_audit": _json.loads(generalization.read_text()) if generalization.is_file() else None,
+        "v2_2_reserve": _json.loads(reserve.read_text()) if reserve.is_file() else None,
     }
 
 

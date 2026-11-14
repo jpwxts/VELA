@@ -392,8 +392,26 @@ async function loadMonthlyHistory(options = {}) {
   renderDaySummary();
 }
 
+async function loadHotspotMonthForSquare(cellId, yearMonth) {
+  if (!cellId || !yearMonth) return;
+  state.hotspotMonthCellId = cellId;
+  state.hotspotMonthKey = `${cellId}|${yearMonth}`;
+  try {
+    const params = new URLSearchParams({ cell_id: cellId, year_month: yearMonth });
+    const response = await fetch(`/api/hotspot-forecast/month?${params}`);
+    const payload = await response.json();
+    if (state.hotspotMonthKey !== `${cellId}|${yearMonth}`) return;
+    state.hotspotMonth = payload;
+    renderObservationCalendar();
+  } catch (_error) {
+    state.hotspotMonth = null;
+  }
+}
+
 // Stored daily estimates drive both the month calendar and the chart. A gap
 // always stays missing; it is never inferred from an empty live FIRMS result.
+// When a Maguindanao square is selected, Chance of satellite-detected heat for
+// that date overlays the day cell so calendar, chart selection, and API agree.
 function renderObservationCalendar() {
   const grid = document.querySelector("#cal-grid");
   const title = document.querySelector("#cal-title");
@@ -419,6 +437,10 @@ function renderObservationCalendar() {
   const today = todayIso();
   const payload = currentMonthHistory();
   const daily = new Map((payload?.days || []).map((day) => [day.date, day]));
+  const hotspotDays = new Map((state.hotspotMonth?.days || []).map((day) => [day.date, day]));
+  if (state.hotspotMonthCellId && state.hotspotMonth?.year_month !== state.calendarMonth) {
+    loadHotspotMonthForSquare(state.hotspotMonthCellId, state.calendarMonth);
+  }
   const cells = ["S", "M", "T", "W", "T", "F", "S"].map(
     (letter) => `<span class="cal-weekday" aria-hidden="true">${letter}</span>`
   );
@@ -426,6 +448,7 @@ function renderObservationCalendar() {
   for (let day = 1; day <= daysInMonth; day += 1) {
     const iso = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const record = daily.get(iso);
+    const hotspot = hotspotDays.get(iso);
     const rate = record?.activity_rate;
     const available = typeof rate === "number" && Number.isFinite(rate);
     const classes = ["cal-day", "activity-day"];
@@ -440,6 +463,12 @@ function renderObservationCalendar() {
       classes.push("partial");
       notes.push("partial estimate");
     }
+    if (hotspot && hotspot.probability_percent != null) {
+      classes.push("hotspot-forecast-day");
+      notes.push(`${hotspot.probability_percent}% chance of satellite-detected heat (${hotspot.issuance_kind || "forecast"})`);
+    } else if (hotspot?.calendar_state === "insufficient_inputs") {
+      notes.push("hotspot forecast insufficient inputs");
+    }
     if (iso === today) {
       classes.push("today");
       notes.push("today");
@@ -450,9 +479,11 @@ function renderObservationCalendar() {
     }
     const disabled = iso > today;
     const label = `${formatObservationDay(iso)}${notes.length ? `, ${notes.join(", ")}` : ""}`;
-    const rateText = available
-      ? historyPercent(rate)
-      : (record?.heat_status === "readings" ? String(record.heat_count || "·") : "—");
+    const rateText = hotspot && hotspot.probability_percent != null
+      ? `${hotspot.probability_percent}%`
+      : available
+        ? historyPercent(rate)
+        : (record?.heat_status === "readings" ? String(record.heat_count || "·") : "—");
     cells.push(
       `<button type="button" class="${classes.join(" ")}" data-day="${iso}" aria-label="${escapeHtml(label)}"`
       + ` aria-pressed="${iso === selected}" style="--activity-strength:${available ? 10 + Math.min(1, Math.max(0, rate)) * 28 : 0}%"`
@@ -462,18 +493,25 @@ function renderObservationCalendar() {
   grid.innerHTML = cells.join("");
   const status = document.querySelector("#history-status");
   const published = (payload?.days || []).filter((day) => day.activity_rate != null).length;
+  const hotspotPublished = (state.hotspotMonth?.days || []).filter((day) => day.probability_percent != null).length;
   status.textContent = state.historyLoading ? "Loading burning activity…"
     : state.historyError ? "History could not be loaded. Please try again."
     : !state.box ? "Select land to see its burning history."
+    : hotspotPublished
+      ? `${hotspotPublished} days show Chance of satellite-detected heat for square ${state.hotspotMonthCellId}. Burning-activity estimates: ${published} / ${daysInMonth}.`
     : published ? `${published} of ${daysInMonth} days have usable estimates. Select a day for details.`
     : `No burning-activity estimates for ${title.textContent}.`;
   document.querySelector("#history-retry").hidden = !state.historyError;
-  document.querySelector("#history-month-rate").textContent = historyPercent(payload?.summary?.activity_rate);
+  document.querySelector("#history-month-rate").textContent = hotspotPublished && state.lastHotspotForecast?.probability_percent != null
+    ? `${state.lastHotspotForecast.probability_percent}%`
+    : historyPercent(payload?.summary?.activity_rate);
   document.querySelector("#history-days-count").textContent = state.historyLoading ? "…" : `${published} / ${daysInMonth}`;
   const firstObservation = payload?.first_observation;
   document.querySelector("#history-availability").textContent = firstObservation
     ? `Stored observations for this land: ${formatObservationDay(firstObservation)} – ${formatObservationDay(payload.last_observation)}.`
-    : "";
+    : (state.hotspotMonthCellId
+      ? `Hotspot forecast calendar for square ${state.hotspotMonthCellId}; each day shows that date’s issued or reconstructed percentage.`
+      : "");
   renderHistoryChart();
 }
 

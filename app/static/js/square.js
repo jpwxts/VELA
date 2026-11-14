@@ -296,25 +296,38 @@ function renderHotspotForecast(payload) {
     value.textContent = `${payload.probability_percent}%`;
     value.classList.remove("is-words");
     const created = payload.issued_at_utc || payload.recorded_at_utc;
+    const kind = payload.issuance_kind
+      || (payload.historical_simulation ? "historical_reconstruction" : "newly_issued");
     meta.textContent = [
       payload.issue_time_manila ? `Issue slot ${payload.issue_time_manila}` : "",
-      created ? `Recorded ${created}` : "",
-      support.input_cutoff_manila ? `Inputs cut off ${support.input_cutoff_manila}` : "",
+      created ? `Created ${created}` : "",
+      (payload.feature_cutoff_manila || support.input_cutoff_manila)
+        ? `Feature cutoff ${payload.feature_cutoff_manila || support.input_cutoff_manila}`
+        : "",
       payload.model_version ? `Model ${payload.model_version}` : "",
-      payload.model_hash ? `hash ${payload.model_hash}` : "",
-      payload.label_note
-        || (payload.historical_simulation ? "Historical simulation" : "Issued forecast"),
+      payload.model_hash ? `hash ${String(payload.model_hash).slice(0, 8)}` : "",
+      kind === "newly_issued"
+        ? "Newly issued"
+        : kind === "preserved_archive"
+          ? "Preserved issued forecast"
+          : (payload.label_note || "Historical reconstruction"),
     ].filter(Boolean).join(" · ");
   } else {
     value.textContent = payload?.calendar_state === "insufficient_inputs" ? "Insufficient inputs" : "Not available";
     value.classList.add("is-words");
     meta.textContent = [
       payload?.issue_time_manila ? `Issue slot ${payload.issue_time_manila}` : "",
-      support.input_cutoff_manila ? `Inputs cut off ${support.input_cutoff_manila}` : "",
+      support.input_cutoff_manila ? `Feature cutoff ${support.input_cutoff_manila}` : "",
       support.newest_available_input_utc ? `Newest input ${support.newest_available_input_utc}` : "",
-      support.geographic_support?.in_study_region === false ? "Outside Maguindanao study box" : "",
+      support.geographic_support?.in_study_region === false
+        ? "Outside Maguindanao study box — no hotspot-forecast coverage"
+        : "",
       support.geographic_support?.in_study_region ? "Maguindanao study box" : "",
+      support.firms_empty_is_not_clear_coverage ? "Empty FIRMS ≠ clear coverage" : "",
     ].filter(Boolean).join(" · ");
+  }
+  if (payload?.cell_id && typeof loadHotspotMonthForSquare === "function") {
+    loadHotspotMonthForSquare(payload.cell_id, (payload.issue_date_ph || "").slice(0, 7));
   }
   const out = payload?.outcome || {};
   outcome.textContent = out.label || "Outcome awaiting observation";
