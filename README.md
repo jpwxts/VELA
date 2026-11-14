@@ -13,6 +13,35 @@ You draw or search for a plot of land, pick a date, and explore four questions i
 
 Vela keeps **satellite heat**, **fire-danger weather**, **weekly activity estimates**, and **official wildfire reports** as separate answers. It never turns FWI, hotspot counts, MODIS confidence, or the harmonization model into a wildfire probability.
 
+## Explore the Philippine Satellite Hotspot Map
+
+[Open the Philippine hotspot map for 7 November 2026](data/public/philippines/2026-11-07.geojson)
+
+Also available as: [Explore Philippine satellite detections — 7 November 2026](data/public/philippines/2026-11-07.geojson)
+
+This is a verified **NASA FIRMS** snapshot for **7 November 2026 UTC**. Each GeoJSON point is one satellite heat detection. Multiple dots can come from the same event when more than one spacecraft (or pass) recorded heat nearby.
+
+**Verified counts**
+
+| Scope | Individual detections | By satellite |
+| --- | ---: | --- |
+| All Philippines | **47** | NOAA-20: 28 · NOAA-21: 17 · Terra: 2 |
+| All Mindanao (same file, island-group filter) | **12** | NOAA-20: 5 · NOAA-21: 6 · Terra: 1 |
+
+An earlier live Burn-activity screen (Terra unchecked) reported 45 detections and 39 grouped areas. Without Terra, this snapshot matches that **45** detection count; including Terra brings the Philippine total to **47**. Mindanao without Terra is **11** detections.
+
+**How to open it in Vela (no FIRMS key)**
+
+1. Start Vela and open **Burn activity**.
+2. Under **Saved examples**, choose **Philippines · 7 Nov 2026**.
+3. The map opens with **Show individual detections** enabled so the dots appear immediately. Toggle that checkbox off to return to the 5 km grouped view.
+4. Use **All Philippines** / **All Mindanao** under the saved example to filter the same snapshot. A Masbate point can appear nationwide and must disappear under Mindanao.
+5. Click a dot to see satellite name, Philippine local date/time, and place name or coordinates in the vertical location panel. The sidebar stays navigation-only.
+
+**Team feedback**
+
+- Pull request / review link: _added after the feature branch is pushed_
+
 ---
 
 ## What the map does

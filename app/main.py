@@ -259,6 +259,36 @@ def hotspots_fixture(name: str = "click_regression"):
     return payload
 
 
+@app.get("/api/public/philippines/{day}.geojson")
+def public_philippines_geojson(day: str):
+    """Raw shareable GeoJSON for one Philippine FIRMS snapshot day."""
+
+    from vela.public_hotspots import geojson_path
+
+    path = geojson_path(day)
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Public hotspot GeoJSON not found.")
+    return FileResponse(
+        path,
+        media_type="application/geo+json",
+        filename=f"{day}.geojson",
+    )
+
+
+@app.get("/api/public/philippines/{day}")
+def public_philippines_hotspots(day: str, region: str = Query("philippines")):
+    """Saved Philippine FIRMS snapshot as a land-check payload (no NASA key)."""
+
+    from vela.public_hotspots import build_public_land_check
+
+    try:
+        return build_public_land_check(day=day, region=region)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @app.get("/api/area-context")
 def area_context(
     west: float,
