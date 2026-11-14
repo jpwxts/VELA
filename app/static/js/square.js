@@ -221,6 +221,7 @@ function revealCellDetail(bounds, marks = [], heat = null) {
   document.querySelector("#satellite-picker").hidden = true;
   document.querySelector("#land-summary").hidden = false;
   syncLandPicture();
+  setLandSummaryLoading();
   document.querySelector("#cell-back").hidden = false;
   setSquareHeat(heat);
   document.querySelector(".card-body")?.scrollTo({ top: 0 });
@@ -279,6 +280,189 @@ function setPanelMode(mode) {
   }
 }
 
+function renderOnsetForecast(payload) {
+  const value = document.querySelector("#onset-value");
+  const meta = document.querySelector("#onset-meta");
+  const outcome = document.querySelector("#onset-outcome");
+  const note = document.querySelector("#onset-note");
+  const label = document.querySelector("#onset-label");
+  if (!value) return;
+  if (label && payload?.label) label.textContent = payload.label;
+  if (payload?.status === "issued" && payload.probability_percent != null) {
+    value.textContent = `${payload.probability_percent}%`;
+    value.classList.remove("is-words");
+    meta.textContent = [
+      payload.issue_time_manila ? `Issued ${payload.issue_time_manila}` : "",
+      payload.model_version ? `Model ${payload.model_version}` : "",
+      payload.historical_simulation ? "Historical simulation (not an issued Vela forecast)" : "Issued Vela forecast",
+    ].filter(Boolean).join(" · ");
+  } else {
+    value.textContent = "Not published";
+    value.classList.add("is-words");
+    meta.textContent = [
+      payload?.issue_time_manila ? `Issue slot ${payload.issue_time_manila}` : "",
+      payload?.status || "",
+    ].filter(Boolean).join(" · ");
+  }
+  const out = payload?.outcome || {};
+  outcome.textContent = out.label
+    ? `Later outcome · ${out.label}`
+    : "Later outcome · unknown until verified reporting coverage exists";
+  note.textContent = payload?.reason
+    || payload?.next_step
+    || "Separate from satellite heat, fire weather, and MODIS–VIIRS harmonization.";
+}
+
+async function loadOnsetForecast(cellId, issueDate) {
+  const value = document.querySelector("#onset-value");
+  if (value) {
+    value.textContent = "Checking…";
+    value.classList.add("is-words");
+  }
+  try {
+    const params = new URLSearchParams({ cell_id: cellId, scope: "mindanao" });
+    if (issueDate) params.set("issue_date", String(issueDate).slice(0, 10));
+    const response = await fetch(`/api/onset/forecast?${params}`);
+    const payload = await response.json();
+    renderOnsetForecast(payload);
+    state.lastOnsetForecast = payload;
+  } catch (_error) {
+    renderOnsetForecast({
+      status: "unavailable",
+      reason: "Onset forecast could not be loaded for this square.",
+      outcome: { label: "Outcome unknown" },
+    });
+  }
+}
+
+async function loadFindingsForArea(matched, options = {}) {
+  const members = matched.members || [];
+  const bounds = matched.bounds || {};
+  const body = {
+    scope: "square",
+    date: matched.observation_day || dayInput.value,
+    selected_date: dayInput.value,
+    place_name: options.placeName || document.querySelector("#area-place")?.textContent || null,
+    cell_id: matched.cell_id,
+    lat: matched.center_lat,
+    lon: matched.center_lon,
+    west: bounds.west,
+    south: bounds.south,
+    east: bounds.east,
+    north: bounds.north,
+    members: members.map((spot) => ({
+      platform: spot.platform,
+      name: spot.platform,
+      acq_date: spot.acq_date || matched.observation_day,
+      acq_time: spot.acq_time,
+      acq_date_ph: spot.acq_date_ph,
+      acq_time_ph: spot.acq_time_ph,
+      lat: spot.lat,
+      lon: spot.lon,
+    })),
+    satellites: (matched.platforms || []).map((name) => ({ name })),
+    satellite_count: matched.satellite_count || (matched.platforms || []).length,
+    empty: members.length === 0,
+    coverage_unknown: members.length === 0,
+    region: "Philippines",
+  };
+  const response = await fetch("/api/findings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) throw new Error("findings failed");
+  return response.json();
+}
+
+function renderFindingsPanel(matched, findings) {
+  const satellite = findings?.satellite || {};
+  const model = findings?.model || {};
+  const mismatch = findings?.date_mismatch || {};
+  if (satellite.lead) {
+    document.querySelector("#area-sentence").textContent = satellite.lead;
+  }
+  const passHost = document.querySelector("#area-pass-list");
+  if (passHost) {
+    passHost.innerHTML = (satellite.passes || []).map((row) => {
+      const local = row.time_local || (row.acq_time_ph ? `${row.acq_time_ph} PH time` : "");
+      const count = row.detection_count != null ? ` · ${row.detection_count} reading${row.detection_count === 1 ? "" : "s"}` : "";
+      return `<li>${escapeHtml(row.platform || "Satellite")}${local ? ` · ${escapeHtml(local)}` : ""}${row.time_utc ? ` · ${escapeHtml(row.time_utc)} UTC` : ""}${escapeHtml(count)}</li>`;
+    }).join("");
+  }
+  const when = document.querySelector("#area-when");
+  const markerDay = matched.observation_day || findings?.observation_date;
+  const phDates = [...new Set((satellite.passes || []).map((row) => row.acq_date_ph).filter(Boolean))];
+  when.textContent = [
+    joinPlatformNames(matched.platforms || []),
+    markerDay ? `UTC observation day ${formatObservationDay(markerDay)}` : "",
+    phDates.length ? `Philippine date${phDates.length === 1 ? "" : "s"} ${phDates.map(formatObservationDay).join(", ")}` : "",
+  ].filter(Boolean).join(" · ");
+
+  const cellId = document.querySelector("#area-cell-id");
+  if (cellId) cellId.textContent = matched.cell_id ? `Cell ${matched.cell_id}` : "";
+
+  const mismatchNode = document.querySelector("#date-mismatch");
+  const mismatchActions = document.querySelector("#date-mismatch-actions");
+  if (mismatchNode && mismatchActions) {
+    if (mismatch.active) {
+      mismatchNode.hidden = false;
+      mismatchNode.textContent = mismatch.message || "";
+      mismatchActions.hidden = false;
+      state.pendingMarkerDate = mismatch.marker_date;
+    } else {
+      mismatchNode.hidden = true;
+      mismatchActions.hidden = true;
+      state.pendingMarkerDate = null;
+    }
+  }
+
+  const modelNote = document.querySelector("#area-model-note");
+  if (modelNote) {
+    if (model.status === "estimated_suomi" && model.model_probability != null) {
+      modelNote.textContent = `${model.label}: ${(model.model_probability * 100).toFixed(1)}% Aqua-comparable probability for this square-day. Details stay in Research.`;
+    } else if (model.status === "observed_aqua") {
+      modelNote.textContent = `${model.label}: ${model.observed_result}.`;
+    } else if (model.status === "area_aggregate" && model.activity_rate != null) {
+      modelNote.textContent = `${model.label}: about ${Math.round(model.activity_rate * 100)}% over ${model.week_start}–${model.week_end} (${model.activity_denominator} square-days · ${model.activity_status}).`;
+    } else if (model.calibration_pending || model.status === "noaa_raw") {
+      modelNote.textContent = `${model.label || "No calibrated estimate"}. ${model.explanation || "NOAA-20/21 harmonized estimates stay pending until validated."}`;
+    } else {
+      modelNote.textContent = model.explanation
+        || "Only FIRMS heat readings are available here; the coverage or model inputs for an Aqua-comparable estimate are missing.";
+    }
+  }
+  if (typeof renderResearchModel === "function") {
+    renderResearchModel(model);
+  }
+  if (matched.cell_id) {
+    loadOnsetForecast(matched.cell_id, matched.observation_day || dayInput.value);
+  }
+}
+
+function renderImmediatePassList(matched, members) {
+  const passHost = document.querySelector("#area-pass-list");
+  if (!passHost) return;
+  const byPass = new Map();
+  members.forEach((spot) => {
+    const key = `${spot.platform || ""}|${spot.acq_date || matched.observation_day || ""}|${spot.acq_time || ""}`;
+    if (!byPass.has(key)) {
+      byPass.set(key, {
+        platform: spot.platform,
+        time_utc: spot.acq_time,
+        time_local: spot.acq_time_ph ? `${spot.acq_time_ph} PH time` : formatDetectionLocalTime(spot),
+        detection_count: 0,
+      });
+    }
+    byPass.get(key).detection_count += 1;
+  });
+  passHost.innerHTML = [...byPass.values()].map((row) => {
+    const local = row.time_local || "";
+    const count = row.detection_count ? ` · ${row.detection_count} reading${row.detection_count === 1 ? "" : "s"}` : "";
+    return `<li>${escapeHtml(row.platform || "Satellite")}${local ? ` · ${escapeHtml(local)}` : ""}${row.time_utc ? ` · ${escapeHtml(row.time_utc)} UTC` : ""}${escapeHtml(count)}</li>`;
+  }).join("");
+}
+
 async function showArea(area) {
   // Always resolve from the clicked cell ID so search-region totals cannot leak in.
   const matched =
@@ -313,8 +497,23 @@ async function showArea(area) {
   document.querySelector("#area-latest").textContent = latest
     ? `Latest observation ${latest.time} UTC on ${formatObservationDay(latest.date)}.`
     : "Latest observation time unavailable.";
-  document.querySelector("#area-square-note").textContent = "5 km × 5 km observation area";
+  document.querySelector("#area-square-note").textContent =
+    "5 km × 5 km observation area · square scope, not the full drawn boundary";
+  const cellIdNode = document.querySelector("#area-cell-id");
+  if (cellIdNode) cellIdNode.textContent = matched.cell_id ? `Cell ${matched.cell_id}` : "";
   document.querySelector("#area-readings").textContent = readingSummary(matched);
+  renderImmediatePassList(matched, members);
+  loadFindingsForArea(matched).then((findings) => {
+    if (detailId !== state.detailRequestId) return;
+    state.lastFindings = findings;
+    renderFindingsPanel(matched, findings);
+  }).catch(() => {
+    if (detailId !== state.detailRequestId) return;
+    const modelNote = document.querySelector("#area-model-note");
+    if (modelNote) {
+      modelNote.textContent = "Findings could not be loaded for this square.";
+    }
+  });
 
   renderReplayTimeline(matched);
 
@@ -621,6 +820,18 @@ function showDetectionStack(spots) {
   document.querySelector("#wildfire-line").innerHTML =
     "<strong>Wildfire report</strong> · Individual detections are not wildfire confirmations.";
 }
+
+document.querySelector("#use-marker-date")?.addEventListener("click", () => {
+  if (!state.pendingMarkerDate) return;
+  dayInput.value = state.pendingMarkerDate;
+  updateDayWords();
+  if (state.selectedArea) showArea(state.selectedArea);
+});
+document.querySelector("#query-panel-date")?.addEventListener("click", () => {
+  document.querySelector("#date-mismatch")?.setAttribute("hidden", "true");
+  document.querySelector("#date-mismatch-actions")?.setAttribute("hidden", "true");
+  checkLand();
+});
 
 document.querySelector("#cell-back")?.addEventListener("click", leaveCellDetail);
 

@@ -13,6 +13,131 @@ You draw or search for a plot of land, pick a date, and explore four questions i
 
 Vela keeps **satellite heat**, **fire-danger weather**, **weekly activity estimates**, and **official wildfire reports** as separate answers. It never turns FWI, hotspot counts, MODIS confidence, or the harmonization model into a wildfire probability.
 
+### Live is the default (Philippines)
+
+The map opens in **Live**. Drawing land in Mindanao or elsewhere in the Philippines automatically uses today’s **Asia/Manila** calendar day (`GET /api/live/today`). Modes:
+
+| Mode | What it does |
+| --- | --- |
+| **Live** | Philippine today · FIRMS feeds · writes `data/observations/philippines.sqlite` |
+| **History** | Opens the monthly calendar/chart for the selection |
+| **Saved example** | November 7 2026 public snapshot (does **not** change Live’s today) |
+
+Controls: **Refresh now** (national FIRMS refresh into the store) and **Return to live**.
+
+**Background refresh (browser-independent):**
+
+```bash
+conda activate vela
+python -m scripts.refresh_philippines_firms --loop --interval-minutes 30
+```
+
+Requires `FIRMS_MAP_KEY` in `.env`. Persistent store: `data/observations/philippines.sqlite` (shared by worker and web). At Philippine midnight, Live advances because refresh always queries `philippine_today()`.
+
+**Timestamps shown separately:** latest satellite observation · last successful source check · estimates processed through.
+
+### Draw-land activity formula
+
+When eligible inputs exist for the drawn boundary:
+
+```text
+Activity (%) = 100 × (sum of Aqua activity indicators + sum of eligible calibrated fallback probabilities)
+             ÷ (number of square-days with valid contributions)
+```
+
+- Aqua contributes an observed 0 or 1 (clear zeros stay zeros).
+- Eligible Suomi-NPP contributes its frozen random-forest probability when required inputs exist.
+- Calibration-pending NOAA-20/21 readings stay visible as raw evidence and do not enter the total.
+- Each contributing square-day counts once. Partial coverage is labeled partial and uses only the estimated denominator.
+- When the denominator is zero, Vela explains the missing input and still shows weather + satellite findings.
+
+**Development validation (not Philippines):** weekly activity-share mean absolute error is **0.66 percentage points** across four development weeks.
+
+**Philippine evaluation (“Agreement with Aqua in the Philippines”):** run `python -m scripts.evaluate_philippines_agreement`. Current result: **0 Philippine paired cell-days** in `paired_cells.parquet`, so weekly MAE and Brier score are **undefined**. Smallest archive candidate set remains the a-priori 2019-03-06 Mindanao quartet (**170 243 619 B**, not downloaded). See `data/metrics/philippines_agreement_with_aqua.json`. Wildfire confirmation is a separate evaluation.
+
+### Philippine 24-hour wildfire-onset forecast (Mindanao-first)
+
+Product question (when labels exist): *What is the estimated probability that at least one new wildfire will start in this 5 km square during the next 24 hours?*
+
+| Piece | Location |
+| --- | --- |
+| Label schemas + import | `vela/onset_labels.py`, `scripts/import_philippines_onset_labels.py` |
+| Label audit | `data/metrics/philippines_onset_label_audit.json` |
+| BFP-669031036800 investigation | `data/metrics/bfp_669031036800_investigation.json` |
+| Split (registered before fitting) | `data/manifests/philippines_onset_split.json` |
+| Feature schema | `vela/onset_features.py` (`onset_features_v1`) |
+| Dataset + split assignment | `vela/onset_dataset.py` |
+| Six-model comparison | `vela/onset_models.py` + `scripts/train_philippines_onset.py` |
+| Holdout evaluation | `scripts/evaluate_philippines_onset.py` |
+| Issued-forecast store | `data/observations/philippines_onset.sqlite` (write-once per cell×day) |
+| Calendar / square API | `GET /api/onset/forecast?cell_id=…` |
+
+**Target & issue time.** One forecast per 5 km land square, issued at **00:00 Asia/Manila**, valid for the following Philippine day. Live satellite heat may update after midnight; the issued onset forecast does not. Historical simulations must be labeled separately from forecasts actually issued by Vela.
+
+**Input schemas (under `data/labels/philippines_onset/`)**
+
+1. **Incidents** (`*incident*.csv|json`): `incident_id`, `onset_date_ph`, `latitude`, `longitude` (+ optional `province`, `wildfire_class`, `ongoing`, `date_precision`, `location_precision`, `source`). Accept only day-precision onset dates that resolve to one 5 km square. Reject report-only dates, ongoing fires, ambiguous locations, and non-wildfire classes (left unknown).
+2. **Coverage** (`*coverage*.csv|json`): `coverage_date_ph`, `reporting_adequate`, plus `cell_id` or lat/lon. Adequate covered days without a start become negatives. Unmonitored / inadequate days stay unknown.
+
+**Data audit (production labels today).** Import/audit counts are computed from files on disk (not hardcoded): usable unique wildfire starts **0**; square-days with credible reporting coverage **0**. BFP request **BFP-669031036800** (“Consolidated Forest Fire”, listed 2015–2024) could not be opened: eFOI portal returned **Temporary Maintenance (ADV-2026-10-01)** / Cloudflare block — attachment fields unverified. Davao DENR Region XI remains a **separate** acquisition lead. FIRMS heat is issue-time context only, never an onset label.
+
+**States stay distinct.** `research_trained` → `holdout_evaluated` → `approved_for_serving`. Research training/selection does **not** publish a Live percentage. Synthetic fixtures used in tests are marked and never approve serving.
+
+**Six classifiers.** Logistic regression, decision tree, random forest, Extra Trees, histogram gradient boosting, calibrated SVM, plus regional seasonal event-rate baseline. Preprocessing is fit on training folds only. Selection uses validation **Brier vs baseline** (not accuracy≈F1). Holdout is scored once afterward from actual held-out rows.
+
+**Serving rules.** Square panel shows onset as **Not published** until serving is approved. Never fill gaps with 0%, FWI, or the harmonization model. Polygon summaries never average/max squares into a polygon-wide wildfire chance.
+
+```bash
+conda activate vela
+python -m scripts.import_philippines_onset_labels
+python -m scripts.audit_philippines_onset_labels
+python -m scripts.train_philippines_onset
+python -m scripts.evaluate_philippines_onset
+python -m pytest tests/test_philippines_onset.py tests/test_philippines_onset_pipeline.py -q
+```
+
+**Plumbing proof.** `tests/test_philippines_onset_pipeline.py` builds a temporary synthetic incident+coverage pair and runs import → audit → train → evaluate through the normal commands. A known positive is counted once, a covered no-event day is negative, an unmonitored day stays absent/unknown, and the evaluator scores real holdout rows. Those artifacts stay isolated from production forecasts and accuracy claims.
+
+**Next runnable step for real PH records.** Recover the BFP-669031036800 attachment when eFOI is back (or file DENR XI / LDRRMO microdata) under `data/labels/philippines_onset/`, then re-run import → audit → train → evaluate.
+
+### Exact demo clicks
+
+**Live draw-land (verified 14 November 2026 Asia/Manila)**
+
+1. Fresh start → leave **Live** selected → do **not** pick a date or saved example.
+2. **Draw area** a Maguindanao polygon around **6.85779°N, 124.05852°E** (e.g. 124.00–124.10°E, 6.82–6.90°N) → **Check my land**.
+3. Browser request omits `date`; server uses `GET /api/live/today` → **2026-11-14**. UTC window queried: **2026-11-13** and **2026-11-14**.
+4. Per-feed Live result for that polygon (zero readings is a successful query):
+
+| Feed | Status | UTC window | Readings in polygon | Latest acquisition | Last successful check |
+| --- | --- | --- | ---: | --- | --- |
+| Aqua | `no_hotspots` | 2026-11-13 … 2026-11-14 | 0 | — | recorded |
+| Suomi-NPP | `product_unavailable` | 2026-11-13 … 2026-11-14 | 0 | — | — |
+| NOAA-20 | `no_hotspots` | 2026-11-13 … 2026-11-14 | 0 | — | recorded |
+| NOAA-21 | `no_hotspots` | 2026-11-13 … 2026-11-14 | 0 | — | recorded |
+| Terra (optional) | `no_hotspots` | 2026-11-13 … 2026-11-14 | 0 | — | recorded |
+
+5. **Refresh now** re-queries FIRMS and writes a new `checked_at` into `philippines.sqlite` (national refresh wrote **65** rows on this pass). A repeat land check within the NRT **3 h** TTL reported `cached=true` for Aqua / NOAA-20 / NOAA-21 / Terra (Suomi-NPP stayed `product_unavailable`). Standard-processing cache entries do not expire.
+6. Open **Philippines · 7 Nov 2026** (day becomes **2026-11-07**) → **Return to live** → day returns to **2026-11-14** and the next check-land again omits `date`.
+
+Evidence: `data/metrics/mindanao_live_feed_probe.json`.
+
+**Saved snapshot**
+
+1. **Saved example** or **Philippines · 7 Nov 2026**.
+2. **All Philippines → All Mindanao → All Philippines**: **47 → 12 → 47**. Masbate disappears and returns.
+3. Nationwide saved readings: **43** on 7 Nov PH time, **4** on 8 Nov PH time.
+4. Click Maguindanao cell `2393:174` → NOAA-21 · **12:33 PH** / 04:33 UTC.
+5. In the square panel, open **Wildfire-onset forecast (next 24 hours)** → **Not published** (0 verified onset labels). Trace with `GET /api/onset/forecast?cell_id=2393:174&issue_date=2026-11-07` and `GET /api/onset/features?cell_id=2393:174&issue_date=2026-11-07`.
+6. **Return to live** restores Philippine today without keeping the saved day as Live.
+
+**History / calendar estimate**
+
+1. With the Maguindanao polygon selected → **History** → year **2019** → week **2019-03-04/2019-03-10**.
+2. Denominator diagnosis (`python -m scripts.diagnose_mindanao_denominator`): CMR catalog finds **66** granules (MYD14 12 · MYD03 24 · VNP14IMG 15 · VNP03IMG 15); **0** land-intersecting `paired_cells` rows; Aqua usable cell-days **0**; Suomi-NPP fallback inputs **0**; History contributions **unavailable**. First stage that drops to zero: **`2_land_intersecting_processed_rows`**.
+3. Serving does **not** require jointly eligible Aqua–Suomi pairs for an operational estimate (`select_one`: Aqua alone → observed; eligible Suomi-NPP alone → calibrated fallback). Joint pairs are only for Agreement-with-Aqua.
+4. Smallest viable archive download (not executed): **170 243 619 B** (~162.36 MB) for 2019-03-06 MYD14+MYD03+VNP14IMG+VNP03IMG. Blocked before ingest — no numerator/denominator/percentage to show on the calendar yet. See `data/metrics/mindanao_denominator_diagnosis.json`.
+
 ## Explore the Philippine Satellite Hotspot Map
 
 [Open the Philippine hotspot map for 7 November 2026](data/public/philippines/2026-11-07.geojson)
@@ -35,7 +160,111 @@ An earlier live Burn-activity screen (Terra unchecked) reported 45 detections an
 1. Start Vela and open **Burn activity**.
 2. Under **Saved examples**, choose **Philippines · 7 Nov 2026**.
 3. The map opens with **Show individual detections** enabled so the dots appear immediately. Toggle that checkbox off to return to the 5 km grouped view.
-4. Click a dot to see satellite name, Philippine local date/time, and place name or coordinates in the vertical location panel. The sidebar stays navigation-only.
+4. Use **All Philippines** / **All Mindanao** under the result lead to switch the same saved snapshot without a FIRMS key.
+5. Click a dot to see satellite name, Philippine local date/time, and place name or coordinates in the vertical location panel. The sidebar stays navigation-only.
+
+**Philippine-time split of the same 47 UTC readings**
+
+| Philippine date | Readings |
+| --- | ---: |
+| 7 November 2026 | **43** |
+| 8 November 2026 | **4** (late UTC passes after 16:00 UTC on the 7th) |
+
+### Verified map clicks (browser)
+
+Verified against the live app after restoring **All Philippines** / **All Mindanao** (static scripts under `app/static/js/`, Cache-Control: no-cache). On the saved **7 November 2026 UTC** snapshot:
+
+| Step | Control | Individual detections | Areas | Camera extent (API bbox) | Masbate (Dalipe) |
+| --- | --- | ---: | ---: | --- | --- |
+| 1 | **All Philippines** | **47** | 41 | 114.10–126.80°E, 4.38–21.32°N | Present |
+| 2 | **All Mindanao** | **12** | 11 | 117.97–126.74°E, 4.45–10.61°N | Absent |
+| 3 | **All Philippines** | **47** | 41 | National extent restored | Returns |
+
+Then click the Maguindanao del Norte heat marker:
+
+| Field | Verified value |
+| --- | --- |
+| Cell | `2393:174` |
+| Panel | “Heat detected once.” |
+| Pass | **NOAA-21 · 12:33 PH time · 04:33 UTC · 1 reading** |
+
+### Reproduce the map-to-estimate workflow
+
+**1. Maguindanao del Norte marker (heat readings, no PH estimate)**
+
+| Field | Value |
+| --- | --- |
+| Place | Maguindanao del Norte, Bangsamoro |
+| Coordinates | 6.85779°N, 124.05852°E |
+| Cell ID | `2393:174` |
+| Source | `data/public/philippines/2026-11-07.geojson` (NASA FIRMS snapshot) |
+| UTC acquisition | 7 November 2026 · 04:33 · NOAA-21 |
+| Philippine time | 7 November 2026 · 12:33 |
+
+Clicks:
+
+1. **Burn activity** → **Philippines · 7 Nov 2026**
+2. Optionally switch **All Philippines** ↔ **All Mindanao** (counts above)
+3. Click the heat marker / square at Maguindanao del Norte (cell `2393:174`)
+4. Open **History** (Monthly) for the same square/day
+
+Expect: square panel lead “Heat detected once.”, NOAA-21 at 12:33 PH / 04:33 UTC, cell id shown, square scope labeled separately from the national boundary. History for 7 Nov shows **Satellite heat readings** / “Heat readings available · activity estimate not processed” — not “No stored observations.”
+
+**Philippine validation gap (keep visible):** `paired_cells.parquet` has **0** Philippine rows; `/api/area-context` returns `calendar_status: not_processed` and region `not_in_training_sample`. No held-out Philippine harmonization error has been measured. Cached raw masks under `data/raw` are cerrado / California / Arnhem only — not this Mindanao cell.
+
+**2. Date mismatch**
+
+With the Maguindanao square open, change the panel date away from 7 Nov. Expect a notice naming both the marker date and the selected date, with **Use marker date** / **Query selected date**.
+
+**3. Genuine numeric estimate (cached Zambia tune week — not Philippines)**
+
+| Field | Value |
+| --- | --- |
+| Place | Zambia woodland |
+| Cell ID | `523:-383` |
+| Date | 2021-07-22 |
+| Contributing platform | Suomi-NPP |
+| Source | processed paired cells + frozen Suomi-NPP model |
+| API | `GET /api/findings/zambia-fixture` |
+| Model status | `estimated_suomi` |
+| Estimate | ≈ **1.04%** (`model_probability` ≈ 0.01041) |
+| Raw activity | `0` (zero fire pixels kept distinct from the probability) |
+
+This **1.04%** is a **model estimate of Aqua-comparable activity for that square and day** (how likely Aqua would have been to detect heat there). It is **not** a Philippine result and **not** a wildfire probability. Or open the **Zambia woodland, 2021** saved example and inspect Research / weekly history for 19–25 July 2021 (~4.8% activity, 22 742 square-days, complete).
+
+### Mindanao archive search (CMR / earthaccess)
+
+Target: cell `2393:174` padded bbox `(123.95727, 6.78538, 124.10909, 6.92485)` — fire-mask + geolocation pairs for **Aqua MODIS** (`MYD14`/`MYD03`) and **Suomi-NPP VIIRS** (`VNP14IMG`/`VNP03IMG`).
+
+**Exact reproducible queries** (NASA Earthdata CMR via `earthaccess.search_data`, netrc auth):
+
+```python
+bbox = (123.95727, 6.78538, 124.10909, 6.92485)
+temporal = ("2026-11-02T00:00:00Z", "2026-11-08T23:59:59Z")
+for short_name in ("MYD14", "MYD03", "VNP14IMG", "VNP03IMG"):
+    earthaccess.search_data(short_name=short_name, bounding_box=bbox, temporal=temporal)
+```
+
+| Product | Live verify status | Count | Notes |
+| --- | --- | ---: | --- |
+| MYD14 | `ok_matches` (successful search) | 13 | Collection **061** archive + some LANCE |
+| MYD03 | `ok_matches` | 24 | Geolocation present |
+| VNP14IMG | `ok_matches` | 1 | Collection **002** · 2026-11-02 only |
+| VNP03IMG | `ok_matches` | 1 | Paired with that VIIRS fire granule |
+
+This is a **successful search with matches**, not a failed query. Same-day Aqua + Suomi-NPP fire/geo pairs for the week: **none** (`shared_utc_days: []`). Catalog footprint overlap alone cannot establish clear land. Records: `data/metrics/mindanao_cmr_2026-11-02_2026-11-08.json`, `mindanao_cmr_pair_plan.json`, `mindanao_cmr_live_verify.json`.
+
+**A priori historical window** (order fixed before looking at fire outcomes): (1) FIRMS snapshot week → (2) first full week of March 2019 → (3) March 2020 fallback. March 2019 (`2019-03-04`–`2019-03-10`) has same-day Aqua+VIIRS catalog days. Smallest same-day candidate set (**2019-03-06**):
+
+| File | Native id | Bytes |
+| --- | --- | ---: |
+| MYD14 | `MYD14.A2019065.0555.061.2020288164355` | 399 322 |
+| MYD03 | `LAADS:4512480494` | 29 818 698 |
+| VNP14IMG | `VNP14IMG.A2019065.0412.002.2024087125918` | 1 080 711 |
+| VNP03IMG | `LAADS:6019938514` | 138 944 888 |
+| **Total** | cache hits: **0** | **170 243 619 B (162.36 MB)** |
+
+**No download executed** (`additional_bytes_needed` = 170 243 619). Without those local inputs the Mindanao activity estimate pipeline was **not** run. See `data/metrics/mindanao_2019-03_download_plan.json` and `mindanao_cmr_historical_windows.json`.
 
 **Team feedback**
 
@@ -89,7 +318,14 @@ Point forecasts are labeled **Weather near the center of your selection.** Histo
 
 ### History
 
-The monthly calendar lets you choose a month and year back to January 1990. Each date shows its stored burning-activity estimate, with missing dates and measured 0% days shown separately. Select a day for its coverage details. The chart switches between daily values for the selected month and weighted monthly values for the selected year; chart values are also available in a table. Earlier dates without stored observations remain unavailable.
+The monthly calendar goes back to January 1990. Each day is labeled honestly:
+
+- **Estimated burning activity** when coverage supports a complete or partial estimate
+- **Satellite heat readings** when FIRMS/snapshot points exist but no estimate was processed
+- **Not checked** for unqueried dates
+- Gaps stay gaps — never inferred from an empty live FIRMS result
+
+Replace the old “No stored observations” wording with the actual state (for example “Heat readings available · activity estimate not processed”).
 
 The Weekly view retains the existing trends:
 
@@ -188,8 +424,7 @@ Needed only for granule download, smoke tests, and model-table builds—not for 
 
 ```text
 app/                 FastAPI server, FIRMS client, geocode, static UI
-  static/            Single-page atlas: CesiumJS globe (globe.js); page scripts in js/, one file per
-                     feature, loaded in order with main.js last; styles in css/, one file per area
+  static/            Single-page atlas: CesiumJS globe (globe.js) + rail and card (app.js)
 vela/                Science & serving: grid, pairing, land check, preparedness, calendar
 scripts/             Catalog, ingest, train, expansion, validation helpers
 config/              Regions, settings, global plans
@@ -238,16 +473,17 @@ Browser (CesiumJS globe + land card)
         │
         ▼
 FastAPI (app/main.py)
-  /api/check-land      FIRMS → polygon clip → hotspot areas + forecast
+  /api/check-land      FIRMS (PH: overlapping UTC days) → polygon clip → hotspot areas + forecast
+  /api/findings        Square/drawn-area passes, model estimate, weather
+  /api/history/month   Estimates + FIRMS heat overlay for the calendar/chart
   /api/day-outlook     Open-Meteo → today’s temperature + wind slots
-  /api/history/month  Stored cell-days → monthly calendar + history chart
   /api/preparedness    Open-Meteo + GWIS FWI point forecast
   /api/calendar*       Weekly activity for the selected land
   /api/place           Nominatim reverse / search (cached)
   /api/trace           Example grid-square walkthrough
         │
         ▼
-vela/  land_check · preparedness · calendar_metrics · hotspot_areas · serving
+vela/  land_check · firms_day · findings · history · preparedness · hotspot_areas · serving
 ```
 
 ---

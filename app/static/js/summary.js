@@ -20,8 +20,9 @@ function refreshLandSummary() {
   document.querySelector("#land-secondary-content").hidden = hasLand;
   syncLandPicture();
   if (!hasLand) return;
-  drawLandCutout([]);
-  loadWeeklyActivity();
+  drawLandCutout(state.lastLandCheck?.heat?.hotspot_areas?.areas || []);
+  if (state.lastLandCheck) applyLandSummaryFromCheck(state.lastLandCheck);
+  else loadWeeklyActivity();
   loadDayOutlook();
 }
 
@@ -109,6 +110,51 @@ async function drawLandCutout(areas) {
 // The big figure: Vela's weekly burning-activity estimate for the week that
 // holds the observation date. It exists only where weekly history has been
 // processed; everywhere else the widget says so instead of showing a number.
+// Keep the compact card while accepting activity from the current land check.
+function setLandSummaryLoading() {
+  document.querySelector("#activity-label").textContent = "Burning activity";
+  const value = document.querySelector("#activity-value");
+  value.textContent = "Loading…";
+  value.classList.add("is-words");
+  document.querySelector("#activity-note").hidden = true;
+}
+
+function applyLandActivity(activity) {
+  const target = summaryTarget();
+  const label = document.querySelector("#activity-label");
+  const value = document.querySelector("#activity-value");
+  const note = document.querySelector("#activity-note");
+  const published = activity?.activity_rate != null
+    && (activity.activity_status === "complete" || activity.activity_status === "partial");
+  label.textContent = "Burning activity";
+  value.classList.toggle("is-words", !published);
+  note.hidden = !published;
+  note.textContent = "";
+  if (published) {
+    const weekly = activity.week_start && activity.week_end;
+    label.textContent += `${target.noun === "square" ? " in this square" : ""}`
+      + (weekly ? ` · ${formatWeekRange(activity.week_start, activity.week_end)}` : "");
+    value.textContent = `${(activity.activity_rate * 100).toFixed(1)}%`;
+    note.textContent =
+      (activity.activity_status === "partial" ? "Partial estimate: some observations lacked usable coverage. " : "")
+      + `How often this ${target.noun}’s grid squares showed burning activity `
+      + (weekly ? "that week" : `on ${formatObservationDay(dayInput.value)}`)
+      + ". It is not a wildfire probability.";
+  } else if (activity?.status === "request_failed") {
+    value.textContent = "Unavailable";
+    note.hidden = false;
+    note.textContent = activity.explanation;
+  } else {
+    value.textContent = "No estimate yet";
+  }
+}
+
+function applyLandSummaryFromCheck(payload) {
+  if (!payload || state.summarySquare) return;
+  state.activityRequestId += 1;
+  applyLandActivity(payload.activity);
+}
+
 async function loadWeeklyActivity() {
   const label = document.querySelector("#activity-label");
   const value = document.querySelector("#activity-value");

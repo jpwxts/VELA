@@ -1,0 +1,70 @@
+{
+  "summary": {
+    "incidents_accepted": 0,
+    "incidents_rejected": 0,
+    "coverage_accepted": 0,
+    "coverage_rejected": 0,
+    "usable_unique_wildfire_starts": 0,
+    "square_days_with_credible_reporting_coverage": 0,
+    "labeled_positives": 0,
+    "labeled_negatives": 0,
+    "labeled_square_days": 0,
+    "negatives_supported": false,
+    "duplicate_incident_ids": [],
+    "rejection_reasons": {},
+    "schemas": {
+      "incidents": {
+        "required": [
+          "incident_id",
+          "onset_date_ph",
+          "latitude",
+          "longitude"
+        ],
+        "optional": [
+          "province",
+          "wildfire_class",
+          "ongoing",
+          "date_precision",
+          "location_precision",
+          "source"
+        ],
+        "date_precision_values": [
+          "day",
+          "report_only",
+          "unknown"
+        ],
+        "location_precision_values": [
+          "point",
+          "barangay",
+          "municipality",
+          "ambiguous"
+        ],
+        "accept_rule": "Verified Philippine local onset date (day precision) that maps to one midnight-to-midnight forecast window, location resolves to one 5 km square, not ongoing, wildfire_class not structural."
+      },
+      "coverage": {
+        "required": [
+          "coverage_date_ph",
+          "reporting_adequate"
+        ],
+        "location_one_of": [
+          "cell_id",
+          "latitude+longitude"
+        ],
+        "optional": [
+          "province",
+          "source",
+          "latitude",
+          "longitude"
+        ],
+        "accept_rule": "reporting_adequate=true and location resolves to one 5 km square. Unmonitored days remain unknown."
+      }
+    }
+  },
+  "incidents_accepted": [],
+  "incidents_rejected": [],
+  "coverage_accepted": [],
+  "coverage_rejected": [],
+  "labeled_square_days": [],
+  "imported_at_utc": "2026-11-14T13:15:17.876233Z",
+  "label_dir": "/Users/florlyn/Desktop/MODISVIIRS/data/labels/philippines_onset"
+}

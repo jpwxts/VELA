@@ -1,0 +1,29 @@
+{
+  "label": "Philippine onset holdout evaluation",
+  "recorded_at_utc": "2026-11-14T13:15:31.615231+00:00",
+  "labels_sufficient": false,
+  "selection": {
+    "status": "not_selected",
+    "state": "research_blocked",
+    "approved_for_serving": false,
+    "reason": "0 usable unique wildfire starts and 0 square-days with credible reporting coverage. Negatives are not supported. Vela will not publish an onset percentage.",
+    "comparison_path": "/Users/florlyn/Desktop/MODISVIIRS/data/metrics/philippines_onset_model_comparison.json",
+    "recorded_at_utc": "2026-11-14T13:15:27.759232+00:00"
+  },
+  "row_counts": {
+    "train": 0,
+    "validation": 0,
+    "test": 0,
+    "labeled_total": 0,
+    "positives": 0,
+    "negatives": 0
+  },
+  "holdout_rows": 0,
+  "metrics": null,
+  "status": "blocked_no_selected_model",
+  "state": "blocked_no_selected_model",
+  "approved_for_serving": false,
+  "harmonization_model_excluded": true,
+  "synthetic_fixture": false,
+  "reason": "No frozen onset model selection is present."
+}

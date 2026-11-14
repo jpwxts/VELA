@@ -1,0 +1,175 @@
+{
+  "verified_at": "2026-11-14T12:20:14.001010+00:00",
+  "polygon": {
+    "west": 124.0,
+    "south": 6.82,
+    "east": 124.1,
+    "north": 6.9
+  },
+  "ph_today": "2026-11-14",
+  "first_call": {
+    "ph_date": "2026-11-14",
+    "observation_date": "2026-11-14",
+    "checked_at": "2026-11-14T12:19:55.166671+00:00",
+    "feeds": [
+      {
+        "platform": "Aqua",
+        "product": "MODIS_NRT",
+        "status": "no_hotspots",
+        "cached": true,
+        "utc_dates_queried": [
+          "2026-11-13",
+          "2026-11-14"
+        ],
+        "readings_returned": 0,
+        "readings_inside_polygon": 0,
+        "latest_acquisition": null,
+        "last_successful_check_at": "2026-11-14T12:19:10.716705+00:00"
+      },
+      {
+        "platform": "NOAA-20",
+        "product": "VIIRS_NOAA20_NRT",
+        "status": "no_hotspots",
+        "cached": true,
+        "utc_dates_queried": [
+          "2026-11-13",
+          "2026-11-14"
+        ],
+        "readings_returned": 0,
+        "readings_inside_polygon": 0,
+        "latest_acquisition": null,
+        "last_successful_check_at": "2026-11-14T12:19:10.716705+00:00"
+      },
+      {
+        "platform": "NOAA-21",
+        "product": "VIIRS_NOAA21_NRT",
+        "status": "no_hotspots",
+        "cached": true,
+        "utc_dates_queried": [
+          "2026-11-13",
+          "2026-11-14"
+        ],
+        "readings_returned": 0,
+        "readings_inside_polygon": 0,
+        "latest_acquisition": null,
+        "last_successful_check_at": "2026-11-14T12:19:10.716705+00:00"
+      },
+      {
+        "platform": "Suomi-NPP",
+        "product": null,
+        "status": "product_unavailable",
+        "cached": false,
+        "utc_dates_queried": [
+          "2026-11-13",
+          "2026-11-14"
+        ],
+        "readings_returned": 0,
+        "readings_inside_polygon": 0,
+        "latest_acquisition": null,
+        "last_successful_check_at": null
+      },
+      {
+        "platform": "Terra",
+        "product": "MODIS_NRT",
+        "status": "no_hotspots",
+        "cached": true,
+        "utc_dates_queried": [
+          "2026-11-13",
+          "2026-11-14"
+        ],
+        "readings_returned": 0,
+        "readings_inside_polygon": 0,
+        "latest_acquisition": null,
+        "last_successful_check_at": "2026-11-14T12:17:37.419545+00:00"
+      }
+    ],
+    "cache_note": "cached=true means FIRMS ResponseCache served a still-valid entry (NRT TTL 3h; standard processing entries do not expire). Refresh now re-queries and records a new checked_at."
+  },
+  "second_call_within_ttl": {
+    "ph_date": "2026-11-14",
+    "observation_date": "2026-11-14",
+    "checked_at": "2026-11-14T12:20:14.001010+00:00",
+    "feeds": [
+      {
+        "platform": "Aqua",
+        "product": "MODIS_NRT",
+        "status": "no_hotspots",
+        "cached": true,
+        "utc_dates_queried": [
+          "2026-11-13",
+          "2026-11-14"
+        ],
+        "readings_returned": 0,
+        "readings_inside_polygon": 0,
+        "latest_acquisition": null,
+        "last_successful_check_at": "2026-11-14T12:19:10.716705+00:00"
+      },
+      {
+        "platform": "NOAA-20",
+        "product": "VIIRS_NOAA20_NRT",
+        "status": "no_hotspots",
+        "cached": true,
+        "utc_dates_queried": [
+          "2026-11-13",
+          "2026-11-14"
+        ],
+        "readings_returned": 0,
+        "readings_inside_polygon": 0,
+        "latest_acquisition": null,
+        "last_successful_check_at": "2026-11-14T12:19:10.716705+00:00"
+      },
+      {
+        "platform": "NOAA-21",
+        "product": "VIIRS_NOAA21_NRT",
+        "status": "no_hotspots",
+        "cached": true,
+        "utc_dates_queried": [
+          "2026-11-13",
+          "2026-11-14"
+        ],
+        "readings_returned": 0,
+        "readings_inside_polygon": 0,
+        "latest_acquisition": null,
+        "last_successful_check_at": "2026-11-14T12:19:10.716705+00:00"
+      },
+      {
+        "platform": "Suomi-NPP",
+        "product": null,
+        "status": "product_unavailable",
+        "cached": false,
+        "utc_dates_queried": [
+          "2026-11-13",
+          "2026-11-14"
+        ],
+        "readings_returned": 0,
+        "readings_inside_polygon": 0,
+        "latest_acquisition": null,
+        "last_successful_check_at": null
+      },
+      {
+        "platform": "Terra",
+        "product": "MODIS_NRT",
+        "status": "no_hotspots",
+        "cached": true,
+        "utc_dates_queried": [
+          "2026-11-13",
+          "2026-11-14"
+        ],
+        "readings_returned": 0,
+        "readings_inside_polygon": 0,
+        "latest_acquisition": null,
+        "last_successful_check_at": "2026-11-14T12:17:37.419545+00:00"
+      }
+    ],
+    "cache_note": "cached=true means FIRMS ResponseCache served a still-valid entry (NRT TTL 3h; standard processing entries do not expire). Refresh now re-queries and records a new checked_at."
+  },
+  "ui_proof": {
+    "fresh_live_omits_date": true,
+    "nov7_demo_sets_day": "2026-11-07",
+    "return_live_restores": "2026-11-14"
+  },
+  "refresh": {
+    "national_store_writes_earlier_pass": 65,
+    "note": "POST /api/live/refresh rechecks source and updates checked_at; land-check cached=true means ResponseCache served still-valid NRT entry (3h TTL)."
+  }
+}

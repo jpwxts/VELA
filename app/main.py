@@ -23,7 +23,9 @@ from app.mailer import send_test_brief
 from vela.calendar_metrics import CALENDAR_METRIC
 from vela.coverage import COVERAGE_RULE
 from vela.forecast_store import ForecastArchive
-from vela.history import build_monthly_history
+from vela.findings import ZAMBIA_BOX, ZAMBIA_CELL_ID, ZAMBIA_DATE, build_findings
+from vela.history import attach_heat_overlay, build_monthly_history
+from vela.meteomatics import MeteomaticsClient, credentials_configured as meteomatics_configured
 from vela.preparedness import (
     build_day_outlook,
     build_forecast,
@@ -75,8 +77,9 @@ def build_firms() -> FirmsClient:
 
 
 FIRMS = build_firms()
+METEOMATICS = MeteomaticsClient(ResponseCache(DATA_DIR / "cache" / "meteomatics.sqlite"))
 ARCHIVE = ForecastArchive(DATA_DIR / "preparedness" / "forecasts.sqlite")
-OBSERVATION_PLATFORMS = ["Aqua", "Suomi-NPP", "NOAA-20", "NOAA-21"]
+OBSERVATION_PLATFORMS = ["Aqua", "Terra", "Suomi-NPP", "NOAA-20", "NOAA-21"]
 
 
 @asynccontextmanager
@@ -152,6 +155,50 @@ class HistoryRequest(BaseModel):
     coordinates: list[tuple[float, float]] = Field(..., min_length=3, max_length=2000)
     year: int = Field(..., ge=1990, le=9998)
     month: int = Field(..., ge=1, le=12)
+    heat_days: list[dict] = Field(default_factory=list)
+    checked_days: list[str] = Field(default_factory=list)
+
+
+class FindingsSatellite(BaseModel):
+    name: str
+    time_local: str | None = None
+    time_utc: str | None = None
+    timezone_label: str | None = None
+
+
+class FindingsMember(BaseModel):
+    platform: str | None = None
+    name: str | None = None
+    acq_date: str | None = None
+    acq_time: str | None = None
+    acq_time_raw: str | None = None
+    time_utc: str | None = None
+    acq_date_ph: str | None = None
+    acq_time_ph: str | None = None
+    lat: float | None = None
+    lon: float | None = None
+
+
+class FindingsRequest(BaseModel):
+    scope: str = "square"
+    date: str
+    place_name: str | None = None
+    lat: float | None = None
+    lon: float | None = None
+    west: float | None = None
+    south: float | None = None
+    east: float | None = None
+    north: float | None = None
+    cell_id: str | None = None
+    satellites: list[FindingsSatellite] = Field(default_factory=list)
+    members: list[FindingsMember] = Field(default_factory=list)
+    satellite_count: int | None = None
+    empty: bool = False
+    coverage_unknown: bool = False
+    weather_valid_time: str | None = None
+    use_weather_fixture: bool = False
+    region: str | None = None
+    selected_date: str | None = None
 
 
 @app.get("/")
@@ -161,14 +208,142 @@ def index():
 
 @app.get("/api/status")
 def status():
+    meteo_ok = meteomatics_configured()
+    live = {}
+    try:
+        from vela.observation_store import ObservationStore
+        from vela.ph_live import live_clock, timestamps_block
+
+        clock = live_clock()
+        store = ObservationStore()
+        live = {
+            **clock,
+            "timestamps": timestamps_block(store),
+            "store_path": str(store.path),
+            "refresh_command": "python -m scripts.refresh_philippines_firms --loop --interval-minutes 30",
+            "refresh_interval_minutes": 30,
+        }
+    except Exception as exc:  # noqa: BLE001
+        live = {"error": str(exc)}
     return {
         "metric": CALENDAR_METRIC,
         "coverage_rule": COVERAGE_RULE,
         "firms_configured": bool(os.environ.get("FIRMS_MAP_KEY", "").strip()),
+        "meteomatics_configured": meteo_ok,
+        "meteomatics_message": (
+            None if meteo_ok else "Local weather is temporarily unavailable."
+        ),
         "model": model_status(),
         "progress": read_job(),
         "supported_platform": settings()["supported_platform"],
+        "live": live,
     }
+
+
+@app.get("/api/live/today")
+def live_today():
+    """Asia/Manila calendar day used by Live mode (independent of saved examples)."""
+
+    from vela.ph_live import live_clock
+
+    return live_clock()
+
+
+@app.post("/api/live/seed-snapshot")
+def live_seed_snapshot(day: str = "2026-11-07"):
+    """Idempotent seed of the published public GeoJSON into the observation store."""
+
+    from vela.ph_live import seed_public_snapshot
+
+    try:
+        return {"ok": True, **seed_public_snapshot(day=day)}
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/api/live/refresh")
+def live_refresh(ph_date: str | None = None):
+    """One-shot national FIRMS refresh into the durable store (server-side key)."""
+
+    if not os.environ.get("FIRMS_MAP_KEY", "").strip():
+        raise HTTPException(status_code=400, detail="FIRMS_MAP_KEY is not configured.")
+    try:
+        from scripts.refresh_philippines_firms import refresh_day
+
+        return {"ok": True, **refresh_day(ph_date)}
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+@app.get("/api/onset/forecast")
+def onset_forecast(
+    cell_id: str = Query(...),
+    issue_date: str | None = None,
+    scope: str = Query("mindanao"),
+):
+    """24-hour wildfire-onset forecast for one 5 km square (Philippine midnight issue)."""
+
+    from vela.onset_forecast import forecast_for_cell
+
+    return forecast_for_cell(cell_id=cell_id, issue_date=issue_date, scope=scope)
+
+
+@app.get("/api/onset/features")
+def onset_features(
+    cell_id: str = Query(...),
+    issue_date: str | None = None,
+):
+    """Issue-time feature snapshot for auditing what Vela knew at Philippine midnight."""
+
+    from vela.onset_features import build_issue_time_features
+    from vela.onset_forecast import philippine_issue_date
+    from vela.observation_store import ObservationStore
+
+    day = (issue_date or philippine_issue_date().isoformat())[:10]
+    detections = []
+    try:
+        store = ObservationStore()
+        # Pull nearby Philippine days so prior-24h/72h windows can be reconstructed.
+        for offset in (-2, -1, 0):
+            from datetime import date, timedelta
+
+            stamp = (date.fromisoformat(day) + timedelta(days=offset)).isoformat()
+            detections.extend(store.detections_for_ph_date(stamp))
+    except Exception:  # noqa: BLE001
+        detections = []
+    return build_issue_time_features(
+        cell_id=cell_id,
+        issue_date_ph=day,
+        detections=detections,
+        weather_forecast=None,
+        rainfall_history=None,
+    )
+
+
+@app.get("/api/onset/audit")
+def onset_audit():
+    from vela.onset_forecast import load_audit
+
+    return load_audit()
+
+
+class OnsetPolygonRequest(BaseModel):
+    cell_ids: list[str] = Field(default_factory=list)
+    issue_date: str | None = None
+    scope: str = "mindanao"
+
+
+@app.post("/api/onset/polygon-summary")
+def onset_polygon_summary(body: OnsetPolygonRequest):
+    """Square-level onset states for a drawn polygon; never averages into a polygon %."""
+
+    from vela.onset_forecast import forecast_for_cell, polygon_onset_summary
+
+    cells = [
+        forecast_for_cell(cell_id=str(cell_id), issue_date=body.issue_date, scope=body.scope)
+        for cell_id in body.cell_ids
+    ]
+    return {"cells": cells, "summary": polygon_onset_summary(cells)}
 
 
 @app.get("/api/regions")
@@ -406,11 +581,21 @@ def area_context(
     }
 
 
+def _ring_uses_manila_day(ring: list[list[float]]) -> bool:
+    lons = [float(point[0]) for point in ring]
+    lats = [float(point[1]) for point in ring]
+    lon = (min(lons) + max(lons)) / 2
+    lat = (min(lats) + max(lats)) / 2
+    return 116.0 <= lon <= 127.5 and 4.0 <= lat <= 21.5
+
+
 @app.post("/api/check-land")
 def check_land(body: CheckLandRequest):
     """Forecast fire danger for a plot plus satellite heat inside or nearby the boundary."""
 
     from datetime import date as date_cls, timedelta
+
+    from vela.firms_day import fetch_firms_for_ph_day
     from vela.land_check import build_land_check, normalize_ring, polygon_bbox
 
     try:
@@ -428,12 +613,22 @@ def check_land(body: CheckLandRequest):
 
     observation_date = body.date
     if not observation_date:
-        observation_date = (date_cls.today() - timedelta(days=1)).isoformat()
+        if _ring_uses_manila_day(ring):
+            from vela.observation_store import philippine_today
 
+            observation_date = philippine_today().isoformat()
+        else:
+            observation_date = (date_cls.today() - timedelta(days=1)).isoformat()
+
+    platforms = body.platforms or OBSERVATION_PLATFORMS
     if body.include_hotspots:
-        hotspots_payload = FIRMS.hotspots(
-            *query_box, observation_date, body.platforms or OBSERVATION_PLATFORMS
-        )
+        if _ring_uses_manila_day(ring):
+            # Philippine plots: query overlapping UTC dates, assign by Asia/Manila day.
+            hotspots_payload = fetch_firms_for_ph_day(
+                FIRMS, ring, observation_date, platforms, pad=pad
+            )
+        else:
+            hotspots_payload = FIRMS.hotspots(*query_box, observation_date, platforms)
     else:
         hotspots_payload = {
             "configured": bool(FIRMS.key),
@@ -444,13 +639,104 @@ def check_land(body: CheckLandRequest):
             "results": [],
         }
 
-    return build_land_check(
+    payload = build_land_check(
         ring=ring,
         forecast=forecast,
         hotspot_payload=hotspots_payload,
         label=body.label,
         observation_date=observation_date,
     )
+    # Persist Philippine detections once so Live, History, and analytics share them.
+    if _ring_uses_manila_day(ring) and body.include_hotspots:
+        try:
+            from vela.firms_day import utc_dates_for_ph_day, parse_day
+            from vela.observation_store import ObservationStore
+            from vela.ph_live import persist_hotspot_payload, timestamps_block
+
+            store = ObservationStore()
+            persist = persist_hotspot_payload(
+                hotspots_payload,
+                ph_date=str(observation_date)[:10],
+                store=store,
+            )
+            heat_inside = {
+                (
+                    str(row.get("platform") or ""),
+                    str(row.get("acq_date") or ""),
+                    str(row.get("acq_time") or ""),
+                    round(float(row.get("lat") or 0), 5),
+                    round(float(row.get("lon") or 0), 5),
+                )
+                for row in ((payload.get("heat") or {}).get("inside") or [])
+            }
+            feeds = []
+            for result in hotspots_payload.get("results") or []:
+                platform = result.get("platform") or "Unrecognized"
+                hotspots = result.get("hotspots") or []
+                inside = [
+                    spot
+                    for spot in hotspots
+                    if (
+                        str(spot.get("platform") or platform),
+                        str(spot.get("acq_date") or ""),
+                        str(spot.get("acq_time") or ""),
+                        round(float(spot.get("lat") or 0), 5),
+                        round(float(spot.get("lon") or 0), 5),
+                    )
+                    in heat_inside
+                ]
+                latest = None
+                for spot in inside or hotspots:
+                    stamp = f"{spot.get('acq_date') or ''}T{spot.get('acq_time') or '00:00'}"
+                    if latest is None or stamp > latest:
+                        latest = stamp
+                prior = store.latest_successful_check(platform=platform)
+                feeds.append(
+                    {
+                        "platform": platform,
+                        "product": result.get("product"),
+                        "processing": result.get("processing"),
+                        "status": result.get("status"),
+                        "cached": bool(result.get("cached")),
+                        "utc_dates_queried": utc_dates_for_ph_day(parse_day(str(observation_date)[:10])),
+                        "readings_returned": len(hotspots),
+                        "readings_inside_polygon": len(inside),
+                        "latest_acquisition": latest,
+                        "last_successful_check_at": None if prior is None else prior.get("checked_at"),
+                    }
+                )
+            # Prefer the latest acquisition among readings inside this polygon.
+            inside_latest = None
+            for spot in ((payload.get("heat") or {}).get("inside") or []):
+                stamp = f"{spot.get('acq_date') or ''}T{spot.get('acq_time') or '00:00'}:00+00:00"
+                if inside_latest is None or stamp > inside_latest:
+                    inside_latest = stamp
+            stamps = timestamps_block(store, payload.get("activity"))
+            if inside_latest:
+                stamps["latest_satellite_observation_at"] = inside_latest
+            payload["timestamps"] = {
+                **stamps,
+                **persist,
+                "latest_satellite_observation_at": stamps["latest_satellite_observation_at"],
+                "last_successful_source_check_at": persist.get("checked_at")
+                or stamps.get("last_successful_source_check_at"),
+            }
+            payload["live"] = {
+                "mode": "live",
+                "ph_date": str(observation_date)[:10],
+                "timezone": "Asia/Manila",
+                "store_path": str(store.path),
+                "feeds": feeds,
+                "cache_note": (
+                    "cached=true means FIRMS ResponseCache served a still-valid entry "
+                    "(NRT TTL 3h; standard processing entries do not expire). "
+                    "Refresh now re-queries and records a new checked_at."
+                ),
+            }
+        except Exception as exc:  # noqa: BLE001 - Live path must not fail the land check.
+            logging.getLogger(__name__).warning("observation store write skipped: %s", exc)
+            payload["timestamps"] = {"error": "store_write_skipped"}
+    return payload
 
 
 @app.get("/api/check-land/fixture")
@@ -569,12 +855,58 @@ def calendar(west: float, south: float, east: float, north: float, year: int):
     return build_calendar(west, south, east, north, year)
 
 
+def _snapshot_heat_days_for_ring(ring: list[list[float]], year: int, month: int) -> list[dict]:
+    """Count public FIRMS snapshot points inside the ring, by Philippine local date."""
+
+    from collections import Counter
+
+    from vela.firms_day import ph_day_for_utc
+    from vela.land_check import point_in_ring
+    from vela.public_hotspots import geojson_path, load_geojson
+
+    prefix = f"{year}-{month:02d}"
+    day = f"{prefix}-07"
+    # Only the published Nov 2026 snapshot is shipped in-repo today.
+    if not geojson_path("2026-11-07").is_file():
+        return []
+    if prefix != "2026-11" and day[:7] != "2026-11":
+        # Still allow Nov 2026 when the requested month is November 2026.
+        if year != 2026 or month != 11:
+            return []
+    try:
+        collection = load_geojson("2026-11-07")
+    except FileNotFoundError:
+        return []
+    counts: Counter[str] = Counter()
+    for feature in collection.get("features") or []:
+        lon, lat = feature["geometry"]["coordinates"]
+        if not point_in_ring(float(lon), float(lat), ring):
+            continue
+        props = feature.get("properties") or {}
+        ph = str(props.get("acq_date_ph") or "")[:10] or ph_day_for_utc(
+            str(props.get("acq_date_utc") or "2026-11-07"),
+            props.get("acq_time_utc"),
+        )
+        if ph and ph.startswith(prefix):
+            counts[ph] += 1
+    return [
+        {
+            "date": iso,
+            "count": count,
+            "queried": True,
+            "source": "public_snapshot",
+        }
+        for iso, count in sorted(counts.items())
+    ]
+
+
 @app.post("/api/history/month")
 def monthly_history(body: HistoryRequest):
     """Daily calendar and monthly chart totals for the visitor's actual boundary."""
 
     import math
     from datetime import date
+
     from vela.land_check import normalize_ring, polygon_bbox
 
     if body.year > date.today().year:
@@ -587,7 +919,141 @@ def monthly_history(body: HistoryRequest):
     area = abs(sum(left[0] * right[1] - right[0] * left[1] for left, right in zip(ring, ring[1:])))
     if west == east or south == north or len(set(map(tuple, ring))) < 3 or area < 1e-12:
         raise HTTPException(status_code=400, detail="Select a boundary with an area.")
-    return build_monthly_history(ring, body.year, body.month)
+    payload = build_monthly_history(ring, body.year, body.month)
+    heat_days = list(body.heat_days or [])
+    # Auto-attach the published Philippine FIRMS snapshot when the land overlaps it.
+    heat_days.extend(_snapshot_heat_days_for_ring(ring, body.year, body.month))
+    # Merge durable store heat days (Live refresh + prior checks) for the same month.
+    try:
+        from vela.boundaries import point_in_geometry
+        from vela.observation_store import ObservationStore
+
+        store = ObservationStore()
+        for row in store.heat_days_for_month(body.year, body.month):
+            # Count only detections that fall inside this visitor ring.
+            detections = store.detections_for_ph_date(row["date"])
+            inside = 0
+            platforms = set()
+            for spot in detections:
+                try:
+                    lon = float(spot["lon"])
+                    lat = float(spot["lat"])
+                except (KeyError, TypeError, ValueError):
+                    continue
+                # Prefer ring clip; multipolygon presets can wrap this later.
+                from vela.land_check import point_in_ring
+
+                if point_in_ring(lon, lat, ring):
+                    inside += 1
+                    if spot.get("platform"):
+                        platforms.add(spot["platform"])
+            if inside:
+                heat_days.append(
+                    {
+                        "date": row["date"],
+                        "count": inside,
+                        "detection_count": inside,
+                        "platforms": sorted(platforms),
+                        "queried": True,
+                        "source": "observation_store",
+                    }
+                )
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).warning("store heat overlay skipped: %s", exc)
+    return attach_heat_overlay(
+        payload,
+        heat_days=heat_days,
+        checked_days=body.checked_days,
+    )
+
+
+@app.post("/api/findings")
+def findings(body: FindingsRequest):
+    """Selected-square or drawn-area findings: heat passes, model estimate, weather."""
+
+    platforms = [row.model_dump() for row in body.satellites]
+    members = [row.model_dump() for row in body.members]
+    weather_fixture = None
+    if body.use_weather_fixture:
+        weather_fixture = {
+            "valid_time": body.weather_valid_time or f"{body.date}T12:00:00Z",
+            "temperature_c": 32.0,
+            "relative_humidity_percent": 50.0,
+            "kind": "historical",
+        }
+    elif not meteomatics_configured():
+        # Do not block square findings on a missing weather credential.
+        weather_fixture = {
+            "valid_time": body.weather_valid_time or f"{body.date}T12:00:00Z",
+            "temperature_c": None,
+            "relative_humidity_percent": None,
+            "kind": "historical",
+            "optional_denied": ["wind_speed_10m:kmh", "wind_dir_10m:d", "precip_24h:mm"],
+        }
+    try:
+        payload = build_findings(
+            scope=body.scope,
+            observation_date=body.date,
+            place_name=body.place_name,
+            lat=body.lat,
+            lon=body.lon,
+            west=body.west,
+            south=body.south,
+            east=body.east,
+            north=body.north,
+            cell_id=body.cell_id,
+            platforms=platforms,
+            members=members,
+            satellite_count=body.satellite_count,
+            empty=body.empty,
+            coverage_unknown=body.coverage_unknown,
+            weather_valid_time=body.weather_valid_time,
+            weather_client=None if weather_fixture is not None else METEOMATICS,
+            weather_fixture=weather_fixture,
+            region=body.region,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    selected = body.selected_date or body.date
+    marker_day = body.date
+    payload["date_mismatch"] = {
+        "active": selected[:10] != marker_day[:10],
+        "marker_date": marker_day,
+        "selected_date": selected,
+        "message": (
+            f"This marker’s readings are from {marker_day}. "
+            f"The panel date is {selected}."
+            if selected[:10] != marker_day[:10]
+            else None
+        ),
+    }
+    return payload
+
+
+@app.get("/api/findings/zambia-fixture")
+def findings_zambia_fixture():
+    """Reproducible numeric Suomi-NPP estimate from cached Zambia tune-week data."""
+
+    return build_findings(
+        scope="square",
+        observation_date=ZAMBIA_DATE,
+        place_name="Zambia woodland",
+        cell_id=ZAMBIA_CELL_ID,
+        west=ZAMBIA_BOX[0],
+        south=ZAMBIA_BOX[1],
+        east=ZAMBIA_BOX[2],
+        north=ZAMBIA_BOX[3],
+        platforms=[{"name": "Suomi-NPP", "time_utc": "11:00"}],
+        empty=True,
+        weather_fixture={
+            "valid_time": f"{ZAMBIA_DATE}T12:00:00Z",
+            "temperature_c": 32.0,
+            "relative_humidity_percent": 50.0,
+            "kind": "historical",
+        },
+        region="Zambia",
+    )
 
 
 @app.get("/api/calendar/years")

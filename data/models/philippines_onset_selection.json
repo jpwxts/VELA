@@ -1,0 +1,8 @@
+{
+  "status": "not_selected",
+  "state": "research_blocked",
+  "approved_for_serving": false,
+  "reason": "0 usable unique wildfire starts and 0 square-days with credible reporting coverage. Negatives are not supported. Vela will not publish an onset percentage.",
+  "comparison_path": "/Users/florlyn/Desktop/MODISVIIRS/data/metrics/philippines_onset_model_comparison.json",
+  "recorded_at_utc": "2026-11-14T13:15:27.759232+00:00"
+}

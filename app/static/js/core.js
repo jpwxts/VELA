@@ -77,6 +77,13 @@ const state = {
   outlookRequestId: 0,
   dayOutlook: null,
   dayOutlookKey: null,
+  publicSnapshot: null,
+  pendingMarkerDate: null,
+  lastFindings: null,
+  savedExample: false,
+  mapMode: "live",
+  phToday: null,
+  liveTimestamps: null,
 };
 
 // Ember is reserved for observed heat. The visitor's land is drawn in ink,

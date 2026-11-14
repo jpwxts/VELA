@@ -1,0 +1,155 @@
+{
+  "polygon": {
+    "west": 124.0,
+    "south": 6.82,
+    "east": 124.1,
+    "north": 6.9
+  },
+  "week": "2019-03-04/2019-03-10",
+  "serving_rule_note": "Contribution selection does not require jointly eligible Aqua\u2013Suomi pairs: Aqua alone can supply an observed contribution; eligible Suomi-NPP can supply a calibrated fallback when Aqua is missing. Joint pairs are required only for the separate Agreement-with-Aqua accuracy comparison. Ingest still needs fire+geo granules per platform before any paired_cells rows exist.",
+  "cmr": {
+    "historical_window": {
+      "label": "First full week of March 2019 (a priori dry-season)",
+      "products": {
+        "MYD14": {
+          "status": "ok_matches",
+          "count": 12,
+          "error": null
+        },
+        "MYD03": {
+          "status": "ok_matches",
+          "count": 24,
+          "error": null
+        },
+        "VNP14IMG": {
+          "status": "ok_matches",
+          "count": 15,
+          "error": null
+        },
+        "VNP03IMG": {
+          "status": "ok_matches",
+          "count": 15,
+          "error": null
+        }
+      },
+      "shared_utc_days": [
+        "2019-03-04",
+        "2019-03-05",
+        "2019-03-06",
+        "2019-03-07",
+        "2019-03-08",
+        "2019-03-09",
+        "2019-03-10"
+      ],
+      "same_day_aqua_viirs_possible": true
+    },
+    "download_plan": {
+      "window": "2019-03-04/2019-03-10",
+      "selection_rule": "A priori first full week of March 2019 after 2026 week lacked same-day Aqua+VIIRS pairs",
+      "smallest_day": "2019-03-06",
+      "files": [
+        {
+          "short": "MYD14",
+          "native_id": "MYD14.A2019065.0555.061.2020288164355",
+          "start": "2019-03-06T05:55:00.000Z",
+          "collection_version": "061",
+          "provider": "LPCLOUD",
+          "size_bytes": 399322
+        },
+        {
+          "short": "MYD03",
+          "native_id": "LAADS:4512480494",
+          "start": "2019-03-06T05:55:00.000Z",
+          "collection_version": "6.1",
+          "provider": "LAADS",
+          "size_bytes": 29818698
+        },
+        {
+          "short": "VNP14IMG",
+          "native_id": "VNP14IMG.A2019065.0412.002.2024087125918",
+          "start": "2019-03-06T04:12:00.000Z",
+          "collection_version": "002",
+          "provider": "LPCLOUD",
+          "size_bytes": 1080711
+        },
+        {
+          "short": "VNP03IMG",
+          "native_id": "LAADS:6019938514",
+          "start": "2019-03-06T04:12:00.000Z",
+          "collection_version": "2",
+          "provider": "LAADS",
+          "size_bytes": 138944888
+        }
+      ],
+      "total_bytes": 170243619,
+      "total_mb": 162.36,
+      "cache_hits": [],
+      "additional_bytes_needed": 170243619,
+      "download_executed": false,
+      "note": "Catalog overlap alone cannot establish clear land. No download performed."
+    }
+  },
+  "stages": [
+    {
+      "stage": "1_cmr_catalog_granules",
+      "count": 66,
+      "detail": {
+        "MYD14": 12,
+        "MYD03": 24,
+        "VNP14IMG": 15,
+        "VNP03IMG": 15
+      },
+      "note": "Catalog footprint matches only; clear land not established."
+    },
+    {
+      "stage": "2_land_intersecting_processed_rows",
+      "count": 0,
+      "detail": {
+        "path": "/Users/florlyn/Desktop/MODISVIIRS/data/processed/paired_cells.parquet",
+        "exists": true,
+        "rows": 41456,
+        "ph_rows": 0,
+        "bbox_rows": 0
+      },
+      "note": "Processed paired_cells rows whose cell falls in the Maguindanao polygon."
+    },
+    {
+      "stage": "3_usable_aqua_coverage_cell_days",
+      "count": 0,
+      "detail": null
+    },
+    {
+      "stage": "4_eligible_suomi_npp_fallback_inputs",
+      "count": 0,
+      "detail": {
+        "raw_viirs": null,
+        "unavailable_calibration_pending": null
+      }
+    },
+    {
+      "stage": "5_history_contributions_denominator",
+      "count": null,
+      "detail": {
+        "activity_rate": null,
+        "activity_status": null,
+        "held_out": null,
+        "region_label": {
+          "code": "not_in_training_sample",
+          "text": "This box does not overlap a sampled training window.",
+          "region_id": null,
+          "overlap_fraction": 0.0
+        },
+        "model_for_drawn_area": {
+          "status": "unavailable",
+          "activity_rate": null,
+          "activity_denominator": null,
+          "explanation": "No published weekly estimate covers this drawn area on the selected date."
+        }
+      }
+    }
+  ],
+  "first_stage_that_drops_to_zero": "2_land_intersecting_processed_rows",
+  "download_required": true,
+  "smallest_viable_download_bytes": 170243619,
+  "download_executed": false
+}

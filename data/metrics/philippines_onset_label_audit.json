@@ -1,0 +1,166 @@
+{
+  "title": "Philippine wildfire-onset label audit (Mindanao-first)",
+  "audited_at_utc": "2026-11-14T13:15:18.035066+00:00",
+  "label_dir": "/Users/florlyn/Desktop/MODISVIIRS/data/labels/philippines_onset",
+  "synthetic_fixture": false,
+  "target_label": "New wildfire start in a 5 km square during the next Philippine 24 hours",
+  "input_schemas": {
+    "incidents": {
+      "required": [
+        "incident_id",
+        "onset_date_ph",
+        "latitude",
+        "longitude"
+      ],
+      "optional": [
+        "province",
+        "wildfire_class",
+        "ongoing",
+        "date_precision",
+        "location_precision",
+        "source"
+      ],
+      "date_precision_values": [
+        "day",
+        "report_only",
+        "unknown"
+      ],
+      "location_precision_values": [
+        "point",
+        "barangay",
+        "municipality",
+        "ambiguous"
+      ],
+      "accept_rule": "Verified Philippine local onset date (day precision) that maps to one midnight-to-midnight forecast window, location resolves to one 5 km square, not ongoing, wildfire_class not structural."
+    },
+    "coverage": {
+      "required": [
+        "coverage_date_ph",
+        "reporting_adequate"
+      ],
+      "location_one_of": [
+        "cell_id",
+        "latitude+longitude"
+      ],
+      "optional": [
+        "province",
+        "source",
+        "latitude",
+        "longitude"
+      ],
+      "accept_rule": "reporting_adequate=true and location resolves to one 5 km square. Unmonitored days remain unknown."
+    }
+  },
+  "import_summary": {
+    "incidents_accepted": 0,
+    "incidents_rejected": 0,
+    "coverage_accepted": 0,
+    "coverage_rejected": 0,
+    "usable_unique_wildfire_starts": 0,
+    "square_days_with_credible_reporting_coverage": 0,
+    "labeled_positives": 0,
+    "labeled_negatives": 0,
+    "labeled_square_days": 0,
+    "negatives_supported": false,
+    "duplicate_incident_ids": [],
+    "rejection_reasons": {},
+    "schemas": {
+      "incidents": {
+        "required": [
+          "incident_id",
+          "onset_date_ph",
+          "latitude",
+          "longitude"
+        ],
+        "optional": [
+          "province",
+          "wildfire_class",
+          "ongoing",
+          "date_precision",
+          "location_precision",
+          "source"
+        ],
+        "date_precision_values": [
+          "day",
+          "report_only",
+          "unknown"
+        ],
+        "location_precision_values": [
+          "point",
+          "barangay",
+          "municipality",
+          "ambiguous"
+        ],
+        "accept_rule": "Verified Philippine local onset date (day precision) that maps to one midnight-to-midnight forecast window, location resolves to one 5 km square, not ongoing, wildfire_class not structural."
+      },
+      "coverage": {
+        "required": [
+          "coverage_date_ph",
+          "reporting_adequate"
+        ],
+        "location_one_of": [
+          "cell_id",
+          "latitude+longitude"
+        ],
+        "optional": [
+          "province",
+          "source",
+          "latitude",
+          "longitude"
+        ],
+        "accept_rule": "reporting_adequate=true and location resolves to one 5 km square. Unmonitored days remain unknown."
+      }
+    }
+  },
+  "usable_unique_wildfire_starts": 0,
+  "usable_start_dates": [],
+  "usable_regions": [],
+  "square_days_with_credible_reporting_coverage": 0,
+  "negatives_supported": false,
+  "labeled_square_days": 0,
+  "rejection_reasons": {},
+  "duplicate_incident_ids": [],
+  "stronger_label_warning": "Only day-precision onset rows with point/barangay locations are accepted as positives. Report-only dates, ongoing fires, and ambiguous locations remain unknown.",
+  "sources": [
+    {
+      "name": "Local label directory",
+      "path_or_url": "/Users/florlyn/Desktop/MODISVIIRS/data/labels/philippines_onset",
+      "accessible_now": true,
+      "usable_unique_wildfire_starts": 0,
+      "square_days_with_credible_reporting_coverage": 0,
+      "notes": "Counts come from scripts/import_philippines_onset_labels.py."
+    },
+    {
+      "name": "Vela configured wildfire-report lookup",
+      "path_or_url": "vela/wildfire_reports.py",
+      "accessible_now": false,
+      "usable_unique_wildfire_starts": 0,
+      "notes": "No verified wildfire-incident source is configured for Vela yet (for example an agency incident feed with location and date)."
+    },
+    {
+      "name": "BFP eFOI BFP-669031036800 Consolidated Forest Fire",
+      "path_or_url": "https://www.foi.gov.ph/agencies/bfp/request-for-forest-fire-incident-data-in-the-philippines-2015-2024/",
+      "accessible_now": false,
+      "usable_unique_wildfire_starts": 0,
+      "notes": "eFOI portal returned Temporary Maintenance (Advisory ADV-2026-10-01) when opening the request URL; Cloudflare challenge also blocks non-browser download. Attachment bytes were not retrieved.",
+      "investigation_path": "data/metrics/bfp_669031036800_investigation.json"
+    },
+    {
+      "name": "Davao DENR Region XI referral (separate acquisition lead)",
+      "path_or_url": "https://r11.denr.gov.ph/",
+      "accessible_now": false,
+      "usable_unique_wildfire_starts": 0,
+      "notes": "Separate from BFP-669031036800. Pursue Region XI forest-fire microdata only as its own lead; do not treat portal listings as labels."
+    }
+  ],
+  "publish_blocker": "0 usable unique wildfire starts and 0 square-days with credible reporting coverage. Negatives are not supported. Vela will not publish an onset percentage.",
+  "missing_fields_for_training": [
+    "incident_id",
+    "onset_date_ph (day precision)",
+    "latitude",
+    "longitude",
+    "reporting_adequate coverage rows for negatives"
+  ],
+  "next_runnable_step": "Obtain Mindanao onset + coverage tables (or recover BFP-669031036800 attachment when eFOI is back), place under data/labels/philippines_onset/, then re-run import and audit.",
+  "harmonization_model_untouched": true
+}

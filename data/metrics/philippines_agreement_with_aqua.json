@@ -1,0 +1,88 @@
+{
+  "label": "Agreement with Aqua in the Philippines",
+  "model_frozen": true,
+  "chosen_model": "random_forest",
+  "model_hash_or_selection": {
+    "selection_path": "/Users/florlyn/Desktop/MODISVIIRS/data/models/model_selection.json",
+    "chosen_model": "random_forest",
+    "selection_status": "selected"
+  },
+  "pre_registration": {
+    "areas": [
+      "Mindanao cell 2393:174 padded bbox",
+      "future PH paired_cells region_ids"
+    ],
+    "date_order": [
+      "2019-03-04/2019-03-10 a priori March week",
+      "2026-11-02/2026-11-08 FIRMS snapshot week"
+    ],
+    "inclusion": "jointly eligible Aqua\u2013Suomi-NPP cell-days only",
+    "prediction_path": "hide Aqua; frozen Suomi-NPP RF when features exist",
+    "reference": "Aqua detected 0/1",
+    "metrics": [
+      "weekly signed error (pp)",
+      "equal-weight weekly MAE (pp)",
+      "cell-level Brier score",
+      "raw VIIRS baseline on same rows"
+    ],
+    "reserved_sets_untouched": [
+      "Reveal 2023\u20132024",
+      "Pantanal transfer"
+    ]
+  },
+  "development_reference_not_this_test": {
+    "weekly_share_mae_percentage_points": 0.66,
+    "label": "development performance on non-Philippine tune weeks",
+    "plain_language": "Across four development weeks, the model\u2019s estimated weekly share of active squares differed from Aqua\u2019s observed share by 0.66 percentage points on average."
+  },
+  "philippine_paired_cell_days": 0,
+  "paired_cells_error": null,
+  "regions": 0,
+  "weeks": 0,
+  "aqua_positive_cases": 0,
+  "aqua_zero_cases": 0,
+  "weekly_mae_percentage_points": null,
+  "brier_score": null,
+  "undefined_metrics_reason": "Only 0 Philippine paired cell-days found in paired_cells.parquet. Weekly MAE and Brier score are undefined until jointly eligible PH pairs exist.",
+  "archive_blocker": {
+    "smallest_candidate_download_bytes": 170243619,
+    "download_executed": false,
+    "files": [
+      {
+        "short": "MYD14",
+        "native_id": "MYD14.A2019065.0555.061.2020288164355",
+        "start": "2019-03-06T05:55:00.000Z",
+        "collection_version": "061",
+        "provider": "LPCLOUD",
+        "size_bytes": 399322
+      },
+      {
+        "short": "MYD03",
+        "native_id": "LAADS:4512480494",
+        "start": "2019-03-06T05:55:00.000Z",
+        "collection_version": "6.1",
+        "provider": "LAADS",
+        "size_bytes": 29818698
+      },
+      {
+        "short": "VNP14IMG",
+        "native_id": "VNP14IMG.A2019065.0412.002.2024087125918",
+        "start": "2019-03-06T04:12:00.000Z",
+        "collection_version": "002",
+        "provider": "LPCLOUD",
+        "size_bytes": 1080711
+      },
+      {
+        "short": "VNP03IMG",
+        "native_id": "LAADS:6019938514",
+        "start": "2019-03-06T04:12:00.000Z",
+        "collection_version": "2",
+        "provider": "LAADS",
+        "size_bytes": 138944888
+      }
+    ],
+    "note": "Catalog overlap alone cannot establish clear land. No download performed."
+  },
+  "wildfire_confirmation": "Wildfire confirmation requires a separate evaluation with independently verified incident and non-wildfire outcomes. This script measures agreement with Aqua only.",
+  "philippine_status": "Philippine locations are supported for place labels and Asia/Manila times. They are not part of the training sample, and no Philippine held-out harmonization error has been measured."
+}

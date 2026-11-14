@@ -1,6 +1,6 @@
 // Choosing land (search, drawing, saved box) and checking it for heat.
 
-function updateDayWords() {
+function updateDayWords(options = {}) {
   const node = document.querySelector("#day-words");
   const value = dayInput.value;
   if (!value) {
@@ -14,14 +14,74 @@ function updateDayWords() {
   renderObservationCalendar();
   renderDaySummary();
   updateSelectionBanner();
-  if (state.polygon && state.polygon.length >= 4) loadWeeklyActivity();
+  // Saved public snapshots set the day before renderLandCheck; skip the live
+  // re-check so resetLandResult cannot clear the region filter mid-load.
+  if (!options.skipCheck && state.polygon && state.polygon.length >= 4 && !state.publicSnapshot) {
+    // Date changes re-check heat for the Philippine calendar day while keeping
+    // the fire-weather card tied to the latest check-land forecast.
+    checkLand();
+  }
   if (previousMonth !== state.calendarMonth && state.panelTab === "weekly" && state.historyView === "present") loadMonthlyHistory();
+}
+
+function syncMapMode(mode) {
+  state.mapMode = mode || "live";
+  document.querySelectorAll("[data-map-mode]").forEach((button) => {
+    const on = button.dataset.mapMode === state.mapMode;
+    button.classList.toggle("on", on);
+    button.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  const returnLive = document.querySelector("#return-live");
+  if (returnLive) returnLive.hidden = state.mapMode === "live";
+}
+
+function setMapMode(mode, options = {}) {
+  syncMapMode(mode);
+  if (state.mapMode === "live") {
+    state.publicSnapshot = null;
+    state.savedExample = false;
+    syncPhilippinesRegionFilters(null);
+    dayInput.value = state.phToday || manilaTodayIso();
+    document.querySelector("#year").value = dayInput.value.slice(0, 4);
+    updateDayWords({ skipCheck: options.skipCheck });
+  }
+  if (state.mapMode === "history") {
+    openLandPanel({ tab: "weekly", focus: false });
+    state.historyView = "present";
+    setHistoryView("present");
+  }
+  if (state.mapMode === "saved") {
+    loadPhilippinesPublicExample({ day: "2026-11-07", region: "philippines" });
+  }
+}
+
+function renderLiveTimestamps(payload) {
+  const node = document.querySelector("#live-timestamps");
+  if (!node) return;
+  const stamps = payload?.timestamps || state.liveTimestamps || {};
+  const lines = [
+    stamps.latest_satellite_observation_at
+      ? `Latest satellite observation · ${stamps.latest_satellite_observation_at}`
+      : null,
+    stamps.last_successful_source_check_at
+      ? `Last successful source check · ${stamps.last_successful_source_check_at}`
+      : null,
+    stamps.estimates_processed_through
+      ? `Estimates processed through · ${stamps.estimates_processed_through}`
+      : "Estimates processed through · none yet for this Philippine selection",
+  ].filter(Boolean);
+  node.hidden = lines.length === 0;
+  node.textContent = lines.join(" · ");
+  state.liveTimestamps = stamps;
 }
 
 async function loadStatus() {
   const response = await fetch("/api/status");
   if (!response.ok) return;
   const payload = await response.json();
+  if (payload.live?.ph_today) state.phToday = payload.live.ph_today;
+  if (payload.live?.timestamps) state.liveTimestamps = payload.live.timestamps;
+  renderLiveTimestamps({ timestamps: state.liveTimestamps });
   const metric = document.querySelector("#metric");
   if (metric) metric.textContent = payload.metric;
   const note = document.querySelector("#metric-note");
@@ -132,11 +192,20 @@ function setPolygon(coordinates, label) {
     Math.max(...lons),
     Math.max(...lats),
   ].map((value) => Number(value.toFixed(4)));
-  // Invalidate any in-flight outlook for the previous plot.
+  // Invalidate any in-flight outlook / check for the previous plot.
   state.weatherRequestId += 1;
+  state.landRequestId += 1;
+  state.requestId += 1;
   state.selectedForecastDay = null;
+  state.lastLandCheck = null;
+  state.lastPayload = null;
+  state.forecast = null;
+  state.dayOutlook = null;
+  state.dayOutlookKey = null;
   clearPolygonLayers();
   clearRectangle();
+  clearMapLayers();
+  clearForecastMarker();
   state.polygonLayer = globe.addArea(ring, {
     stroke: LAND_STROKE,
     weight: 2.5,
@@ -154,8 +223,8 @@ function setPolygon(coordinates, label) {
   state.placeRequestId += 1;
   state.landLabel = label || "Your land";
   document.querySelector("#area-label").textContent =
-    `${label || "Your land"}. ${ring.length - 1} corners. You can redraw after checking.`;
-  document.querySelector("#map-hint").textContent = "Boundary selected. Choose Check my land.";
+    `${label || "Your land"}. ${ring.length - 1} corners. Checking this land…`;
+  document.querySelector("#map-hint").textContent = "Boundary selected. Loading heat and fire weather…";
   clearWeatherOutlook();
   updateSelectionBanner();
   renderObservationCalendar();
@@ -332,6 +401,10 @@ function resetLandResult() {
   document.querySelector("#weather-explanation").textContent =
     "Loading the fire-danger outlook and recent satellite heat.";
   document.querySelector("#weather-status").textContent = "Loading…";
+  state.publicSnapshot = null;
+  if (typeof syncPhilippinesRegionFilters === "function") {
+    syncPhilippinesRegionFilters(null);
+  }
 }
 
 async function checkLand(options = {}) {
@@ -344,11 +417,26 @@ async function checkLand(options = {}) {
     setDefaultPlatforms();
     platforms = [...DEFAULT_PLATFORMS];
   }
+  // Live Philippine plots: omit date so the server uses Asia/Manila today.
+  // History / saved examples keep an explicit dayInput value.
+  const livePhilippine =
+    state.mapMode === "live"
+    && !state.savedExample
+    && !state.publicSnapshot
+    && !options.date
+    && !options.forceDate;
+  if (livePhilippine && state.phToday) {
+    dayInput.value = state.phToday;
+    document.querySelector("#year").value = state.phToday.slice(0, 4);
+  }
   const date = dayInput.value;
   document.querySelector("#year").value = date.slice(0, 4);
   const requestId = ++state.landRequestId;
   ++state.requestId;
   resetLandResult();
+  state.lastLandCheck = null;
+  state.forecast = null;
+  refreshLandSummary();
   state.landLabel = options.label || state.landLabel || "Your land";
   state.checkingDay = date;
   setChecking(true);
@@ -357,15 +445,16 @@ async function checkLand(options = {}) {
   renderDaySummary();
   openLandPanel({ tab: state.panelTab || "where", focus: false });
   try {
+    const body = {
+      coordinates: state.polygon,
+      platforms,
+      label: options.label || "Your land",
+    };
+    if (!livePhilippine) body.date = options.date || date;
     const response = await fetch("/api/check-land", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        coordinates: state.polygon,
-        date,
-        platforms,
-        label: options.label || "Your land",
-      }),
+      body: JSON.stringify(body),
     });
     const payload = await response.json();
     if (requestId !== state.landRequestId) return;
@@ -379,6 +468,9 @@ async function checkLand(options = {}) {
     document.querySelector("#weather-headline").textContent = "The land check failed.";
     document.querySelector("#weather-explanation").textContent = "Check your connection and try again.";
     document.querySelector("#weather-status").textContent = "Retry with Check my land.";
+    if (!state.summarySquare) {
+      applyLandActivity({ status: "request_failed", explanation: "The land check failed. Check your connection and try again." });
+    }
     renderDaySummary();
   }
 }
@@ -496,6 +588,9 @@ function renderLandCheck(payload) {
   if (center.lat != null && center.lon != null) {
     beginPlaceLookup({ mode: "center", lat: center.lat, lon: center.lon });
   }
+  // Update the compact burning-activity card from the same land check.
+  applyLandSummaryFromCheck(payload);
+  renderLiveTimestamps(payload);
   openLandPanel({ tab: state.panelTab || "where", focus: false });
   updateSelectionBanner();
   drawLandCutout(synthetic.hotspot_areas.areas || []);
@@ -512,13 +607,18 @@ function renderHeatGroup(title, rows, nearby = false) {
     return `<p class="quiet">${nearby ? "No nearby detections within 5 km." : "No detections inside the boundary."}</p>`;
   }
   return `<h5 class="heat-group-title">${escapeHtml(title)}</h5>
-    <ul class="heat-items">${rows.map((row) => `
-      <li>
+    <ul class="heat-items">${rows.map((row) => {
+      const local = row.acq_time_ph
+        ? `${row.acq_date_ph || row.acq_date || ""} ${row.acq_time_ph} PH time`
+        : formatDetectionLocalTime(row);
+      return `<li>
         <strong>${escapeHtml(row.platform)}</strong>
-        · ${escapeHtml(row.acq_date || "—")} ${escapeHtml(row.acq_time || "")} UTC
+        · ${escapeHtml(local || "—")}
+        · ${escapeHtml(row.acq_time || "—")} UTC
         ${nearby ? `· ${Number(row.distance_km).toFixed(1)} km from boundary` : ""}
         · ${Number(row.lat).toFixed(4)}, ${Number(row.lon).toFixed(4)}
-      </li>`).join("")}</ul>`;
+      </li>`;
+    }).join("")}</ul>`;
 }
 
 function renderStatuses(results) {
@@ -559,4 +659,57 @@ document.querySelector("#draw").addEventListener("click", startPolygonDraw);
 document.querySelector("#finish-draw").addEventListener("click", finishPolygonDraw);
 document.querySelector("#clear-area").addEventListener("click", clearLand);
 document.querySelector("#confirm").addEventListener("click", () => checkLand());
-document.querySelector("#day").addEventListener("change", updateDayWords);
+document.querySelectorAll("[data-map-mode]").forEach((button) => {
+  button.addEventListener("click", () => setMapMode(button.dataset.mapMode));
+});
+document.querySelector("#return-live")?.addEventListener("click", async () => {
+  state.publicSnapshot = null;
+  state.savedExample = false;
+  if (typeof syncPhilippinesRegionFilters === "function") syncPhilippinesRegionFilters(null);
+  // Re-fetch Philippine today so the demo day cannot stick on Live.
+  try {
+    const response = await fetch("/api/live/today");
+    if (response.ok) {
+      const payload = await response.json();
+      if (payload.ph_today) state.phToday = payload.ph_today;
+    }
+  } catch (_error) {
+    // keep state.phToday / manilaTodayIso fallback below
+  }
+  if (!state.phToday && typeof manilaTodayIso === "function") state.phToday = manilaTodayIso();
+  setMapMode("live");
+});
+document.querySelector("#refresh-live")?.addEventListener("click", async () => {
+  setMapMode("live", { skipCheck: true });
+  const requestId = state.landRequestId;
+  if (state.phToday) {
+    dayInput.value = state.phToday;
+    document.querySelector("#year").value = state.phToday.slice(0, 4);
+  }
+  const banner = document.querySelector("#fixture-banner");
+  if (banner) {
+    banner.hidden = false;
+    banner.textContent = "Refreshing Philippine Live sources…";
+  }
+  let refreshMeta = null;
+  try {
+    const response = await fetch("/api/live/refresh", { method: "POST" });
+    if (response.ok) refreshMeta = await response.json();
+  } catch (_error) {
+    // Fall through to a land check even if the national refresh fails.
+  }
+  if (requestId !== state.landRequestId || state.mapMode !== "live") return;
+  state.lastLiveRefresh = refreshMeta;
+  if (state.polygon && state.polygon.length >= 4) checkLand({ label: state.landLabel || "Your land" });
+  else await loadStatus();
+  if (banner && refreshMeta) {
+    banner.hidden = false;
+    banner.textContent =
+      `Live refresh · PH ${refreshMeta.ph_date || state.phToday || "today"} · `
+      + `${refreshMeta.written ?? 0} store writes · checked ${refreshMeta.checked_at || "just now"}`;
+  }
+});
+document.querySelector("#day").addEventListener("change", () => {
+  syncMapMode("history");
+  updateDayWords();
+});
