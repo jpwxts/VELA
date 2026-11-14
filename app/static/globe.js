@@ -38,6 +38,136 @@
     return Math.min(high, Math.max(low, value));
   }
 
+  const IMAGERY_CREDIT = "Imagery: Esri, Maxar, Earthstar Geographics";
+  const OUTLINE = "#e8ebe1";
+  const HEAT = "#ee6540";
+  const MARK_EDGE = "#fffdf8";
+
+  /* The cutout's outline and heat marks, shared by the map and satellite pictures.
+     `trace` lays the outline path; each spot is a mark already in picture pixels. */
+  function paintOutlineAndMarks(context, trace, spots) {
+    trace();
+    context.lineJoin = "round";
+    context.lineWidth = 3;
+    context.strokeStyle = OUTLINE;
+    context.stroke();
+    spots.forEach(({ mark, x, y }) => {
+      if (mark.multi) {
+        context.beginPath();
+        context.arc(x, y, 15, 0, Math.PI * 2);
+        context.lineWidth = 3;
+        context.strokeStyle = HEAT;
+        context.stroke();
+      }
+      context.beginPath();
+      context.arc(x, y, 8, 0, Math.PI * 2);
+      context.fillStyle = HEAT;
+      context.fill();
+      context.lineWidth = 3;
+      context.strokeStyle = MARK_EDGE;
+      context.stroke();
+    });
+  }
+
+  /* ---- satellite cutout: imagery tiles drawn straight onto a canvas ----
+     It does not use the globe's camera, so the picture is sharp at any size
+     and the globe never moves. The tiles are in Web Mercator. */
+  const TILE_SIZE = 256;
+  const MAX_IMAGERY_ZOOM = 17;
+
+  function worldPixel(lon, lat) {
+    const sin = Math.sin((clamp(Number(lat), -85.05, 85.05) * Math.PI) / 180);
+    return {
+      x: ((Number(lon) + 180) / 360) * TILE_SIZE,
+      y: (0.5 - Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI)) * TILE_SIZE,
+    };
+  }
+
+  function loadImage(url) {
+    return new Promise((resolve) => {
+      const image = new Image();
+      image.crossOrigin = "anonymous";
+      image.onload = () => resolve(image);
+      image.onerror = () => resolve(null);
+      image.src = url;
+    });
+  }
+
+  /* Resolves false when no imagery could be loaded. */
+  async function satelliteCutout(ring, target, marks) {
+    if (!ring || ring.length < 4) return false;
+    const corners = ring.map(([lon, lat]) => worldPixel(lon, lat));
+    const xs = corners.map((corner) => corner.x);
+    const ys = corners.map((corner) => corner.y);
+    const ringLeft = Math.min(...xs);
+    const ringRight = Math.max(...xs);
+    const ringTop = Math.min(...ys);
+    const ringBottom = Math.max(...ys);
+    if (!(ringRight > ringLeft) || !(ringBottom > ringTop)) return false;
+    /* Same rule as the map cutout: heat within half the land's size widens the frame. */
+    const reachX = (ringRight - ringLeft) * 0.5;
+    const reachY = (ringBottom - ringTop) * 0.5;
+    const spots = (marks || [])
+      .map((mark) => ({ mark, spot: worldPixel(mark.lon, mark.lat) }))
+      .filter(({ spot }) => spot.x > ringLeft - reachX && spot.x < ringRight + reachX
+        && spot.y > ringTop - reachY && spot.y < ringBottom + reachY);
+    let left = ringLeft;
+    let right = ringRight;
+    let top = ringTop;
+    let bottom = ringBottom;
+    spots.forEach(({ spot }) => {
+      left = Math.min(left, spot.x);
+      right = Math.max(right, spot.x);
+      top = Math.min(top, spot.y);
+      bottom = Math.max(bottom, spot.y);
+    });
+    const margin = 18;
+    const fit = Math.min((target.width - margin * 2) / (right - left), (target.height - margin * 2) / (bottom - top));
+    const shiftX = target.width / 2 - ((left + right) / 2) * fit;
+    const shiftY = target.height / 2 - ((top + bottom) / 2) * fit;
+    /* The first zoom level whose tiles hold at least as much detail as the picture. */
+    const zoom = clamp(Math.ceil(Math.log2(fit)), 0, MAX_IMAGERY_ZOOM);
+    const count = 2 ** zoom;
+    const span = (TILE_SIZE / count) * fit;
+    const tileAt = (value) => Math.floor((value * count) / TILE_SIZE);
+    const tiles = [];
+    for (let ty = Math.max(0, tileAt(ringTop)); ty <= Math.min(count - 1, tileAt(ringBottom)); ty += 1) {
+      for (let tx = tileAt(ringLeft); tx <= tileAt(ringRight); tx += 1) tiles.push({ tx, ty });
+    }
+    if (!tiles.length || tiles.length > 80) return false;
+    const images = await Promise.all(tiles.map(({ tx, ty }) => loadImage(
+      IMAGERY_URL.replace("{z}", zoom).replace("{y}", ty).replace("{x}", ((tx % count) + count) % count)
+    )));
+    if (!images.some(Boolean)) return false;
+    const context = target.getContext("2d");
+    const trace = () => {
+      context.beginPath();
+      corners.forEach((corner, index) => {
+        const x = corner.x * fit + shiftX;
+        const y = corner.y * fit + shiftY;
+        if (index) context.lineTo(x, y);
+        else context.moveTo(x, y);
+      });
+      context.closePath();
+    };
+    context.clearRect(0, 0, target.width, target.height);
+    context.save();
+    trace();
+    context.clip();
+    context.imageSmoothingQuality = "high";
+    tiles.forEach(({ tx, ty }, index) => {
+      /* Half a pixel of overlap hides the hairline seams between tiles. */
+      if (images[index]) context.drawImage(images[index], tx * span + shiftX, ty * span + shiftY, span + 0.5, span + 0.5);
+    });
+    context.restore();
+    paintOutlineAndMarks(context, trace, spots.map(({ mark, spot }) => ({
+      mark,
+      x: spot.x * fit + shiftX,
+      y: spot.y * fit + shiftY,
+    })));
+    return true;
+  }
+
   /* Esri's canvas paints water #d0cfd4 (faintly blue) and land #efefef.
      Water is told apart by being both darker and bluer than land, so neutral
      grey boundary lines stay on the land side and become fine olive lines. */
@@ -187,6 +317,8 @@
       addPoint() { return handle; },
       addOverlay(_lat, _lon, element) { return { ...handle, element }; },
       snapshot() { return Promise.resolve(false); },
+      satelliteCutout,
+      terrainView() { return null; },
     };
   }
 
@@ -780,29 +912,11 @@
         shiftX, shiftY, canvas.clientWidth * scale, canvas.clientHeight * scale
       );
       context.restore();
-      trace();
-      context.lineJoin = "round";
-      context.lineWidth = 3;
-      context.strokeStyle = "#e8ebe1";
-      context.stroke();
-      spots.forEach(({ mark, spot }) => {
-        const x = spot.x * scale + shiftX;
-        const y = spot.y * scale + shiftY;
-        if (mark.multi) {
-          context.beginPath();
-          context.arc(x, y, 15, 0, Math.PI * 2);
-          context.lineWidth = 3;
-          context.strokeStyle = "#ee6540";
-          context.stroke();
-        }
-        context.beginPath();
-        context.arc(x, y, 8, 0, Math.PI * 2);
-        context.fillStyle = "#ee6540";
-        context.fill();
-        context.lineWidth = 3;
-        context.strokeStyle = "#fffdf8";
-        context.stroke();
-      });
+      paintOutlineAndMarks(context, trace, spots.map(({ mark, spot }) => ({
+        mark,
+        x: spot.x * scale + shiftX,
+        y: spot.y * scale + shiftY,
+      })));
       return true;
     }
 
@@ -849,6 +963,140 @@
         };
         attempt();
       });
+    }
+
+    /* ---- 3D view: a second, small globe that shows one place in relief ----
+       Satellite imagery draped on the same terrain, seen at an angle, with the
+       outline and heat marks. Drag to turn it. The mouse wheel is left to the
+       page so the card still scrolls over it. Returns null without WebGL. */
+    function terrainView(host) {
+      let inset;
+      try {
+        inset = new Cesium.Viewer(host, {
+          baseLayer: new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({
+            url: IMAGERY_URL,
+            maximumLevel: MAX_IMAGERY_ZOOM,
+            credit: IMAGERY_CREDIT,
+          })),
+          baseLayerPicker: false,
+          geocoder: false,
+          homeButton: false,
+          sceneModePicker: false,
+          navigationHelpButton: false,
+          animation: false,
+          timeline: false,
+          fullscreenButton: false,
+          infoBox: false,
+          selectionIndicator: false,
+          skyBox: false,
+          skyAtmosphere: false,
+          creditContainer: options.creditContainer || undefined,
+          requestRenderMode: true,
+          maximumRenderTimeChange: Infinity,
+        });
+      } catch (_error) {
+        return null;
+      }
+      const view = inset.scene;
+      view.backgroundColor = Cesium.Color.fromCssColorString(PLATE);
+      view.globe.baseColor = Cesium.Color.fromCssColorString(SEA);
+      view.globe.showGroundAtmosphere = false;
+      view.globe.enableLighting = false;
+      view.globe.depthTestAgainstTerrain = true;
+      if (view.sun) view.sun.show = false;
+      if (view.moon) view.moon.show = false;
+      view.screenSpaceCameraController.minimumZoomDistance = 150;
+      inset.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+      const keepWheelForPage = (event) => event.stopPropagation();
+      host.addEventListener("wheel", keepWheelForPage, { capture: true });
+
+      const heat = Cesium.Color.fromCssColorString(HEAT);
+      const edge = Cesium.Color.fromCssColorString(MARK_EDGE);
+      const onGround = Cesium.HeightReference.CLAMP_TO_GROUND;
+      let serial = 0;
+      let centre = null;
+      let range = 1000;
+
+      /* Look at the place from the south at 40 degrees, turning around its centre. */
+      function aim(height) {
+        const focus = Cesium.Cartesian3.fromRadians(centre.longitude, centre.latitude, height);
+        inset.camera.lookAt(focus, new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-40), range));
+        view.requestRender();
+      }
+      /* The outline is measured at sea level; lift the view to the real ground once terrain answers. */
+      function aimAtGround(thisSerial) {
+        const provider = inset.terrainProvider;
+        if (!centre || !provider || provider instanceof Cesium.EllipsoidTerrainProvider) return;
+        Cesium.sampleTerrainMostDetailed(provider, [centre.clone()])
+          .then(([sample]) => {
+            if (thisSerial === serial && !inset.isDestroyed() && sample && Number.isFinite(sample.height)) aim(sample.height);
+          })
+          .catch(() => {});
+      }
+      Cesium.ArcGISTiledElevationTerrainProvider.fromUrl(TERRAIN_URL)
+        .then((provider) => {
+          if (inset.isDestroyed()) return;
+          inset.terrainProvider = provider;
+          aimAtGround(serial);
+          view.requestRender();
+        })
+        .catch(() => {
+          /* Without terrain the imagery still draws, flat. */
+        });
+
+      return {
+        show(ring, marks) {
+          const thisSerial = ++serial;
+          inset.entities.removeAll();
+          const positions = ring.map(([lon, lat]) => Cesium.Cartesian3.fromDegrees(Number(lon), Number(lat)));
+          inset.entities.add({
+            polyline: {
+              positions,
+              width: 2,
+              clampToGround: true,
+              material: Cesium.Color.fromCssColorString(OUTLINE),
+            },
+          });
+          /* Sizes are screen pixels; the flat pictures draw at twice that, so these are halved to match. */
+          (marks || []).forEach((mark) => {
+            const position = Cesium.Cartesian3.fromDegrees(Number(mark.lon), Number(mark.lat));
+            if (mark.multi) {
+              inset.entities.add({
+                position,
+                point: {
+                  pixelSize: 16,
+                  color: Cesium.Color.TRANSPARENT,
+                  outlineColor: heat,
+                  outlineWidth: 1.5,
+                  heightReference: onGround,
+                  disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                },
+              });
+            }
+            inset.entities.add({
+              position,
+              point: {
+                pixelSize: 8,
+                color: heat,
+                outlineColor: edge,
+                outlineWidth: 1.5,
+                heightReference: onGround,
+                disableDepthTestDistance: Number.POSITIVE_INFINITY,
+              },
+            });
+          });
+          const sphere = Cesium.BoundingSphere.fromPoints(positions);
+          centre = Cesium.Cartographic.fromCartesian(sphere.center);
+          range = Math.max(sphere.radius * 2.6, 800);
+          aim(0);
+          aimAtGround(thisSerial);
+        },
+        destroy() {
+          serial += 1;
+          host.removeEventListener("wheel", keepWheelForPage, { capture: true });
+          if (!inset.isDestroyed()) inset.destroy();
+        },
+      };
     }
 
     function zoomBy(factor) {
@@ -974,6 +1222,8 @@
       addPoint,
       addOverlay,
       snapshot,
+      satelliteCutout,
+      terrainView,
     };
   }
 

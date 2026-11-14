@@ -1,4 +1,4 @@
-// Summary card: cutout, activity %, fire-weather (same as Weather Outlook), heat.
+// Summary card: cutout, weekly burning activity and today's hours.
 
 // The land, or the clicked square when one is open.
 function summaryTarget() {
@@ -18,10 +18,11 @@ function refreshLandSummary() {
   state.outlookRequestId += 1;
   section.hidden = !hasLand;
   document.querySelector("#land-secondary-content").hidden = hasLand;
+  syncLandPicture();
   if (!hasLand) return;
-  drawLandCutout([]);
-  // While check-land is in flight, show loading — never leave a prior plot’s forecast.
-  setLandSummaryLoading();
+  drawLandCutout(state.lastLandCheck?.heat?.hotspot_areas?.areas || []);
+  if (state.lastLandCheck) applyLandSummaryFromCheck(state.lastLandCheck);
+  else loadWeeklyActivity();
   loadDayOutlook();
 }
 
@@ -65,359 +66,141 @@ async function drawLandCutout(areas) {
   const ring = target.ring;
   if (!canvas || !ring || ring.length < 4) return;
   const token = ++state.cutoutToken;
+  state.pictureAreas = areas;
   if (target.marks) areas = [];
-  if (!areas.length) drawLandOutline(ring, canvas);
   const marks = target.marks || areas.map((area) => ({
     lat: area.center_lat,
     lon: area.center_lon,
     multi: Boolean(area.multiple_satellites),
   }));
+  const mode = state.pictureMode;
+  showPictureStyle(mode, target.noun);
+  if (mode === "3d") {
+    showTerrainView(ring, marks);
+    return;
+  }
+  closeTerrainView();
+  if (!areas.length) drawLandOutline(ring, canvas);
+  // Capture into a spare canvas so a superseded capture never paints over a newer one.
   const spare = document.createElement("canvas");
   spare.width = canvas.width;
   spare.height = canvas.height;
+  const capture = mode === "satellite" ? globe.satelliteCutout : globe.snapshot;
   const paint = async () => {
     if (token !== state.cutoutToken) return false;
-    const captured = await globe.snapshot(ring, spare, marks);
+    const captured = await capture(ring, spare, marks);
     if (!captured || token !== state.cutoutToken) return false;
     const context = canvas.getContext("2d");
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.drawImage(spare, 0, 0);
     return true;
   };
-  if (await paint()) window.setTimeout(paint, 5000);
-}
-
-function setLandSummaryLoading() {
-  const activityValue = document.querySelector("#activity-value");
-  const activityNote = document.querySelector("#activity-note");
-  const reliability = document.querySelector("#activity-reliability");
-  document.querySelector("#activity-label").textContent = "Burning activity for this boundary";
-  if (activityValue) {
-    activityValue.textContent = "Checking…";
-    activityValue.classList.add("is-words");
-  }
-  if (activityNote) {
-    activityNote.hidden = false;
-    activityNote.textContent = "Loading the harmonized estimate when eligible inputs exist.";
-  }
-  if (reliability) {
-    reliability.hidden = true;
-    reliability.textContent = "";
-  }
-  document.querySelector("#land-fwi-value").textContent = "Loading…";
-  document.querySelector("#land-fwi-value").classList.add("is-words");
-  document.querySelector("#land-fwi-meta").textContent = "";
-  document.querySelector("#land-fwi-drivers").hidden = true;
-  document.querySelector("#land-fwi-drivers").innerHTML = "";
-  document.querySelector("#land-fwi-note").textContent =
-    "Using the same fire-weather outlook as the Weather Outlook tab.";
-  document.querySelector("#land-heat-value").textContent = "Checking…";
-  document.querySelector("#land-heat-passes").textContent = "";
-  document.querySelector("#land-heat-note").textContent = "";
-  const showReadings = document.querySelector("#show-readings-on-map");
-  if (showReadings) showReadings.hidden = true;
-  const combine = document.querySelector("#land-combine");
-  if (combine) {
-    combine.hidden = true;
-    document.querySelector("#land-combine-body").innerHTML = "";
-  }
-}
-
-function fireWeatherLevel(forecast) {
-  if (!forecast) return null;
-  if (/^Low throughout/i.test(forecast.headline || "")) return "Low";
-  const attention = forecast.attention_day;
-  const days = forecast.days || [];
-  const match = days.find((day) => day.valid_date === attention) || days.find((day) => day.danger_level);
-  return match?.danger_level || null;
-}
-
-function fireWeatherDrivers(day) {
-  if (!day) return [];
-  const lines = [];
-  const fire = day.fire_danger || {};
-  if (fire.status === "measured" && fire.fwi != null) {
-    lines.push(`Fire Weather Index · ${Number(fire.fwi).toFixed(1)}`);
-  } else if (fire.status === "unavailable" || fire.status === "missing") {
-    lines.push("Fire Weather Index · unavailable");
-  }
-  const temp = day.temperature_max_c || {};
-  if (temp.status !== "missing" && temp.value != null) {
-    lines.push(`Air temperature · ${Number(temp.value).toFixed(0)}°C`);
-  }
-  const humidity = day.relative_humidity_min_percent || {};
-  if (humidity.status !== "missing" && humidity.value != null) {
-    lines.push(`Relative humidity · ${Number(humidity.value).toFixed(0)}%`);
-  }
-  const wind = day.wind_speed_max_km_h || day.wind_speed_max_m_s || {};
-  if (wind.status !== "missing" && wind.value != null) {
-    const kmh = day.wind_speed_max_km_h?.value != null
-      ? Number(day.wind_speed_max_km_h.value)
-      : Number(day.wind_speed_max_m_s.value) * 3.6;
-    lines.push(`Sustained wind · ${kmh.toFixed(1)} km/h`);
-  }
-  const rain = day.forecast_rain_mm || {};
-  if (rain.status !== "missing" && rain.value != null) {
-    const zero = rain.status === "quiet" && Number(rain.value) === 0 ? " (measured zero)" : "";
-    lines.push(`Forecast rain · ${Number(rain.value).toFixed(1)} mm${zero}`);
-  }
-  return lines;
-}
-
-function applyLandFireWeather(forecast, observationDate) {
-  const value = document.querySelector("#land-fwi-value");
-  const meta = document.querySelector("#land-fwi-meta");
-  const drivers = document.querySelector("#land-fwi-drivers");
-  const note = document.querySelector("#land-fwi-note");
-  if (!value) return;
-  if (!forecast || forecast.ok === false) {
-    value.textContent = "Unavailable";
-    value.classList.add("is-words");
-    meta.textContent = "";
-    drivers.hidden = true;
-    note.textContent = "Fire-weather outlook could not be loaded for this selection.";
+  const painted = await paint();
+  if (mode === "satellite") {
+    if (!painted && token === state.cutoutToken) {
+      drawLandOutline(ring, canvas);
+      setPictureCredit("Satellite imagery could not load. Check your connection, then choose Satellite again.");
+    }
     return;
   }
-  const level = fireWeatherLevel(forecast);
-  const attention = forecast.attention_day || (forecast.days || [])[0]?.valid_date;
-  const day = (forecast.days || []).find((row) => row.valid_date === attention) || (forecast.days || [])[0];
-  const point = forecast.point || {};
-  if (level) {
-    value.textContent = level;
-    value.classList.remove("is-words");
-    document.querySelector("#land-fwi-label").textContent = `Fire-weather outlook · ${level}`;
-  } else {
-    value.textContent = "Fire-danger rating unavailable";
-    value.classList.add("is-words");
-    document.querySelector("#land-fwi-label").textContent = "Fire-weather outlook";
-  }
-  const pointText = point.latitude != null && point.longitude != null
-    ? `Forecast point near selection center (${Number(point.latitude).toFixed(2)}, ${Number(point.longitude).toFixed(2)})`
-    : (point.label || "Forecast point near the center of your selection.");
-  const valid = attention ? `Valid ${formatObservationDay(attention)}` : "";
-  const source = (day?.fire_danger?.source || "Copernicus GWIS / Open-Meteo").split(".")[0];
-  meta.textContent = [pointText, valid, source].filter(Boolean).join(" · ");
-  const lines = fireWeatherDrivers(day);
-  drivers.innerHTML = lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("");
-  drivers.hidden = lines.length === 0;
-  const obs = String(observationDate || dayInput.value || "").slice(0, 10);
-  const todayPh = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Manila",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
-  if (obs && obs < todayPh) {
-    note.textContent =
-      `Current fire-weather outlook (separate from the historical observation date ${formatObservationDay(obs)}). `
-      + "Same response as the Weather Outlook tab.";
-  } else {
-    note.textContent = "Same fire-weather outlook as the Weather Outlook tab for this selection.";
-  }
+  // Map tiles keep sharpening after the globe arrives, so take the picture again a few seconds later.
+  if (painted) window.setTimeout(paint, 5000);
 }
 
-function applyLandActivity(activity, reliability) {
+// The big figure: Vela's weekly burning-activity estimate for the week that
+// holds the observation date. It exists only where weekly history has been
+// processed; everywhere else the widget says so instead of showing a number.
+// Keep the compact card while accepting activity from the current land check.
+function setLandSummaryLoading() {
+  document.querySelector("#activity-label").textContent = "Burning activity";
+  const value = document.querySelector("#activity-value");
+  value.textContent = "Loading…";
+  value.classList.add("is-words");
+  document.querySelector("#activity-note").hidden = true;
+}
+
+function applyLandActivity(activity) {
+  const target = summaryTarget();
   const label = document.querySelector("#activity-label");
   const value = document.querySelector("#activity-value");
   const note = document.querySelector("#activity-note");
-  const reliabilityNode = document.querySelector("#activity-reliability");
-  if (!label || !value) return;
-  const rate = activity?.activity_rate;
-  const denom = activity?.activity_denominator;
-  const status = activity?.activity_status;
-  if (rate != null && denom != null && (status === "complete" || status === "partial")) {
-    label.textContent = status === "partial"
-      ? "Estimated activity (partial coverage)"
-      : "Estimated activity";
-    value.textContent = `${(rate * 100).toFixed(1)}%`;
-    value.classList.remove("is-words");
+  const published = activity?.activity_rate != null
+    && (activity.activity_status === "complete" || activity.activity_status === "partial");
+  label.textContent = "Burning activity";
+  value.classList.toggle("is-words", !published);
+  note.hidden = !published;
+  note.textContent = "";
+  if (published) {
+    const weekly = activity.week_start && activity.week_end;
+    label.textContent += `${target.noun === "square" ? " in this square" : ""}`
+      + (weekly ? ` · ${formatWeekRange(activity.week_start, activity.week_end)}` : "");
+    value.textContent = `${(activity.activity_rate * 100).toFixed(1)}%`;
+    note.textContent =
+      (activity.activity_status === "partial" ? "Partial estimate: some observations lacked usable coverage. " : "")
+      + `How often this ${target.noun}’s grid squares showed burning activity `
+      + (weekly ? "that week" : `on ${formatObservationDay(dayInput.value)}`)
+      + ". It is not a wildfire probability.";
+  } else if (activity?.status === "request_failed") {
+    value.textContent = "Unavailable";
     note.hidden = false;
-    note.textContent =
-      `Estimated activity across ${denom} observed square${denom === 1 ? "" : "s"}`
-      + (activity.week_start && activity.week_end
-        ? ` · ${formatWeekRange(activity.week_start, activity.week_end)}`
-        : " today")
-      + ". "
-      + "Activity (%) = 100 × (Aqua indicators + eligible calibrated fallback probabilities) "
-      + "÷ square-days with valid contributions. Not burned area and not a wildfire probability.";
-    if (reliabilityNode) {
-      const mae = reliability?.value_percentage_points;
-      reliabilityNode.hidden = false;
-      reliabilityNode.innerHTML =
-        `<strong>How reliable is this?</strong> `
-        + (mae != null
-          ? `Weekly activity-share mean absolute error is ${mae} percentage points across four development weeks. `
-          : "")
-        + (reliability?.philippine_status || "")
-        + " Weather-forecast performance is separate from this satellite-model figure.";
-    }
-    return;
-  }
-  label.textContent = "Burning activity for this boundary";
-  value.textContent = "No estimate yet";
-  value.classList.add("is-words");
-  note.hidden = false;
-  note.textContent = activity?.explanation
-    || "No eligible Aqua observations or calibrated Suomi-NPP inputs cover this selection for the selected day, so the denominator is zero.";
-  if (reliabilityNode) {
-    reliabilityNode.hidden = false;
-    reliabilityNode.innerHTML =
-      `<strong>How reliable is this?</strong> `
-      + (reliability?.plain_language || "")
-      + " "
-      + (reliability?.philippine_status || "");
-  }
-}
-
-function distinctHeatPasses(inside) {
-  const map = new Map();
-  (inside || []).forEach((spot) => {
-    const key = `${spot.platform}|${spot.acq_date || ""}|${spot.acq_time || ""}`;
-    if (!map.has(key)) {
-      map.set(key, {
-        platform: spot.platform,
-        time_local: spot.acq_time_ph ? `${spot.acq_time_ph} PH time` : formatDetectionLocalTime(spot),
-        time_utc: spot.acq_time,
-        count: 0,
-      });
-    }
-    map.get(key).count += 1;
-  });
-  return [...map.values()];
-}
-
-function applyLandHeat(heat, observationDate) {
-  const value = document.querySelector("#land-heat-value");
-  const passes = document.querySelector("#land-heat-passes");
-  const note = document.querySelector("#land-heat-note");
-  const showReadings = document.querySelector("#show-readings-on-map");
-  if (!value) return;
-  const inside = heat?.inside || [];
-  const status = heat?.status || "";
-  const feeds = heat?.feeds || [];
-  const unavailable = feeds.filter((row) => row.status === "unavailable" || row.status === "failed");
-  if (status === "inside" || inside.length) {
-    const platforms = [...new Set(inside.map((row) => row.platform).filter(Boolean))];
-    value.textContent = `Heat detected · ${inside.length} reading${inside.length === 1 ? "" : "s"} · ${platforms.join(", ") || "satellite"}`;
-    const rows = distinctHeatPasses(inside);
-    passes.textContent = rows.map((row) => {
-      const local = row.time_local || "";
-      const utc = row.time_utc ? `${row.time_utc} UTC` : "";
-      return `${row.platform}${local ? ` · ${local}` : ""}${utc ? ` · ${utc}` : ""} · ${row.count} reading${row.count === 1 ? "" : "s"}`;
-    }).join(" · ");
-    note.textContent =
-      `Clipped to your drawn polygon for ${formatObservationDay(observationDate || dayInput.value)} (Asia/Manila calendar day for Philippine plots). `
-      + "A missing activity estimate never hides these readings.";
-    if (showReadings) showReadings.hidden = false;
-  } else if (status === "none_unknown" || heat?.coverage === "unknown") {
-    value.textContent = "Checked · no readings returned · coverage unverified";
-    passes.textContent = "";
-    note.textContent = heat?.lead
-      || "The search finished with zero readings inside the boundary. That is not a confirmed clear day.";
-    if (showReadings) showReadings.hidden = true;
-  } else if (status === "nearby_only") {
-    value.textContent = "No heat inside the boundary · nearby readings only";
-    passes.textContent = "";
-    note.textContent = heat?.lead || "";
-    if (showReadings) showReadings.hidden = true;
+    note.textContent = activity.explanation;
   } else {
-    value.textContent = "Checked · no readings inside the boundary";
-    passes.textContent = "";
-    note.textContent = heat?.lead || "Completed search with zero returned readings inside the polygon.";
-    if (showReadings) showReadings.hidden = true;
+    value.textContent = "No estimate yet";
   }
-  if (unavailable.length) {
-    note.textContent = `${note.textContent} Unavailable feeds: ${unavailable.map((row) => row.platform).join(", ")}.`;
-  }
-}
-
-function applyLandCombine(activity, heat) {
-  const host = document.querySelector("#land-combine");
-  const body = document.querySelector("#land-combine-body");
-  if (!host || !body) return;
-  const counts = activity?.method_counts || {};
-  const aqua = counts["observed Aqua activity"] || 0;
-  const calibrated = counts["calibrated VIIRS estimate"] || 0;
-  const raw = counts["raw VIIRS activity"] || 0;
-  const unavailable = counts.unavailable || 0;
-  const inside = heat?.inside || [];
-  const areas = heat?.hotspot_areas?.areas || [];
-  const detectionCount = inside.length || heat?.hotspot_areas?.detection_count || 0;
-  const multi = heat?.hotspot_areas?.multiple_satellite_area_count || 0;
-  host.hidden = false;
-  const lines = [];
-  if (aqua || calibrated || raw || unavailable) {
-    lines.push(`<p><strong>Square-days in the estimate:</strong> Aqua ${aqua} · calibrated Suomi-NPP model ${calibrated} · raw-only ${raw} · calibration-pending/unavailable ${unavailable}.</p>`);
-  } else {
-    lines.push("<p>No eligible square-days entered the harmonized total for this selection and day.</p>");
-  }
-  lines.push(
-    `<p><strong>Raw detections inside the polygon:</strong> ${detectionCount}`
-    + (multi ? ` · ${multi} square${multi === 1 ? "" : "s"} saw 2+ satellites` : "")
-    + ". Raw counts stay available even when several satellites observe the same square.</p>"
-  );
-  if (areas.length) {
-    const sample = areas[0];
-    const names = (sample.platforms || []).join(", ") || "one satellite";
-    lines.push(
-      `<p><strong>One square in plain English:</strong> Cell ${escapeHtml(sample.cell_id || "—")} `
-      + `had heat from ${escapeHtml(names)} on ${formatObservationDay(sample.observation_day || dayInput.value)}. `
-      + "That square contributes at most once per day to the activity percentage.</p>"
-    );
-  }
-  body.innerHTML = lines.join("");
 }
 
 function applyLandSummaryFromCheck(payload) {
-  if (!payload) return;
-  applyLandFireWeather(payload.forecast, payload.observation_date);
-  applyLandActivity(payload.activity, payload.reliability);
-  applyLandHeat(payload.heat, payload.observation_date);
-  applyLandCombine(payload.activity, payload.heat);
+  if (!payload || state.summarySquare) return;
+  state.activityRequestId += 1;
+  applyLandActivity(payload.activity);
 }
 
-// Square summary (and date changes) can refresh the activity figure from the
-// published calendar without hiding fire-weather already shown from check-land.
 async function loadWeeklyActivity() {
+  const label = document.querySelector("#activity-label");
+  const value = document.querySelector("#activity-value");
+  const note = document.querySelector("#activity-note");
   const target = summaryTarget();
-  if (!target.box) return;
+  if (!label || !target.box) return;
   const date = dayInput.value;
   const year = date.slice(0, 4);
   const requestId = ++state.activityRequestId;
+  const words = (text) => {
+    value.textContent = text;
+    value.classList.add("is-words");
+  };
+  label.textContent = "Burning activity";
+  words("Loading…");
+  note.hidden = false;
+  note.textContent = `Reading the weekly estimate for ${formatObservationDay(date)}.`;
   const [west, south, east, north] = target.box;
+  let payload;
   try {
     const response = await fetch(`/api/calendar?west=${west}&south=${south}&east=${east}&north=${north}&year=${year}`);
     if (!response.ok) throw new Error("calendar failed");
-    const payload = await response.json();
-    if (requestId !== state.activityRequestId) return;
-    const weeks = payload.weeks || [];
-    const week = weeks.find((item) => item.week_start <= date && date <= item.week_end);
-    if (week && week.activity_rate != null && (week.activity_status === "complete" || week.activity_status === "partial")) {
-      applyLandActivity(
-        {
-          activity_rate: week.activity_rate,
-          activity_denominator: week.activity_denominator,
-          activity_status: week.activity_status,
-          week_start: week.week_start,
-          week_end: week.week_end,
-          method_counts: week.method_counts,
-          explanation: null,
-        },
-        state.lastLandCheck?.reliability || null
-      );
-      return;
-    }
-    applyLandActivity(
-      {
-        activity_rate: null,
-        explanation: state.lastLandCheck?.activity?.explanation
-          || "No eligible Aqua observations or calibrated Suomi-NPP inputs cover this selection for the selected day, so the denominator is zero.",
-      },
-      state.lastLandCheck?.reliability || null
-    );
+    payload = await response.json();
   } catch (_error) {
     if (requestId !== state.activityRequestId) return;
+    words("Unavailable");
+    note.textContent = "The weekly history request failed. Check your connection, then change the date or redraw to try again.";
+    return;
   }
+  if (requestId !== state.activityRequestId) return;
+  const weeks = payload.weeks || [];
+  const published = (week) =>
+    week.activity_rate != null && (week.activity_status === "complete" || week.activity_status === "partial");
+  const week = weeks.find((item) => item.week_start <= date && date <= item.week_end);
+  if (week && published(week)) {
+    label.textContent = `Burning activity${target.noun === "square" ? " in this square" : ""} · ${formatWeekRange(week.week_start, week.week_end)}`;
+    value.textContent = `${(week.activity_rate * 100).toFixed(1)}%`;
+    value.classList.remove("is-words");
+    note.textContent =
+      (week.activity_status === "partial" ? "Partial estimate: some days that week lacked usable coverage. " : "")
+      + `How often this ${target.noun}’s grid squares showed burning activity that week. It is not a wildfire probability.`;
+    return;
+  }
+  words("No estimate yet");
+  note.textContent = "";
+  note.hidden = true;
 }
 
 // Open-Meteo weather codes (WMO) reduced to seven drawn conditions.
@@ -511,6 +294,7 @@ function renderDayOutlook(outlook) {
   positionHours();
 }
 
+// Start the strip at the current hour so the rest of the day reads left to right.
 function positionHours() {
   const strip = document.querySelector("#hours-strip");
   if (!strip || !strip.clientWidth) return;
@@ -538,14 +322,7 @@ document.querySelector("#hours-prev")?.addEventListener("click", () => scrollHou
 document.querySelector("#hours-next")?.addEventListener("click", () => scrollHours(1));
 document.querySelector("#hours-strip")?.addEventListener("scroll", updateHoursNav, { passive: true });
 
-document.querySelector("#show-readings-on-map")?.addEventListener("click", () => {
-  state.showIndividuals = true;
-  const toggle = document.querySelector("#show-individuals");
-  if (toggle) toggle.checked = true;
-  if (state.lastPayload) renderIndividuals(state.lastPayload);
-  document.querySelector("#map-hint").textContent = "Individual satellite readings are shown on the map.";
-});
-
+// The strip may be filled while its pane is hidden; place it once it has a real width.
 if (window.ResizeObserver && document.querySelector("#hours-strip")) {
   let stripWidth = 0;
   new ResizeObserver((entries) => {

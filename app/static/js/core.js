@@ -69,6 +69,10 @@ const state = {
   cutoutToken: 0,
   // A clicked square shown in the summary card instead of the whole land.
   summarySquare: null,
+  // The picture's style ("map", "satellite" or "3d"), the heat it last showed, and the 3D view while open.
+  pictureMode: "map",
+  pictureAreas: [],
+  terrainView: null,
   activityRequestId: 0,
   outlookRequestId: 0,
   dayOutlook: null,

@@ -24,7 +24,7 @@ function updateDayWords(options = {}) {
   if (previousMonth !== state.calendarMonth && state.panelTab === "weekly" && state.historyView === "present") loadMonthlyHistory();
 }
 
-function setMapMode(mode) {
+function syncMapMode(mode) {
   state.mapMode = mode || "live";
   document.querySelectorAll("[data-map-mode]").forEach((button) => {
     const on = button.dataset.mapMode === state.mapMode;
@@ -33,10 +33,17 @@ function setMapMode(mode) {
   });
   const returnLive = document.querySelector("#return-live");
   if (returnLive) returnLive.hidden = state.mapMode === "live";
-  if (state.mapMode === "live" && state.phToday) {
-    dayInput.value = state.phToday;
-    document.querySelector("#year").value = state.phToday.slice(0, 4);
-    updateDayWords();
+}
+
+function setMapMode(mode, options = {}) {
+  syncMapMode(mode);
+  if (state.mapMode === "live") {
+    state.publicSnapshot = null;
+    state.savedExample = false;
+    syncPhilippinesRegionFilters(null);
+    dayInput.value = state.phToday || manilaTodayIso();
+    document.querySelector("#year").value = dayInput.value.slice(0, 4);
+    updateDayWords({ skipCheck: options.skipCheck });
   }
   if (state.mapMode === "history") {
     openLandPanel({ tab: "weekly", focus: false });
@@ -294,6 +301,7 @@ function clearLand() {
   state.activityRequestId += 1;
   state.outlookRequestId += 1;
   state.summarySquare = null;
+  syncLandPicture();
   document.querySelector("#area-label").textContent =
     "Search for a place or draw a boundary on the globe, then check it for satellite heat.";
   document.querySelector("#map-hint").textContent = "Turn the globe to your land, then search or draw its boundary.";
@@ -426,6 +434,9 @@ async function checkLand(options = {}) {
   const requestId = ++state.landRequestId;
   ++state.requestId;
   resetLandResult();
+  state.lastLandCheck = null;
+  state.forecast = null;
+  refreshLandSummary();
   state.landLabel = options.label || state.landLabel || "Your land";
   state.checkingDay = date;
   setChecking(true);
@@ -457,6 +468,9 @@ async function checkLand(options = {}) {
     document.querySelector("#weather-headline").textContent = "The land check failed.";
     document.querySelector("#weather-explanation").textContent = "Check your connection and try again.";
     document.querySelector("#weather-status").textContent = "Retry with Check my land.";
+    if (!state.summarySquare) {
+      applyLandActivity({ status: "request_failed", explanation: "The land check failed. Check your connection and try again." });
+    }
     renderDaySummary();
   }
 }
@@ -574,7 +588,7 @@ function renderLandCheck(payload) {
   if (center.lat != null && center.lon != null) {
     beginPlaceLookup({ mode: "center", lat: center.lat, lon: center.lon });
   }
-  // Land summary reuses the same forecast object as Weather Outlook.
+  // Update the compact burning-activity card from the same land check.
   applyLandSummaryFromCheck(payload);
   renderLiveTimestamps(payload);
   openLandPanel({ tab: state.panelTab || "where", focus: false });
@@ -664,10 +678,10 @@ document.querySelector("#return-live")?.addEventListener("click", async () => {
   }
   if (!state.phToday && typeof manilaTodayIso === "function") state.phToday = manilaTodayIso();
   setMapMode("live");
-  if (state.polygon && state.polygon.length >= 4) checkLand({ label: state.landLabel || "Your land" });
 });
 document.querySelector("#refresh-live")?.addEventListener("click", async () => {
-  setMapMode("live");
+  setMapMode("live", { skipCheck: true });
+  const requestId = state.landRequestId;
   if (state.phToday) {
     dayInput.value = state.phToday;
     document.querySelector("#year").value = state.phToday.slice(0, 4);
@@ -684,6 +698,7 @@ document.querySelector("#refresh-live")?.addEventListener("click", async () => {
   } catch (_error) {
     // Fall through to a land check even if the national refresh fails.
   }
+  if (requestId !== state.landRequestId || state.mapMode !== "live") return;
   state.lastLiveRefresh = refreshMeta;
   if (state.polygon && state.polygon.length >= 4) checkLand({ label: state.landLabel || "Your land" });
   else await loadStatus();
@@ -694,4 +709,7 @@ document.querySelector("#refresh-live")?.addEventListener("click", async () => {
       + `${refreshMeta.written ?? 0} store writes · checked ${refreshMeta.checked_at || "just now"}`;
   }
 });
-document.querySelector("#day").addEventListener("change", updateDayWords);
+document.querySelector("#day").addEventListener("change", () => {
+  syncMapMode("history");
+  updateDayWords();
+});

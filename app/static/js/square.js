@@ -220,6 +220,8 @@ function revealCellDetail(bounds, marks = [], heat = null) {
   document.querySelector("#land-secondary-content").hidden = true;
   document.querySelector("#satellite-picker").hidden = true;
   document.querySelector("#land-summary").hidden = false;
+  syncLandPicture();
+  setLandSummaryLoading();
   document.querySelector("#cell-back").hidden = false;
   setSquareHeat(heat);
   document.querySelector(".card-body")?.scrollTo({ top: 0 });

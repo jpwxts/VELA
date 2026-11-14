@@ -18,7 +18,8 @@ async function loadClickFixture(name = "click_regression") {
   const box = payload.bbox || { west: -50.3, south: -14.3, east: -49.7, north: -13.7 };
   setBox([box.west, box.south, box.east, box.north], payload.fixture?.label || "Hotspot fixture");
   dayInput.value = payload.date;
-  updateDayWords();
+  syncMapMode("saved");
+  updateDayWords({ skipCheck: true });
   document.querySelectorAll(".satellite-details fieldset input").forEach((node) => {
     node.checked = ["NOAA-20", "Aqua", "Suomi-NPP", "NOAA-21"].includes(node.value);
   });
@@ -51,7 +52,8 @@ async function loadCompetitionDemo() {
     if (requestId !== state.landRequestId) return;
     const ring = payload.polygon?.coordinates?.[0] || [];
     dayInput.value = payload.observation_date || dayInput.value;
-    updateDayWords();
+    syncMapMode("saved");
+    updateDayWords({ skipCheck: true });
     setPolygon(ring, payload.label || "Competition example");
     renderLandCheck(payload);
   } catch (error) {
@@ -66,14 +68,7 @@ async function loadPhilippinesPublicExample(options = {}) {
   const region = options.region || "philippines";
   const requestId = ++state.landRequestId;
   // Saved examples never rewrite what Live treats as today.
-  state.mapMode = "saved";
-  document.querySelectorAll("[data-map-mode]").forEach((button) => {
-    const on = button.dataset.mapMode === "saved";
-    button.classList.toggle("on", on);
-    button.setAttribute("aria-pressed", on ? "true" : "false");
-  });
-  const returnLive = document.querySelector("#return-live");
-  if (returnLive) returnLive.hidden = false;
+  syncMapMode("saved");
   state.publicSnapshot = { day, region };
   state.savedExample = true;
   openLandPanel({ tab: "where", focus: false });
@@ -160,7 +155,8 @@ async function loadZambiaWeeklyExample() {
   document.querySelector("#fixture-banner").textContent =
     "Saved weekly example · Zambia woodland · 2021. Your previous selection can be restored.";
   dayInput.value = "2021-07-20";
-  updateDayWords();
+  syncMapMode("saved");
+  updateDayWords({ skipCheck: true });
   document.querySelector("#year").value = "2021";
   setPolygon(
     [
@@ -197,7 +193,7 @@ async function restoreSavedLandSelection() {
   }
   if (saved.day) {
     dayInput.value = saved.day;
-    updateDayWords();
+    updateDayWords({ skipCheck: true });
   }
   if (saved.year) document.querySelector("#year").value = saved.year;
   state.placeName = saved.placeName;
@@ -207,6 +203,7 @@ async function restoreSavedLandSelection() {
   state.lastPayload = saved.lastPayload;
   state.lastLandCheck = saved.lastLandCheck;
   state.selectedArea = saved.selectedArea;
+  refreshLandSummary();
   if (state.lastPayload) {
     clearMapLayers();
     renderPublicResult(state.lastPayload);

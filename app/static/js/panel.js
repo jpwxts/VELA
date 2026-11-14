@@ -26,6 +26,7 @@ function switchPanelTab(name) {
   document.querySelectorAll(".panel-pane").forEach((node) => {
     node.hidden = node.id !== `pane-${tabName}`;
   });
+  syncLandPicture();
   document.querySelector(".card-body")?.scrollTo({ top: 0 });
   if (tabName === "weather") loadWeatherOutlook();
   if (tabName === "weekly") setHistoryView(state.historyView);
@@ -122,6 +123,7 @@ function closeAreaPanel() {
   document.querySelector("#area-panel").hidden = true;
   document.querySelector("#cell-detail").hidden = true;
   document.querySelector("#land-summary").hidden = !(state.polygon && state.polygon.length >= 4);
+  syncLandPicture();
   state.selectedArea = null;
   stopReplayTimer();
   state.replayPasses = [];

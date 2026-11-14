@@ -13,6 +13,21 @@
   background: var(--plate);
 }
 
+/* The picture sits above every tab: the land or square as a map, satellite imagery or a 3D view. */
+.land-picture { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; margin-bottom: 18px; }
+.land-picture > * { min-width: 0; }
+.cutout-3d { position: relative; overflow: hidden; cursor: grab; }
+.cutout-3d:active { cursor: grabbing; }
+.cutout-3d .cesium-viewer,
+.cutout-3d .cesium-viewer-cesiumWidgetContainer,
+.cutout-3d .cesium-widget,
+.cutout-3d .cesium-widget canvas { width: 100%; height: 100%; }
+.cutout-3d .cesium-widget canvas { touch-action: none; }
+.cutout-3d .cesium-viewer-bottom { display: none; }
+.picture-modes button { min-height: 34px; font-size: 0.875rem; }
+.picture-credit { font-size: 0.75rem; line-height: 1.4; color: var(--ink-faint); }
+.picture-note { font-size: 0.875rem; }
+
 .activity-label { font-size: 0.9375rem; color: var(--ink-soft); }
 .square-heat { margin-top: 6px; font-weight: 600; color: var(--ink-soft); }
 .square-heat.seen { color: var(--ember); }
@@ -25,35 +40,6 @@
 /* Words in place of a figure ("No estimate yet") are set smaller so they do not shout. */
 .activity-value.is-words { font-size: 1.75rem; line-height: 1.2; letter-spacing: -0.01em; }
 .activity-value + .quiet { margin-top: 6px; }
-.reliability-line { margin-top: 8px; font-size: 0.8125rem; }
-
-.land-fire-weather,
-.land-heat-summary {
-  display: grid;
-  gap: 4px;
-  padding-top: 4px;
-}
-.land-fwi-value,
-.land-heat-value {
-  margin: 0;
-  font: 500 1.75rem/1.2 var(--font-display);
-  letter-spacing: -0.01em;
-}
-.land-fwi-value:not(.is-words) {
-  font-size: 2.5rem;
-  line-height: 1.05;
-}
-.land-fwi-drivers {
-  margin: 6px 0 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 4px;
-  font-size: 0.8125rem;
-  color: var(--ink-soft);
-}
-.land-combine { margin-top: 4px; }
-.land-combine-body { display: grid; gap: 8px; padding-top: 8px; font-size: 0.875rem; color: var(--ink-soft); }
 
 .hours h4 { margin-bottom: 10px; }
 .hours-frame { position: relative; }
@@ -120,4 +106,4 @@
 
 /* Heat-dot details take the summary's place in the card, so they start flush with its top. */
 #cell-detail { margin-top: 0; padding-top: 0; border-top: 0; }
-.back-link { display: block; justify-self: start; margin: 0 0 -6px; }
+.back-link { display: block; justify-self: start; margin: 0 0 2px; }

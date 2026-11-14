@@ -26,6 +26,7 @@ function applyLiveDay(phToday) {
 }
 
 async function bootLiveClock() {
+  const previousDay = dayInput.value;
   try {
     const response = await fetch("/api/live/today");
     if (response.ok) {
@@ -37,7 +38,7 @@ async function bootLiveClock() {
   } catch (_error) {
     applyLiveDay(manilaTodayIso());
   }
-  updateDayWords();
+  if (state.mapMode === "live") updateDayWords({ skipCheck: previousDay === dayInput.value });
 }
 
 // Immediate Asia/Manila today — never seed UTC before Live boots.

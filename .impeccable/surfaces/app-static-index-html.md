@@ -2,7 +2,7 @@
 version: 1
 slug: "app-static-index-html"
 primary_target: "app/static/index.html"
-related_targets: ["app/static/css/base.css","app/static/css/masthead.css","app/static/css/layout.css","app/static/css/rail.css","app/static/css/globe.css","app/static/css/card.css","app/static/css/controls.css","app/static/css/summary.css","app/static/css/burn.css","app/static/css/history.css","app/static/css/weather.css","app/static/css/responsive.css","app/static/js/core.js","app/static/js/format.js","app/static/js/panel.js","app/static/js/place.js","app/static/js/land.js","app/static/js/weather.js","app/static/js/markers.js","app/static/js/square.js","app/static/js/history.js","app/static/js/summary.js","app/static/js/research.js","app/static/js/examples.js","app/static/js/main.js"]
+related_targets: ["app/static/css/base.css","app/static/css/masthead.css","app/static/css/layout.css","app/static/css/rail.css","app/static/css/globe.css","app/static/css/card.css","app/static/css/controls.css","app/static/css/summary.css","app/static/css/burn.css","app/static/css/history.css","app/static/css/weather.css","app/static/css/responsive.css","app/static/js/core.js","app/static/js/format.js","app/static/js/panel.js","app/static/js/place.js","app/static/js/land.js","app/static/js/weather.js","app/static/js/markers.js","app/static/js/square.js","app/static/js/history.js","app/static/js/summary.js","app/static/js/picture.js","app/static/js/research.js","app/static/js/examples.js","app/static/js/main.js"]
 ---
 
 # Vela app shell (app/static/index.html)

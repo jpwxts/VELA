@@ -107,44 +107,30 @@
         </header>
 
         <div class="card-body">
+          <!-- The picture of the land or square stays above every tab. -->
+          <section id="land-picture" class="land-picture" aria-label="Picture of the selection" hidden>
+            <button type="button" id="cell-back" class="link-button back-link" hidden>Back to land</button>
+            <canvas id="land-cutout" class="cutout" width="672" height="340" role="img" aria-label="The selected land, cut out of the map"></canvas>
+            <div id="land-3d" class="cutout cutout-3d" role="img" aria-label="The selection in 3D: satellite imagery on terrain. Drag to turn it." hidden></div>
+            <div class="segmented picture-modes" role="group" aria-label="Picture style">
+              <button type="button" class="on" data-picture="map" aria-pressed="true">Map</button>
+              <button type="button" data-picture="satellite" aria-pressed="false">Satellite</button>
+              <button type="button" data-picture="3d" aria-pressed="false">3D</button>
+            </div>
+            <p id="picture-credit" class="picture-credit" hidden></p>
+            <p id="picture-note" class="quiet picture-note" hidden>This tab covers the whole land, not only this square.</p>
+          </section>
+
           <!-- Burn activity -->
           <section id="pane-where" class="panel-pane" role="tabpanel" aria-labelledby="tab-where">
             <h3 class="pane-title visually-hidden">Burn activity</h3>
             <section id="land-summary" class="land-summary" aria-label="Summary of the selected land" hidden>
-              <button type="button" id="cell-back" class="link-button back-link" hidden>Back to land</button>
-              <p id="land-scope-banner" class="stamp">Drawn boundary summary</p>
-              <canvas id="land-cutout" class="cutout" width="672" height="340" role="img" aria-label="The selected land, cut out of the map"></canvas>
-
               <div class="activity" aria-live="polite">
-                <p id="activity-label" class="activity-label">Burning activity for this boundary</p>
+                <p id="activity-label" class="activity-label">Burning activity</p>
                 <p id="activity-value" class="activity-value"></p>
                 <p id="square-heat" class="square-heat" hidden></p>
                 <p id="activity-note" class="quiet"></p>
-                <p id="activity-reliability" class="quiet reliability-line" hidden></p>
               </div>
-
-              <section id="land-fire-weather" class="land-fire-weather" aria-live="polite">
-                <p id="land-fwi-label" class="activity-label">Fire-weather outlook</p>
-                <p id="land-fwi-value" class="land-fwi-value is-words">Loading…</p>
-                <p id="land-fwi-meta" class="quiet"></p>
-                <ul id="land-fwi-drivers" class="land-fwi-drivers" hidden></ul>
-                <p id="land-fwi-note" class="quiet"></p>
-              </section>
-
-              <section id="land-heat-summary" class="land-heat-summary" aria-live="polite">
-                <p id="land-heat-label" class="activity-label">Satellite heat</p>
-                <p id="land-heat-value" class="land-heat-value">Checking…</p>
-                <p id="land-heat-passes" class="quiet"></p>
-                <div class="result-filter">
-                  <button type="button" id="show-readings-on-map" class="filter-button" hidden>Show readings on map</button>
-                </div>
-                <p id="land-heat-note" class="quiet"></p>
-              </section>
-
-              <details id="land-combine" class="fold land-combine" hidden>
-                <summary>How did Vela combine the satellites?</summary>
-                <div id="land-combine-body" class="land-combine-body"></div>
-              </details>
 
               <div class="hours">
                 <h4 id="hours-title">Today at this land</h4>
@@ -546,6 +532,7 @@
   <script src="/static/js/square.js"></script>
   <script src="/static/js/history.js"></script>
   <script src="/static/js/summary.js"></script>
+  <script src="/static/js/picture.js"></script>
   <script src="/static/js/research.js"></script>
   <script src="/static/js/examples.js"></script>
   <script src="/static/js/main.js"></script>

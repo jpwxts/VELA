@@ -479,6 +479,9 @@ function renderObservationCalendar() {
 
 function chooseCalendarDay(iso) {
   if (iso < "1990-01-01" || iso > todayIso()) return;
+  syncMapMode("history");
+  state.publicSnapshot = null;
+  state.savedExample = false;
   dayInput.value = iso;
   updateDayWords();
 }
@@ -635,11 +638,7 @@ document.querySelector("#cal-grid")?.addEventListener("click", (event) => {
 });
 
 document.querySelector("#day-summary-check")?.addEventListener("click", () => {
-  if (state.historyDay) {
-    dayInput.value = state.historyDay;
-    updateDayWords();
-  }
-  checkLand();
+  if (state.historyDay) chooseCalendarDay(state.historyDay);
 });
 
 document.querySelector("#future-days")?.addEventListener("click", (event) => {
