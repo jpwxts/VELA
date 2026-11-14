@@ -23,7 +23,9 @@ from app.mailer import send_test_brief
 from vela.calendar_metrics import CALENDAR_METRIC
 from vela.coverage import COVERAGE_RULE
 from vela.forecast_store import ForecastArchive
+from vela.history import build_monthly_history
 from vela.preparedness import (
+    build_day_outlook,
     build_forecast,
     draft_brief,
     explain_day,
@@ -133,6 +135,12 @@ class CheckLandRequest(BaseModel):
     platforms: list[str] = Field(default_factory=lambda: ["Aqua", "Suomi-NPP", "NOAA-20", "NOAA-21"])
     label: str | None = None
     include_hotspots: bool = True
+
+
+class HistoryRequest(BaseModel):
+    coordinates: list[tuple[float, float]] = Field(..., min_length=3, max_length=2000)
+    year: int = Field(..., ge=1990, le=9998)
+    month: int = Field(..., ge=1, le=12)
 
 
 @app.get("/")
@@ -520,6 +528,27 @@ def calendar(west: float, south: float, east: float, north: float, year: int):
     return build_calendar(west, south, east, north, year)
 
 
+@app.post("/api/history/month")
+def monthly_history(body: HistoryRequest):
+    """Daily calendar and monthly chart totals for the visitor's actual boundary."""
+
+    import math
+    from datetime import date
+    from vela.land_check import normalize_ring, polygon_bbox
+
+    if body.year > date.today().year:
+        raise HTTPException(status_code=400, detail="Choose a year up to the current year.")
+    if any(not math.isfinite(lon) or not math.isfinite(lat) or abs(lon) > 180 or abs(lat) > 90
+           for lon, lat in body.coordinates):
+        raise HTTPException(status_code=400, detail="Use valid longitude and latitude coordinates.")
+    ring = normalize_ring(body.coordinates)
+    west, south, east, north = polygon_bbox(ring)
+    area = abs(sum(left[0] * right[1] - right[0] * left[1] for left, right in zip(ring, ring[1:])))
+    if west == east or south == north or len(set(map(tuple, ring))) < 3 or area < 1e-12:
+        raise HTTPException(status_code=400, detail="Select a boundary with an area.")
+    return build_monthly_history(ring, body.year, body.month)
+
+
 @app.get("/api/calendar/years")
 def calendar_years(west: float, south: float, east: float, north: float):
     """Years with published weekly estimates for the selected land."""
@@ -595,6 +624,16 @@ def preparedness(west: float, south: float, east: float, north: float):
     annotated = annotate_forecast_days(forecast)
     annotated["performance"] = forecast.get("performance") or {}
     return annotated
+
+
+@app.get("/api/day-outlook")
+def day_outlook(
+    lat: float = Query(..., ge=-90, le=90),
+    lon: float = Query(..., ge=-180, le=180),
+):
+    """Temperature and wind through today near one point (the land's center)."""
+
+    return build_day_outlook(lat, lon, request_bytes)
 
 
 @app.get("/api/preparedness/day")

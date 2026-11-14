@@ -174,7 +174,8 @@ class FirmsClient:
             message = (
                 "FIRMS_MAP_KEY is not set. Each developer needs a free NASA FIRMS map key "
                 "in their own .env file, then restart Vela. Live satellite search cannot run "
-                "from GitHub-trained tables alone. Saved examples still work without a key."
+                "from GitHub-trained tables alone. Saved examples still work without a key. "
+                "The key itself is not shown here."
             )
             return _with_combined({
                 "configured": False,

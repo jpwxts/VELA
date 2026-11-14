@@ -8,7 +8,9 @@ import struct
 from vela.forecast_store import ForecastArchive
 from vela.geotiff import read_center_value
 from vela.preparedness import (
+    build_day_outlook,
     build_forecast,
+    parse_day_outlook,
     explain_day,
     parse_weather,
     verification_status,
@@ -157,3 +159,66 @@ def test_an_issued_forecast_is_kept_and_a_second_brief_is_suppressed(tmp_path, m
     page = client.get("/")
     assert "Check my land" in page.text
     assert "Competition example" in page.text
+def _hourly_payload():
+    hours = [f"2026-11-14T{hour:02d}:00" for hour in range(24)]
+    return {
+        "latitude": 11.2,
+        "longitude": 122.5,
+        "timezone": "Asia/Manila",
+        "current": {"time": "2026-11-14T13:15", "temperature_2m": 30.1},
+        "hourly": {
+            "time": hours,
+            "temperature_2m": [24 + hour / 4 for hour in range(24)],
+            "wind_speed_10m": [10] * 12 + [None] + [14] * 11,
+            "weather_code": [2] * 24,
+            "is_day": [0] * 6 + [1] * 12 + [0] * 6,
+        },
+    }
+
+
+def test_day_outlook_keeps_three_hour_slots_and_marks_missing_values():
+    outlook = parse_day_outlook(_hourly_payload())
+    assert outlook["ok"] is True
+    assert [slot["hour"] for slot in outlook["slots"]] == [0, 3, 6, 9, 12, 15, 18, 21]
+    noon = outlook["slots"][4]
+    assert noon["temperature_c"] == 27.0
+    # A value the provider left out is missing, never zero.
+    assert noon["wind_speed_km_h"] is None
+    assert noon["is_day"] is True and outlook["slots"][0]["is_day"] is False
+    assert outlook["now"] == "2026-11-14T13:15"
+    assert outlook["timezone"] == "Asia/Manila"
+
+
+def test_day_outlook_reports_a_failed_request_instead_of_raising():
+    def refused(url, params=None):
+        raise OSError("network unreachable")
+
+    outlook = build_day_outlook(11.2, 122.5, refused)
+    assert outlook["ok"] is False
+    assert outlook["slots"] == []
+    assert "could not be loaded" in outlook["message"]
+
+
+def test_day_outlook_endpoint_validates_the_point_and_returns_local_slots(monkeypatch):
+    import pytest
+
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+
+    from app import main
+
+    calls = []
+
+    def hourly_getter(url, params=None):
+        calls.append((url, params))
+        return 200, json.dumps(_hourly_payload()).encode("utf-8")
+
+    monkeypatch.setattr(main, "request_bytes", hourly_getter)
+    client = TestClient(main.app)
+    response = client.get("/api/day-outlook?lat=11.2&lon=122.5")
+
+    assert response.status_code == 200
+    assert response.json()["slots"][4]["wind_speed_km_h"] is None
+    assert calls[0][1]["timezone"] == "auto"
+    assert calls[0][1]["wind_speed_unit"] == "kmh"
+    assert client.get("/api/day-outlook?lat=91&lon=122.5").status_code == 422

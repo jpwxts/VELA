@@ -111,6 +111,7 @@ rounded:
   control: "4px"
   card: "6px"
   sheet: "14px"
+  search: "999px"
 spacing:
   tight: "6px"
   control-gap: "8px"
@@ -166,7 +167,7 @@ components:
   input-search:
     backgroundColor: "{colors.field}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.control}"
+    rounded: "{rounded.search}"
     padding: "0 12px"
     height: "42px"
     width: "268px"
@@ -301,6 +302,7 @@ A night palette of green-blacks and warm off-white with one working accent and o
 
 ### Hierarchy
 - **Display** (serif 500, 2.125rem, 1.1, lining figures): the reading itself: a detection count, a fire-weather danger class.
+- **Hero figure** (serif 500, 3.5rem, 1.05, lining figures): used once, for the weekly burning-activity percentage in the land summary. When there is no figure the words ("No estimate yet") drop to 1.75rem.
 - **Headline** (serif 500, 1.875rem, 1.12; 1.5rem on narrow screens): the place name at the top of the card.
 - **Pane headline** (serif 500, 1.75rem, 1.15): the title of the open pane (Burn activity, History, Weather outlook, Research).
 - **Title** (serif 500, 1.5rem, 1.15): stat values in the weather grid. A 1.25rem step carries the one-sentence finding for a selected square; a 1.0625rem step carries small figures in week and forecast rows.
@@ -324,8 +326,8 @@ The page is a fixed two-row grid that fills the viewport exactly (100dvh): a 64p
 
 The workspace is two columns: a 60px rail of four icon tabs (48px tall, 6px apart), then the plate, which takes all remaining space and clips its contents. Everything else floats on the plate:
 
-- **Top-left, 16px in:** the toolbar: the search field joined to a 42px magnifier button, then the 42px pencil that starts a boundary, 8px apart. While a boundary is being drawn a teal Finish boundary button joins the row and a one-line hint appears beneath it, counting the corners placed. The hint is hidden at all other times.
-- **Top-right, 16px in:** the 384px detail card, at most the plate's height minus the two insets.
+- **Top-left, 16px in:** the toolbar: the dark search field joined to a 42px magnifier button on its right, with fully rounded outer ends, then the 42px pencil that starts a boundary, 8px apart. While a boundary is being drawn a teal Finish boundary button joins the row and a one-line hint appears beneath it, counting the corners placed. The hint is hidden at all other times.
+- **Top-right, 16px in:** the 384px detail card, at most the plate's height minus the two insets. It is hidden on startup and opens after land is selected or a drawn boundary is finished. Clearing the selection hides it again.
 - **Bottom-left, 16px in:** the map legend panel, shown and hidden by the legend button at the foot of the rail, so it opens and closes in the same place beside its button. It opens by itself the first time heat markers appear.
 - **Behind the globe:** a faint, fixed star field (a seeded sky box of small off-white and pale teal points on Plate Ground) that turns as the globe is turned. Nothing sits at the bottom-right; the map data credit is the last line of the legend panel.
 
@@ -333,7 +335,7 @@ The globe is told which part of the plate the card covers, so the home view and 
 
 Inside the card the rhythm is: 24px side padding, 22px between blocks with a hairline and 20px of padding above each new block, 18px and 16px for sub-blocks, 10px between elements inside a block, and 6px to 8px between sibling controls. The card head sets the boundary's four coordinates as a two-by-two mono grid (W and S above E and N, 18px between columns).
 
-**Narrow screens (860px and below).** The masthead drops to 54px. The rail becomes a tab bar under the masthead, 56px tall, with the four sections and the legend button at its end, and here each icon keeps a short 0.75rem label beneath it because touch has no hover; the active marker moves from the left edge to the bottom edge. The card becomes a bottom sheet (full width, at most 52% of the plate, 14px top corners) that first appears in a peek state showing only its title and one "Get started" button. The search field stretches to share one toolbar row with the pencil, tools grow to 44px, and the legend drops from the tab bar above the sheet.
+**Narrow screens (860px and below).** The masthead drops to 54px. The rail becomes a tab bar under the masthead, 56px tall, with the four sections and the legend button at its end, and here each icon keeps a short 0.75rem label beneath it because touch has no hover; the active marker moves from the left edge to the bottom edge. The card becomes a bottom sheet (full width, at most 52% of the plate, 14px top corners), hidden until land is selected or a drawn boundary is finished. The search field stretches to share one toolbar row with the pencil, tools grow to 44px, and the legend drops from the tab bar above the sheet.
 
 **The Map Stays Rule.** Detail opens beside the map, never instead of it. No pane, dialog or state may cover the whole plate.
 
@@ -397,7 +399,7 @@ Plain and compact, like the keys of an instrument.
 - **Notices:** setup and saved-example notes are Plate Ground boxes with a Hairline border in Soft Ink. They are information, not errors, and stay in neutral tones.
 
 ### Inputs / Fields
-- **Style:** Field fill, 1px Strong Hairline, 4px radius, 42px tall. The search field is 268px wide and joined to its magnifier button (shared edge, outer corners eased). Date and number inputs use tabular figures.
+- **Style:** Field fill, 1px Strong Hairline, 42px tall. The search field is 268px wide and joined to its magnifier button on the right, with fully rounded outer ends. It keeps the placeholder "Enter Location" and the original dark colors and control shadow. Other fields keep a 4px radius. Date and number inputs use tabular figures.
 - **Focus:** the 2px Chart Teal outline, drawn inside the edge on the search field.
 - **Checkboxes:** native, 16px, tinted Chart Teal, in rows at least 32px tall.
 - **Search results:** a Card list under the field with card lift, hairline-separated rows, Teal Wash on hover.
@@ -413,7 +415,8 @@ Plain and compact, like the keys of an instrument.
 
 ### Calendar
 - A seven-column grid of nearly square days (40px minimum, 3px radius, 5px gaps) with mono weekday letters above.
-- Each day can carry one mark at its foot: an ember dot (heat seen on a day the visitor checked), an open Faint Ink ring (checked, no heat returned), or a short teal dash (forecast day). Today has a Faint Ink border and bold figure; the selected day is solid Chart Teal; days outside the range drop their fill and dim.
+- History defaults to Monthly, with separate month and year selectors covering January 1990 through the current month, and bounded previous/next arrows. Each 48px day cell shows its date and stored burning-activity percentage. Positive activity uses Ember Wash, measured zero stays on Field, missing estimates have a dashed outline and a dash. Partial estimates retain a dashed outline. Today has a Faint Ink border; the selected day is Chart Teal and keeps readable dark text on hover. Future dates are disabled.
+- Below the calendar, show the weighted monthly activity and the number of days with estimates, then the selected day's rate and coverage. A bar chart switches between daily values for the selected month and weighted monthly values for the selected year. Missing periods stay as gaps, and zero is a baseline mark. The vertical axis scales to the available values with explicit percent labels. Chart bars support mouse and keyboard selection; a disclosure supplies the same values as a table.
 - Weekly history is a two-column grid of week buttons under mono month labels: Ember Wash for a week with burning activity, a dashed border for partial or unavailable weeks, an inset teal outline for the open week.
 
 ### Readings
@@ -423,6 +426,13 @@ Plain and compact, like the keys of an instrument.
 
 ### Disclosures
 Hairline-topped rows with the chevron marker and a sans 600 summary; research questions use 700 at 1rem. Technical detail nests inside its answer as a quieter Light Chart Teal disclosure.
+
+### Land summary
+The top of the Burn activity pane once land is selected. Three stacked parts, 18px apart.
+
+- **Cutout:** a 672 by 340 canvas on Plate Ground with a 1px Hairline. It copies a freshly rendered globe frame, showing the current map imagery clipped to the land's outline and fitted to the frame, with a 3px Warm Ink outline and ember dots where heat was seen (ringed when two or more satellites saw it). It refreshes when the map switches between atlas and satellite imagery. Place names are left out. A plain filled outline is used while imagery loads or when the globe cannot be captured.
+- **Burning activity:** a Soft Ink label naming the week, then the Hero figure: Vela's weekly burning-activity estimate for the week that holds the observation date. It is never called a chance or probability of wildfire. Where weekly history has not been processed it reads "No estimate yet" with the reason beneath.
+- **Today at this land:** a strip of three-hour slots on Field fill with a 1px Strong Hairline and 6px corners, four visible at a time, scrolled with two 28px round arrow buttons that sit on the strip's edges. Each slot stacks the time in mono, a drawn weather icon, the temperature in serif 1.5rem and the wind speed in 0.75rem sans. The current slot is washed teal and labelled "Now". A missing value is written as missing, never as zero.
 
 ### Legend panel
 A 252px panel on Card Surface with a 1px Strong Hairline, opened and closed by the legend button at the foot of the rail. It holds the map key, three layer checkboxes, and a last line of 0.75rem Faint Ink text crediting the map data (Esri, OpenStreetMap contributors, Natural Earth) and CesiumJS. That line is the only place the credit appears, by the user's direction.

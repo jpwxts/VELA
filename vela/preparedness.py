@@ -267,6 +267,88 @@ def weather_request(latitude: float, longitude: float) -> tuple[str, dict]:
     }
 
 
+HOURLY_FIELDS = ("temperature_2m", "wind_speed_10m", "weather_code", "is_day")
+
+
+def hourly_request(latitude: float, longitude: float) -> tuple[str, dict]:
+    """Today's hour-by-hour weather at one point, in the point's own timezone."""
+
+    return OPEN_METEO, {
+        "latitude": latitude,
+        "longitude": longitude,
+        "hourly": ",".join(HOURLY_FIELDS),
+        "current": "temperature_2m",
+        "timezone": "auto",
+        "forecast_days": 1,
+        "wind_speed_unit": "kmh",
+    }
+
+
+def parse_day_outlook(payload: dict, step_hours: int = 3) -> dict:
+    """Reduce an hourly Open-Meteo day to evenly spaced slots.
+
+    A value the provider left out stays None so the page can say "missing"
+    instead of showing a zero.
+    """
+
+    hourly = payload.get("hourly") or {}
+    times = hourly.get("time") or []
+
+    def at(name: str, index: int):
+        values = hourly.get(name) or []
+        return _number(values[index]) if index < len(values) else None
+
+    slots = []
+    for index, stamp in enumerate(times):
+        try:
+            hour = int(str(stamp)[11:13])
+        except ValueError:
+            continue
+        if hour % step_hours:
+            continue
+        code = at("weather_code", index)
+        is_day = at("is_day", index)
+        slots.append(
+            {
+                "time": stamp,
+                "hour": hour,
+                "temperature_c": at("temperature_2m", index),
+                "wind_speed_km_h": at("wind_speed_10m", index),
+                "weather_code": None if code is None else int(code),
+                "is_day": None if is_day is None else bool(is_day),
+            }
+        )
+    return {
+        "ok": bool(slots),
+        "date": str(times[0])[:10] if times else None,
+        "now": (payload.get("current") or {}).get("time"),
+        "timezone": payload.get("timezone"),
+        "latitude": payload.get("latitude"),
+        "longitude": payload.get("longitude"),
+        "step_hours": step_hours,
+        "source": "Open-Meteo forecast API",
+        "slots": slots,
+    }
+
+
+def build_day_outlook(latitude: float, longitude: float, getter) -> dict:
+    """Fetch and parse today's hourly outlook; a failed request is reported, not raised."""
+
+    failed = {
+        "ok": False,
+        "slots": [],
+        "source": "Open-Meteo forecast API",
+        "message": "Hourly weather could not be loaded for this point.",
+    }
+    try:
+        status, body = getter(*hourly_request(latitude, longitude))
+        if status != 200:
+            return failed
+        return parse_day_outlook(json.loads(body))
+    except Exception:  # network failure or a malformed provider reply
+        return failed
+
+
 def gwis_request(layer: str, latitude: float, longitude: float, valid_date: str) -> tuple[str, dict]:
     span = 0.12
     return GWIS_WMS, {

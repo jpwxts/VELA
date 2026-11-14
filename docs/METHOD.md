@@ -50,6 +50,8 @@ If either sensor has no processed pixels, the cell-day is missing. Missing rows 
 
 The calendar metric is the share of usable cell-days with detected activity. It is not a count of individual wildfires and it is not the percentage of land burned.
 
+The monthly history uses the same selected cell-day contributions and coverage rules. Stored grid-cell centers are filtered to the drawn boundary. Daily percentages are available only inside weeks that meet the existing coverage threshold; complete weeks are included across month and year boundaries before that threshold is checked. Monthly percentages weight published daily values by their usable cell-day denominators. Dates with no processed observations, insufficient coverage, or held-out validation values remain missing, and future dates are not published. The January 1990 picker boundary is a navigation limit, not a claim of satellite coverage beginning in 1990.
+
 ## Model
 
 Training rows are usable cell-days from 2013–2020 in the development landscapes. 2021–2022 are used only to choose a model. 2023–2024 are scored once, after that choice. The Pantanal window is reserved and is not used to fit or choose the model.

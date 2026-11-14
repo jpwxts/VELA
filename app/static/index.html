@@ -4,12 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Vela</title>
-  <meta name="description" content="Find or draw your land on the globe and see what satellites recorded there: heat detections, fire-weather outlook, and weekly burning history.">
+  <meta name="description" content="Vela — The Fire Time Machine. Find or draw your land on the globe and see heat detections, fire-weather outlook, and weekly burning history.">
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="preload" href="/static/fonts/source-sans-3-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/static/fonts/source-serif-4-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cesium@1.147.0/Build/Cesium/Widgets/widgets.css">
-  <link rel="stylesheet" href="/static/styles.css?v=atlas-9">
+  <link rel="stylesheet" href="/static/styles.css?v=atlas-18">
 </head>
 <body>
   <header class="masthead">
@@ -54,7 +54,7 @@
       <div class="toolbar">
         <form id="search-form" class="search" role="search">
           <label class="visually-hidden" for="search">Find a place</label>
-          <input id="search" type="search" placeholder="Find a city, park, forest or farm" autocomplete="off">
+          <input id="search" type="search" placeholder="Enter Location" autocomplete="off">
           <button id="search-button" type="submit" class="tool tool-icon tip-below" aria-label="Find place" data-tip="Find place">
             <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.800" cy="8.800" r="5.300"/><path d="m12.800 12.800 4 4"/></svg>
           </button>
@@ -85,12 +85,11 @@
 
       <div id="globe-credits" hidden></div>
 
-      <article id="area-panel" class="card" tabindex="-1" aria-labelledby="selection-place">
+      <article id="area-panel" class="card" tabindex="-1" aria-labelledby="selection-place" hidden>
         <header class="card-head">
           <p id="selection-eyebrow" class="crumb" hidden></p>
           <h2 id="selection-place" class="card-title">Find your land</h2>
           <p id="selection-boundary" class="card-meta">No land selected yet.</p>
-          <button type="button" id="sheet-expand" class="primary small peek-only">Get started</button>
           <button type="button" id="sheet-close" class="icon-button" aria-label="Close details">
             <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg>
           </button>
@@ -99,8 +98,46 @@
         <div class="card-body">
           <!-- Burn activity -->
           <section id="pane-where" class="panel-pane" role="tabpanel" aria-labelledby="tab-where">
-            <h3 class="pane-title">Burn activity</h3>
+            <section id="land-summary" class="land-summary" aria-label="Summary of the selected land" hidden>
+              <canvas id="land-cutout" class="cutout" width="672" height="340" role="img" aria-label="The selected land, cut out of the map"></canvas>
 
+              <div class="activity" aria-live="polite">
+                <p id="activity-label" class="activity-label">Burning activity</p>
+                <p id="activity-value" class="activity-value"></p>
+                <p id="activity-note" class="quiet"></p>
+              </div>
+
+              <div class="hours">
+                <h4 id="hours-title">Today at this land</h4>
+                <div class="hours-frame">
+                  <button type="button" id="hours-prev" class="hours-nav prev" aria-label="Earlier hours">
+                    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 5 7 10l5 5"/></svg>
+                  </button>
+                  <ol id="hours-strip" class="hours-strip" tabindex="0" aria-labelledby="hours-title"></ol>
+                  <button type="button" id="hours-next" class="hours-nav next" aria-label="Later hours">
+                    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5"/></svg>
+                  </button>
+                </div>
+                <p id="hours-note" class="quiet"></p>
+              </div>
+            </section>
+
+            <details class="fold satellite-details">
+              <summary>Satellites to include</summary>
+              <fieldset>
+                <legend class="visually-hidden">Satellites</legend>
+                <label class="check"><input type="checkbox" value="Aqua" checked> Aqua</label>
+                <label class="check"><input type="checkbox" value="Suomi-NPP" checked> Suomi-NPP</label>
+                <label class="check"><input type="checkbox" value="NOAA-20" checked> NOAA-20</label>
+                <label class="check"><input type="checkbox" value="NOAA-21" checked> NOAA-21</label>
+                <label class="check"><input type="checkbox" value="Terra"> Terra (optional)</label>
+              </fieldset>
+              <div class="action-row">
+                <button id="confirm" type="button" class="primary">Check my land</button>
+              </div>
+            </details>
+
+            <div id="land-secondary-content">
             <section class="pane-block land-controls">
               <p id="area-label" class="lede">Search for a place or draw a boundary on the globe, then check it for satellite heat.</p>
               <dl class="fact">
@@ -108,7 +145,6 @@
                 <dd><span id="day-words">Choose a date.</span> <button type="button" id="change-date" class="link-button">Change</button></dd>
               </dl>
               <div class="action-row">
-                <button id="confirm" type="button" class="primary">Check my land</button>
                 <button id="clear-area" type="button" class="ghost">Clear</button>
               </div>
               <button id="return-selection" type="button" class="ghost wide" hidden>Return to my selection</button>
@@ -117,7 +153,7 @@
             <div id="land-result" class="land-result" aria-live="polite">
               <p id="fixture-banner" class="notice" hidden></p>
 
-              <div id="public-result" class="pane-block public-result" hidden>
+              <div id="public-result" class="pane-block public-result" aria-label="Combined observations" hidden>
                 <p id="result-count" class="reading-value"></p>
                 <p id="result-lead" class="result-lead"></p>
                 <p id="result-multi" class="result-multi"></p>
@@ -213,51 +249,86 @@
               </button>
             </section>
 
-            <details class="fold satellite-details">
-              <summary>Satellites to include</summary>
-              <fieldset>
-                <legend class="visually-hidden">Satellites</legend>
-                <label class="check"><input type="checkbox" value="Aqua" checked> Aqua</label>
-                <label class="check"><input type="checkbox" value="Suomi-NPP" checked> Suomi-NPP</label>
-                <label class="check"><input type="checkbox" value="NOAA-20" checked> NOAA-20</label>
-                <label class="check"><input type="checkbox" value="NOAA-21" checked> NOAA-21</label>
-                <label class="check"><input type="checkbox" value="Terra"> Terra (optional)</label>
-              </fieldset>
-            </details>
+            </div>
           </section>
 
           <!-- History -->
           <section id="pane-weekly" class="panel-pane" role="tabpanel" aria-labelledby="tab-weekly" hidden>
             <h3 class="pane-title">History</h3>
             <div class="segmented" role="group" aria-label="Time range">
-              <button type="button" data-history="past" aria-pressed="false">Past</button>
-              <button type="button" data-history="present" aria-pressed="true" class="on">Present</button>
-              <button type="button" data-history="future" aria-pressed="false">Future</button>
+              <button type="button" data-history="present" aria-pressed="true" class="on">Monthly</button>
+              <button type="button" data-history="past" aria-pressed="false">Weekly</button>
+              <button type="button" data-history="future" aria-pressed="false">Forecast</button>
             </div>
 
             <section id="history-present" class="history-view">
+              <div class="history-picker">
+                <div class="field">
+                  <label for="history-month">Month</label>
+                  <select id="history-month">
+                    <option value="01">January</option><option value="02">February</option>
+                    <option value="03">March</option><option value="04">April</option>
+                    <option value="05">May</option><option value="06">June</option>
+                    <option value="07">July</option><option value="08">August</option>
+                    <option value="09">September</option><option value="10">October</option>
+                    <option value="11">November</option><option value="12">December</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="history-year">Year</label>
+                  <select id="history-year" aria-label="History year, from 1990"></select>
+                </div>
+              </div>
               <div class="cal-head">
                 <button type="button" id="cal-prev" class="icon-button framed" aria-label="Previous month"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 5 7 10l5 5"/></svg></button>
                 <h4 id="cal-title" class="cal-title" aria-live="polite"></h4>
                 <button type="button" id="cal-next" class="icon-button framed" aria-label="Next month"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5"/></svg></button>
               </div>
               <div id="cal-grid" class="cal-grid" role="group" aria-labelledby="cal-title"></div>
-              <ul class="cal-key">
-                <li><span class="key key-dot" aria-hidden="true"></span>Heat seen on a day you checked</li>
-                <li><span class="key key-ring" aria-hidden="true"></span>Checked, no heat returned</li>
-                <li><span class="key key-dash" aria-hidden="true"></span>Forecast day</li>
+              <ul class="history-key" aria-label="Burning activity calendar legend">
+                <li><span class="history-swatch active" aria-hidden="true"></span>Burning activity</li>
+                <li><span class="history-swatch zero" aria-hidden="true"></span>Measured 0%</li>
+                <li><span class="history-swatch missing" aria-hidden="true"></span>No estimate</li>
               </ul>
-              <div class="field">
-                <label for="day">Satellite observation date</label>
-                <input id="day" type="date">
-                <p class="quiet date-note">Heat detections use this UTC observation day. Forecasts use the latest available GWIS outlook.</p>
-              </div>
+              <p id="history-status" class="quiet" aria-live="polite"></p>
+              <button id="history-retry" type="button" class="filter-button" hidden>Retry history</button>
+              <dl class="history-stats">
+                <div><dt>Month's activity</dt><dd id="history-month-rate">—</dd></div>
+                <div><dt>Days with estimates</dt><dd id="history-days-count">—</dd></div>
+              </dl>
               <div id="day-summary" class="day-summary" aria-live="polite">
                 <p id="day-summary-date" class="reading-label"></p>
                 <p id="day-summary-count" class="reading-value"></p>
                 <p id="day-summary-note" class="quiet"></p>
-                <button type="button" id="day-summary-check" class="filter-button" hidden>Check this day</button>
+                <button type="button" id="day-summary-check" class="filter-button" hidden>View satellite heat</button>
               </div>
+              <section class="history-chart-block" aria-labelledby="history-chart-title">
+                <div class="history-chart-head">
+                  <h4 id="history-chart-title">Burning activity history</h4>
+                  <label class="visually-hidden" for="history-chart-range">Chart time range</label>
+                  <select id="history-chart-range">
+                    <option value="month">This month</option>
+                    <option value="year">This year</option>
+                  </select>
+                </div>
+                <p id="history-chart-caption" class="quiet"></p>
+                <svg id="history-chart" viewBox="0 0 336 192" role="group" aria-roledescription="bar chart" aria-labelledby="history-chart-title history-chart-description"></svg>
+                <p id="history-chart-description" class="quiet">Percentages use observed grid squares with usable estimates. Empty periods have no estimate.</p>
+                <details class="fold history-chart-values">
+                  <summary>View chart values</summary>
+                  <div id="history-chart-table"></div>
+                </details>
+              </section>
+              <p id="history-availability" class="stamp"></p>
+              <p class="quiet">Activity uses local observation dates and is not the percentage of land burned. Partial periods use only the grid squares with usable estimates.</p>
+              <details class="fold">
+                <summary>Satellite readings for a date</summary>
+                <div class="field">
+                  <label for="day">Satellite observation date (UTC)</label>
+                  <input id="day" type="date" min="1990-01-01">
+                  <p class="quiet date-note">Choose a calendar day, then View satellite heat to load its readings on the globe.</p>
+                </div>
+              </details>
             </section>
 
             <section id="history-past" class="history-view calendar" aria-live="polite" hidden>
@@ -266,7 +337,7 @@
               <p id="region-label" class="quiet">Confirm land to load its calendar.</p>
               <div class="row calendar-controls">
                 <label for="year">Year</label>
-                <input id="year" type="number" min="2013" max="2026" value="2023">
+                <input id="year" type="number" min="1990" max="2026" value="2023">
                 <a id="export" class="ghost small" href="#" hidden>Download CSV</a>
               </div>
               <div id="weeks" class="weeks" aria-label="Weekly calendar"></div>
@@ -280,7 +351,7 @@
               <p id="metric" class="quiet">Vela divides the area into grid squares. Each square on one day counts once. The weekly percentage estimates how often those squares showed burning activity on the days with usable estimates.</p>
               <details id="metric-howto" class="fold metric-howto">
                 <summary>How to read this</summary>
-                <p id="metric-note" class="quiet">A square observed on Monday and Tuesday counts twice, once for each day. The value measures activity frequency; burned area and the number of separate fires are different measurements.</p>
+                <p id="metric-note" class="quiet">A square observed on Monday and Tuesday counts twice, once for each day. The value measures activity frequency; it is not the percentage of land burned or a count of separate fires.</p>
               </details>
             </section>
 
@@ -375,7 +446,7 @@
 
   <script>window.CESIUM_BASE_URL = "https://cdn.jsdelivr.net/npm/cesium@1.147.0/Build/Cesium/";</script>
   <script src="https://cdn.jsdelivr.net/npm/cesium@1.147.0/Build/Cesium/Cesium.js"></script>
-  <script src="/static/globe.js?v=atlas-9"></script>
-  <script src="/static/app.js?v=atlas-9"></script>
+  <script src="/static/globe.js?v=atlas-17"></script>
+  <script src="/static/app.js?v=atlas-18"></script>
 </body>
 </html>

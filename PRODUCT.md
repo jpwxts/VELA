@@ -27,11 +27,13 @@ Vela keeps satellite heat, fire-danger weather, weekly activity estimates and of
 
 ## Capabilities and Constraints
 
-- Confirmed by the user (2026-11-14): the map is an interactive CesiumJS globe. The app opens on the whole globe and the visitor rotates it to navigate.
+- Confirmed by the user (2026-11-14): the map is an interactive CesiumJS globe. The app opens on the whole globe with the land widget hidden. Selecting a place or finishing a drawn boundary opens the widget; clearing the selection hides it again.
 - Confirmed by the user (2026-11-14): every existing feature stays, rehomed into the new layout: place search, the two saved examples, satellite selection, replay of satellite passes, weekly trends with CSV download, the grid-square trace, weather outlook and research notes.
 - Heat is grouped into 5 km observation squares; a square seen by two or more satellites is marked differently from one seen by a single satellite.
 - A missing detection is never presented as "no heat".
 - No Cesium ion token is used: basemap and terrain come from keyless public services.
+- Confirmed by the user (2026-11-14): once land is selected, the Burn activity pane leads with a summary: a cutout of the drawn land, the weekly burning-activity percentage, and temperature and wind through today. The user chose the existing weekly burning-activity estimate for the big figure over a "chance of a wildfire"; where no weekly estimate exists the summary says so.
+- History opens on a monthly burning-activity calendar with month/year selection back to January 1990, daily details, and a bar chart that switches between the selected month and year. Values come from stored cell-day observations within the drawn boundary. Unavailable periods stay missing; the date range does not imply observations exist for every year.
 
 ## Brand Commitments
 

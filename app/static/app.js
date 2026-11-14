@@ -54,9 +54,21 @@ const state = {
   basemap: "atlas",
   historyView: "present",
   calendarMonth: null,
+  historyDay: null,
+  monthHistory: null,
+  historyKey: null,
+  historyRequestId: 0,
+  historyLoading: false,
+  historyError: false,
   checkedDays: new Map(),
   checkingDay: null,
   traceOutline: null,
+  // Land summary widget
+  cutoutToken: 0,
+  activityRequestId: 0,
+  outlookRequestId: 0,
+  dayOutlook: null,
+  dayOutlookKey: null,
 };
 
 // Ember is reserved for observed heat. The visitor's land is drawn in ink,
@@ -87,6 +99,7 @@ document.querySelector("#toggle-forecast-point")?.addEventListener("change", (ev
 document.querySelector("#basemap-satellite")?.addEventListener("change", (event) => {
   state.basemap = event.target.checked ? "satellite" : "atlas";
   globe.setBasemap(state.basemap);
+  drawLandCutout(state.lastPayload?.hotspot_areas?.areas || []);
 });
 window.addEventListener("resize", syncGlobeInsets);
 
@@ -110,6 +123,7 @@ const today = new Date();
 today.setDate(today.getDate() - 7);
 dayInput.value = today.toISOString().slice(0, 10);
 document.querySelector("#year").value = today.getUTCFullYear();
+initializeHistoryPicker();
 updateDayWords();
 
 document.querySelector("#search-form").addEventListener("submit", (event) => {
@@ -132,15 +146,44 @@ document.querySelectorAll("[data-history]").forEach((button) => {
 });
 document.querySelector("#cal-prev")?.addEventListener("click", () => shiftCalendarMonth(-1));
 document.querySelector("#cal-next")?.addEventListener("click", () => shiftCalendarMonth(1));
+document.querySelector("#history-month")?.addEventListener("change", chooseHistoryMonth);
+document.querySelector("#history-year")?.addEventListener("change", chooseHistoryMonth);
+document.querySelector("#history-retry")?.addEventListener("click", () => loadMonthlyHistory({ retry: true }));
+document.querySelector("#history-chart-range")?.addEventListener("change", renderHistoryChart);
+document.querySelector("#history-chart")?.addEventListener("click", chooseHistoryChartItem);
+document.querySelector("#history-chart")?.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  if (!event.target.closest("[data-history-day], [data-history-month]")) return;
+  event.preventDefault();
+  chooseHistoryChartItem(event);
+});
 document.querySelector("#cal-grid")?.addEventListener("click", (event) => {
   const day = event.target.closest("[data-day]");
   if (day && !day.disabled) chooseCalendarDay(day.dataset.day);
 });
-document.querySelector("#day-summary-check")?.addEventListener("click", () => checkLand());
+document.querySelector("#day-summary-check")?.addEventListener("click", () => {
+  if (state.historyDay) {
+    dayInput.value = state.historyDay;
+    updateDayWords();
+  }
+  checkLand();
+});
 document.querySelector("#future-days")?.addEventListener("click", (event) => {
   const day = event.target.closest("[data-forecast-day]");
   if (day) openForecastDay(day.dataset.forecastDay);
 });
+document.querySelector("#hours-prev")?.addEventListener("click", () => scrollHours(-1));
+document.querySelector("#hours-next")?.addEventListener("click", () => scrollHours(1));
+document.querySelector("#hours-strip")?.addEventListener("scroll", updateHoursNav, { passive: true });
+// The strip may be filled while its pane is hidden; place it once it has a real width.
+if (window.ResizeObserver && document.querySelector("#hours-strip")) {
+  let stripWidth = 0;
+  new ResizeObserver((entries) => {
+    const width = Math.round(entries[0].contentRect.width);
+    if (width && !stripWidth) positionHours();
+    stripWidth = width;
+  }).observe(document.querySelector("#hours-strip"));
+}
 document.querySelector("#try-example").addEventListener("click", loadCompetitionDemo);
 document.querySelector("#draw").addEventListener("click", startPolygonDraw);
 document.querySelector("#finish-draw").addEventListener("click", finishPolygonDraw);
@@ -241,12 +284,7 @@ document.querySelector("#view-fire-calendar")?.addEventListener("click", () => {
   switchPanelTab("weekly");
 });
 
-// First paint: on a wide screen the card opens on the start state and the globe is
-// framed beside it. A phone starts with the globe alone; the tab bar opens the sheet.
-if (window.matchMedia("(max-width: 860px)").matches) {
-  document.querySelector("#area-panel").classList.add("peek");
-}
-document.querySelector("#sheet-expand")?.addEventListener("click", () => openLandPanel({ tab: "where" }));
+// First paint leaves the globe unobstructed on every screen size.
 syncGlobeInsets();
 globe.home(false);
 setHistoryView(state.historyView);
@@ -275,6 +313,7 @@ async function loadClickFixture(name = "click_regression") {
     banner.hidden = false;
     banner.textContent = payload.fixture?.label || "Hotspot fixture";
   }
+  openLandPanel({ tab: "where", focus: false });
 }
 
 function switchView(name) {
@@ -304,9 +343,9 @@ function switchPanelTab(name) {
 }
 
 function openLandPanel(options = {}) {
+  if (!state.box) return;
   const panel = document.querySelector("#area-panel");
   panel.hidden = false;
-  panel.classList.remove("peek");
   syncGlobeInsets();
   updateSelectionBanner();
   switchPanelTab(options.tab || state.panelTab || "where");
@@ -393,10 +432,14 @@ function updateDayWords() {
     return;
   }
   node.textContent = formatObservationDay(value);
+  const previousMonth = state.calendarMonth;
   state.calendarMonth = value.slice(0, 7);
+  state.historyDay = value;
   renderObservationCalendar();
   renderDaySummary();
   updateSelectionBanner();
+  if (state.polygon && state.polygon.length >= 4) loadWeeklyActivity();
+  if (previousMonth !== state.calendarMonth && state.panelTab === "weekly" && state.historyView === "present") loadMonthlyHistory();
 }
 
 async function loadStatus() {
@@ -408,7 +451,7 @@ async function loadStatus() {
   const note = document.querySelector("#metric-note");
   if (note) {
     note.textContent =
-      "A square observed on Monday and Tuesday counts twice, once for each day. The value measures activity frequency; burned area and the number of separate fires are different measurements.";
+      "A square observed on Monday and Tuesday counts twice, once for each day. The value measures activity frequency; it is not the percentage of land burned or a count of separate fires.";
   }
   const researchMetric = document.querySelector("#metric-research");
   if (researchMetric) researchMetric.textContent = payload.metric;
@@ -499,6 +542,11 @@ function setPolygon(coordinates, label) {
     ring.push([...ring[0]]);
   }
   state.polygon = ring;
+  state.historyRequestId += 1;
+  state.monthHistory = null;
+  state.historyKey = null;
+  state.historyLoading = false;
+  state.historyError = false;
   const lons = ring.map((point) => point[0]);
   const lats = ring.map((point) => point[1]);
   state.box = [
@@ -521,6 +569,7 @@ function setPolygon(coordinates, label) {
   });
   state.savedExample = false;
   const [west, south, east, north] = state.box;
+  openLandPanel({ tab: "where", focus: false });
   flyToBounds({ west, south, east, north }, { minSpan: 0.12 });
   // A new boundary starts a new record: earlier checks and place names belonged to other land.
   state.checkedDays.clear();
@@ -534,6 +583,7 @@ function setPolygon(coordinates, label) {
   updateSelectionBanner();
   renderObservationCalendar();
   renderDaySummary();
+  refreshLandSummary();
 }
 
 function clearRectangle() {
@@ -567,6 +617,11 @@ function clearForecastMarker() {
 }
 
 function clearLand() {
+  state.historyRequestId += 1;
+  state.monthHistory = null;
+  state.historyKey = null;
+  state.historyLoading = false;
+  state.historyError = false;
   state.box = null;
   state.polygon = null;
   state.polygonDraft = [];
@@ -594,6 +649,11 @@ function clearLand() {
   setDrawing(false);
   document.querySelector("#cell-detail").hidden = true;
   document.querySelector("#public-result").hidden = true;
+  document.querySelector("#land-summary").hidden = true;
+  document.querySelector("#land-secondary-content").hidden = false;
+  state.cutoutToken += 1;
+  state.activityRequestId += 1;
+  state.outlookRequestId += 1;
   document.querySelector("#area-label").textContent =
     "Search for a place or draw a boundary on the globe, then check it for satellite heat.";
   document.querySelector("#map-hint").textContent = "Turn the globe to your land, then search or draw its boundary.";
@@ -602,6 +662,7 @@ function clearLand() {
   updateSelectionBanner();
   renderObservationCalendar();
   renderDaySummary();
+  closeAreaPanel();
 }
 
 function setDrawing(on) {
@@ -892,6 +953,7 @@ function renderLandCheck(payload) {
   }
   openLandPanel({ tab: state.panelTab || "where", focus: false });
   updateSelectionBanner();
+  drawLandCutout(synthetic.hotspot_areas.areas || []);
 }
 
 function renderFeedBreakdown(feeds) {
@@ -1317,7 +1379,6 @@ async function loadWeatherOutlook(options = {}) {
 }
 
 async function loadWeatherFixture(name) {
-  switchView("weather");
   const requestId = ++state.weatherRequestId;
   try {
     const response = await fetch(`/api/preparedness/fixture?name=${encodeURIComponent(name)}`);
@@ -1328,7 +1389,9 @@ async function loadWeatherFixture(name) {
       setBox([box.west, box.south, box.east, box.north], payload.fixture?.label || "Weather fixture area");
       setPolygonFromBox(state.box, payload.fixture?.label || "Weather fixture area");
     }
+    state.forecast = payload;
     applyWeatherOutlook(payload);
+    openLandPanel({ tab: "weather", focus: false });
   } catch (error) {
     if (requestId !== state.weatherRequestId) return;
     document.querySelector("#weather-headline").textContent = "Forecast values unavailable";
@@ -2815,7 +2878,7 @@ function renderTrace(outcome) {
       Aqua/MODIS: ${escapeHtml(example.modis_time_local || example.modis_time_utc || "no usable observation recorded")}.<br>
       VIIRS: ${escapeHtml(example.viirs_time_local || example.viirs_time_utc || "no usable observation recorded")}.
     </p>
-    <p><strong>Which observation or estimate contributed</strong><br>
+    <p><strong>Which observation or estimate supplied this cell-day</strong><br>
       Shared visible coverage ${example.shared_coverage_fraction != null ? `${(Number(example.shared_coverage_fraction) * 100).toFixed(0)}%` : "—"}.
       ${escapeHtml(example.zero_check?.text || "Contribution details are listed in the technical records for this cell.")}
     </p>
@@ -2921,7 +2984,7 @@ async function restoreSavedLandSelection() {
 }
 
 
-// ---------- History: Past (weekly activity), Present (observation calendar), Future (forecast days) ----------
+// ---------- History: monthly activity, weekly records, forecast days ----------
 
 function setHistoryView(name) {
   state.historyView = name;
@@ -2937,6 +3000,7 @@ function setHistoryView(name) {
   if (name === "present") {
     renderObservationCalendar();
     renderDaySummary();
+    loadMonthlyHistory();
   }
   if (name === "future") {
     if (state.box && !state.forecast) loadWeatherOutlook();
@@ -2948,21 +3012,99 @@ function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function initializeHistoryPicker() {
+  const currentYear = Number(todayIso().slice(0, 4));
+  const picker = document.querySelector("#history-year");
+  picker.innerHTML = Array.from({ length: currentYear - 1989 }, (_, index) => {
+    const year = currentYear - index;
+    return `<option value="${year}">${year}</option>`;
+  }).join("");
+  dayInput.max = todayIso();
+  document.querySelector("#year").max = currentYear;
+}
+
+function setHistoryMonth(value) {
+  const maximum = todayIso().slice(0, 7);
+  state.calendarMonth = value < "1990-01" ? "1990-01" : value > maximum ? maximum : value;
+  state.historyDay = dayInput.value.startsWith(state.calendarMonth) ? dayInput.value : `${state.calendarMonth}-01`;
+  renderObservationCalendar();
+  renderDaySummary();
+  loadMonthlyHistory();
+}
+
+function chooseHistoryMonth() {
+  setHistoryMonth(`${document.querySelector("#history-year").value}-${document.querySelector("#history-month").value}`);
+}
+
 function shiftCalendarMonth(delta) {
   const [year, month] = (state.calendarMonth || todayIso().slice(0, 7)).split("-").map(Number);
   const moved = new Date(Date.UTC(year, month - 1 + delta, 1));
-  state.calendarMonth = moved.toISOString().slice(0, 7);
-  renderObservationCalendar();
+  setHistoryMonth(moved.toISOString().slice(0, 7));
 }
 
-// The month grid doubles as the date picker for satellite observations.
-// A dot marks a day this session checked and found heat, a ring a checked day
-// with none returned, and a dash a day covered by the loaded forecast.
+function historyPercent(value) {
+  return typeof value === "number" && Number.isFinite(value) ? `${(value * 100).toFixed(1)}%` : "—";
+}
+
+function historyStatusWords(status) {
+  return ({ complete: "Available estimate", partial: "Partial estimate", hidden: "Estimate withheld for validation",
+    insufficient: "Insufficient usable coverage", not_processed: "No stored observations", future: "Not yet observed" })[status] || "No estimate";
+}
+
+function currentMonthHistory() {
+  const payload = state.monthHistory;
+  return payload && `${payload.year}-${String(payload.month).padStart(2, "0")}` === state.calendarMonth ? payload : null;
+}
+
+async function loadMonthlyHistory(options = {}) {
+  if (!state.polygon || state.polygon.length < 4) {
+    renderObservationCalendar();
+    renderDaySummary();
+    return;
+  }
+  const month = state.calendarMonth || dayInput.value.slice(0, 7);
+  const key = JSON.stringify([state.polygon, month]);
+  if (!options.retry && state.historyKey === key && state.monthHistory) {
+    renderObservationCalendar();
+    renderDaySummary();
+    return;
+  }
+  const requestId = ++state.historyRequestId;
+  state.historyLoading = true;
+  state.historyError = false;
+  state.monthHistory = null;
+  document.querySelector("#history-present").setAttribute("aria-busy", "true");
+  renderObservationCalendar();
+  renderDaySummary();
+  try {
+    const [year, number] = month.split("-").map(Number);
+    const response = await fetch("/api/history/month", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ coordinates: state.polygon, year, month: number }),
+    });
+    if (!response.ok) throw new Error("history failed");
+    const payload = await response.json();
+    if (requestId !== state.historyRequestId) return;
+    state.monthHistory = payload;
+    state.historyKey = key;
+  } catch (_error) {
+    if (requestId !== state.historyRequestId) return;
+    state.historyError = true;
+    state.historyKey = null;
+  }
+  state.historyLoading = false;
+  document.querySelector("#history-present").setAttribute("aria-busy", "false");
+  renderObservationCalendar();
+  renderDaySummary();
+}
+
+// Stored daily estimates drive both the month calendar and the chart. A gap
+// always stays missing; it is never inferred from an empty live FIRMS result.
 function renderObservationCalendar() {
   const grid = document.querySelector("#cal-grid");
   const title = document.querySelector("#cal-title");
   if (!grid || !title) return;
-  const selected = dayInput.value;
+  const selected = state.historyDay || dayInput.value;
   if (!state.calendarMonth) state.calendarMonth = (selected || todayIso()).slice(0, 7);
   const [year, month] = state.calendarMonth.split("-").map(Number);
   const first = new Date(Date.UTC(year, month - 1, 1));
@@ -2971,56 +3113,137 @@ function renderObservationCalendar() {
     year: "numeric",
     timeZone: "UTC",
   }).format(first);
+  document.querySelector("#history-month").value = String(month).padStart(2, "0");
+  document.querySelector("#history-year").value = String(year);
+  const latest = todayIso().slice(0, 7);
+  document.querySelector("#cal-prev").disabled = state.calendarMonth <= "1990-01";
+  document.querySelector("#cal-next").disabled = state.calendarMonth >= latest;
+  document.querySelectorAll("#history-month option").forEach((option) => {
+    option.disabled = `${year}-${option.value}` > latest;
+  });
   const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
   const today = todayIso();
-  const forecastDays = new Set((state.forecast?.days || []).map((day) => day.valid_date));
+  const payload = currentMonthHistory();
+  const daily = new Map((payload?.days || []).map((day) => [day.date, day]));
   const cells = ["S", "M", "T", "W", "T", "F", "S"].map(
     (letter) => `<span class="cal-weekday" aria-hidden="true">${letter}</span>`
   );
   for (let blank = 0; blank < first.getUTCDay(); blank += 1) cells.push("<span></span>");
   for (let day = 1; day <= daysInMonth; day += 1) {
     const iso = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    const checked = state.checkedDays.get(iso);
-    const isForecast = forecastDays.has(iso);
-    const classes = ["cal-day"];
-    const notes = [];
+    const record = daily.get(iso);
+    const rate = record?.activity_rate;
+    const available = typeof rate === "number" && Number.isFinite(rate);
+    const classes = ["cal-day", "activity-day"];
+    const notes = [available ? `${historyPercent(rate)} burning activity` : historyStatusWords(record?.activity_status)];
+    if (available) classes.push(rate > 0 ? "has-activity" : "measured-zero");
+    else classes.push("no-estimate");
+    if (record?.activity_status === "partial") {
+      classes.push("partial");
+      notes.push("partial estimate");
+    }
     if (iso === today) {
       classes.push("today");
       notes.push("today");
     }
     if (iso === selected) {
       classes.push("selected");
-      notes.push("selected observation date");
+      notes.push("selected day");
     }
-    if (checked && checked.total > 0) {
-      classes.push("heat");
-      notes.push(`${checked.total} area${checked.total === 1 ? "" : "s"} with heat`);
-    } else if (checked) {
-      classes.push("checked");
-      notes.push("checked, no heat returned");
-    } else if (isForecast) {
-      classes.push("forecast");
-      notes.push("forecast day");
-    }
-    const disabled = iso > today && !isForecast;
+    const disabled = iso > today;
     const label = `${formatObservationDay(iso)}${notes.length ? `, ${notes.join(", ")}` : ""}`;
     cells.push(
       `<button type="button" class="${classes.join(" ")}" data-day="${iso}" aria-label="${escapeHtml(label)}"`
-      + `${iso === selected ? ' aria-pressed="true"' : ""}${disabled ? " disabled" : ""}>${day}</button>`
+      + ` aria-pressed="${iso === selected}" style="--activity-strength:${available ? 10 + Math.min(1, Math.max(0, rate)) * 28 : 0}%"`
+      + `${disabled ? " disabled" : ""}><span>${day}</span><span class="cal-day-rate">${available ? historyPercent(rate) : "—"}</span></button>`
     );
   }
   grid.innerHTML = cells.join("");
+  const status = document.querySelector("#history-status");
+  const published = (payload?.days || []).filter((day) => day.activity_rate != null).length;
+  status.textContent = state.historyLoading ? "Loading burning activity…"
+    : state.historyError ? "History could not be loaded. Please try again."
+    : !state.box ? "Select land to see its burning history."
+    : published ? `${published} of ${daysInMonth} days have usable estimates. Select a day for details.`
+    : `No burning-activity estimates for ${title.textContent}.`;
+  document.querySelector("#history-retry").hidden = !state.historyError;
+  document.querySelector("#history-month-rate").textContent = historyPercent(payload?.summary?.activity_rate);
+  document.querySelector("#history-days-count").textContent = state.historyLoading ? "…" : `${published} / ${daysInMonth}`;
+  const firstObservation = payload?.first_observation;
+  document.querySelector("#history-availability").textContent = firstObservation
+    ? `Stored observations for this land: ${formatObservationDay(firstObservation)} – ${formatObservationDay(payload.last_observation)}.`
+    : "";
+  renderHistoryChart();
 }
 
 function chooseCalendarDay(iso) {
-  if (iso > todayIso()) {
-    openForecastDay(iso);
-    return;
-  }
+  if (iso < "1990-01-01" || iso > todayIso()) return;
   dayInput.value = iso;
   updateDayWords();
-  // Keep the globe and the calendar on the same day: a new date means a new check.
-  if (state.polygon && state.polygon.length >= 4) checkLand();
+}
+
+function chooseHistoryChartItem(event) {
+  const day = event.target.closest("[data-history-day]");
+  const month = event.target.closest("[data-history-month]");
+  if (day) chooseCalendarDay(day.dataset.historyDay);
+  else if (month) setHistoryMonth(month.dataset.historyMonth);
+}
+
+function renderHistoryChart() {
+  const svg = document.querySelector("#history-chart");
+  if (!svg) return;
+  const payload = currentMonthHistory();
+  const annual = document.querySelector("#history-chart-range").value === "year";
+  const selectedMonth = state.calendarMonth || todayIso().slice(0, 7);
+  const [year, month] = selectedMonth.split("-").map(Number);
+  const rows = annual
+    ? payload?.months || Array.from({ length: 12 }, (_, index) => ({ month: `${year}-${String(index + 1).padStart(2, "0")}` }))
+    : payload?.days || Array.from({ length: new Date(Date.UTC(year, month, 0)).getUTCDate() }, (_, index) => ({ date: `${selectedMonth}-${String(index + 1).padStart(2, "0")}` }));
+  const monthName = new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })
+    .format(new Date(Date.UTC(year, month - 1, 1)));
+  document.querySelector("#history-chart-caption").textContent = annual
+    ? `Monthly activity in ${year}. Select a bar to open that month.`
+    : `Daily activity in ${monthName}. Select a bar to see that day.`;
+  const left = 34;
+  const bottom = 154;
+  const height = 126;
+  const width = 292;
+  const band = width / rows.length;
+  const highest = Math.max(0, ...rows.map((row) => Number.isFinite(row.activity_rate) ? row.activity_rate : 0));
+  const axisMaximum = Math.min(1, Math.max(0.1, Math.ceil(highest * 10) / 10));
+  const parts = [];
+  for (const fraction of [0, 0.5, 1]) {
+    const y = bottom - height * fraction;
+    parts.push(`<line class="history-chart-grid" x1="${left}" y1="${y}" x2="326" y2="${y}"/>`
+      + `<text class="history-chart-axis" x="28" y="${y + 3}" text-anchor="end">${(fraction * axisMaximum * 100).toFixed(0)}%</text>`);
+  }
+  rows.forEach((row, index) => {
+    const key = annual ? row.month : row.date;
+    const future = annual ? key > todayIso().slice(0, 7) : key > todayIso();
+    const available = typeof row.activity_rate === "number" && Number.isFinite(row.activity_rate);
+    const x = left + index * band;
+    const barWidth = Math.max(3, band - (annual ? 7 : 3));
+    const barHeight = available ? Math.max(2, Math.min(1, Math.max(0, row.activity_rate) / axisMaximum) * height) : 0;
+    const selected = annual ? key === selectedMonth : key === (state.historyDay || dayInput.value);
+    const label = annual ? new Intl.DateTimeFormat("en-GB", { month: "short", timeZone: "UTC" })
+      .format(new Date(`${key}-01T00:00:00Z`)) : String(index + 1);
+    const description = `${annual ? monthLabel(`${key}-01`) : formatObservationDay(key)}: ${available ? historyPercent(row.activity_rate) : historyStatusWords(row.activity_status)}`;
+    const attributes = future ? "" : `role="button" tabindex="0" data-history-${annual ? "month" : "day"}="${key}" aria-label="${escapeHtml(description)}"`;
+    parts.push(`<g class="history-chart-bar${selected ? " selected" : ""}${row.activity_status === "partial" ? " partial" : ""}" ${attributes}>
+      <title>${escapeHtml(description)}</title>
+      <rect class="history-chart-hit" x="${x}" y="20" width="${band}" height="138"/>
+      ${available ? `<rect class="history-chart-value${row.activity_rate === 0 ? " zero" : ""}" x="${x + (band - barWidth) / 2}" y="${bottom - barHeight}" width="${barWidth}" height="${barHeight}" rx="1"/>`
+        : `<text class="history-chart-gap" x="${x + band / 2}" y="${bottom - 3}" text-anchor="middle">${future ? "" : "·"}</text>`}
+      ${annual || index === 0 || (index + 1) % 5 === 0 || index === rows.length - 1 ? `<text class="history-chart-axis" x="${x + band / 2}" y="172" text-anchor="middle">${label}</text>` : ""}
+    </g>`);
+  });
+  if (!rows.some((row) => row.activity_rate != null)) {
+    parts.push(`<text class="history-chart-empty" x="184" y="91" text-anchor="middle">${state.historyLoading ? "Loading history…" : state.historyError ? "Could not load history" : "No estimates for this period"}</text>`);
+  }
+  svg.innerHTML = parts.join("");
+  document.querySelector("#history-chart-table").innerHTML = `<table class="member-table"><caption class="visually-hidden">Burning activity chart values</caption>
+    <thead><tr><th>${annual ? "Month" : "Day"}</th><th>Activity</th><th>Status</th></tr></thead>
+    <tbody>${rows.map((row, index) => `<tr><td>${annual ? escapeHtml(monthLabel(`${row.month}-01`)) : index + 1}</td><td>${historyPercent(row.activity_rate)}</td><td>${escapeHtml(historyStatusWords(row.activity_status))}</td></tr>`).join("")}</tbody></table>`;
 }
 
 function openForecastDay(iso) {
@@ -3035,33 +3258,30 @@ function renderDaySummary() {
   const noteNode = document.querySelector("#day-summary-note");
   const button = document.querySelector("#day-summary-check");
   if (!dateNode || !countNode || !noteNode || !button) return;
-  const iso = dayInput.value;
-  const checked = state.checkedDays.get(iso);
+  const iso = state.historyDay || dayInput.value;
+  const record = (currentMonthHistory()?.days || []).find((entry) => entry.date === iso);
   dateNode.textContent = iso ? formatObservationDay(iso) : "";
   button.hidden = true;
   if (state.checkingDay && state.checkingDay === iso) {
     countNode.textContent = "Checking…";
     noteNode.textContent = "Loading satellite heat for this day.";
-  } else if (checked && checked.kind === "unknown_empty") {
-    countNode.textContent = "No detections returned";
-    noteNode.textContent = "We don’t know how much of this land the satellites observed that day.";
-  } else if (checked) {
-    countNode.textContent = `${checked.total} area${checked.total === 1 ? "" : "s"} with heat`;
-    if (checked.multi) {
-      noteNode.textContent = `${checked.multi} seen by more than one satellite in this selection.`;
-    } else if (checked.total) {
-      noteNode.textContent = "Each area was reported by one satellite.";
-    } else {
-      noteNode.textContent = "No heat detections were returned inside this selection.";
-    }
-  } else if (state.polygon && state.polygon.length >= 4) {
-    countNode.textContent = "Not checked yet";
-    noteNode.textContent = "Load satellite heat for this day to see it here and on the globe.";
-    button.hidden = false;
+  } else if (state.historyLoading) {
+    countNode.textContent = "Loading…";
+    noteNode.textContent = "Reading stored burning activity for this month.";
+  } else if (state.historyError) {
+    countNode.textContent = "History unavailable";
+    noteNode.textContent = "The request failed. Use Retry history to try again.";
+  } else if (record?.activity_rate != null) {
+    countNode.textContent = historyPercent(record.activity_rate);
+    noteNode.textContent = `${historyStatusWords(record.activity_status)}. ${record.estimated_cell_days} of ${record.eligible_cell_days} observed grid squares have a usable estimate for this day.`;
+  } else if (state.box) {
+    countNode.textContent = "No estimate";
+    noteNode.textContent = historyStatusWords(record?.activity_status);
   } else {
     countNode.textContent = "No land selected";
     noteNode.textContent = "Search for a place or draw a boundary on the globe first.";
   }
+  button.hidden = !state.polygon || iso > todayIso() || Boolean(state.checkingDay);
 }
 
 function renderFutureDays() {
@@ -3085,4 +3305,242 @@ function renderFutureDays() {
       <span>${escapeHtml(formatShortForecastDay(day.valid_date, tz))}</span>
       <strong>${escapeHtml(day.danger_level || "Not rated")}</strong>
     </button></li>`).join("");
+}
+
+// ---------- Land summary: cutout, weekly burning activity, today's hours ----------
+
+function refreshLandSummary() {
+  const section = document.querySelector("#land-summary");
+  const hasLand = Boolean(state.polygon && state.polygon.length >= 4);
+  section.hidden = !hasLand;
+  document.querySelector("#land-secondary-content").hidden = hasLand;
+  if (!hasLand) return;
+  drawLandCutout([]);
+  loadWeeklyActivity();
+  loadDayOutlook();
+}
+
+// Plain outline of the land, drawn at once so the frame is never empty while
+// the globe is still flying to it (and whenever the globe cannot be captured).
+function drawLandOutline(ring, canvas) {
+  const context = canvas.getContext("2d");
+  const lats = ring.map((point) => point[1]);
+  const lons = ring.map((point) => point[0]);
+  const south = Math.min(...lats);
+  const north = Math.max(...lats);
+  const west = Math.min(...lons);
+  const east = Math.max(...lons);
+  const squeeze = Math.cos((((south + north) / 2) * Math.PI) / 180) || 1;
+  const width = Math.max((east - west) * squeeze, 1e-6);
+  const height = Math.max(north - south, 1e-6);
+  const margin = 18;
+  const scale = Math.min((canvas.width - margin * 2) / width, (canvas.height - margin * 2) / height);
+  const left = (canvas.width - width * scale) / 2;
+  const top = (canvas.height - height * scale) / 2;
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.beginPath();
+  ring.forEach(([lon, lat], index) => {
+    const x = left + (lon - west) * squeeze * scale;
+    const y = top + (north - lat) * scale;
+    if (index) context.lineTo(x, y);
+    else context.moveTo(x, y);
+  });
+  context.closePath();
+  context.fillStyle = "#233127";
+  context.fill();
+  context.lineJoin = "round";
+  context.lineWidth = 3;
+  context.strokeStyle = LAND_STROKE;
+  context.stroke();
+}
+
+async function drawLandCutout(areas) {
+  const canvas = document.querySelector("#land-cutout");
+  const ring = state.polygon;
+  if (!canvas || !ring || ring.length < 4) return;
+  const token = ++state.cutoutToken;
+  if (!areas.length) drawLandOutline(ring, canvas);
+  const marks = areas.map((area) => ({
+    lat: area.center_lat,
+    lon: area.center_lon,
+    multi: Boolean(area.multiple_satellites),
+  }));
+  // Capture into a spare canvas so a superseded capture never paints over a newer one.
+  const spare = document.createElement("canvas");
+  spare.width = canvas.width;
+  spare.height = canvas.height;
+  const paint = async () => {
+    if (token !== state.cutoutToken) return false;
+    const captured = await globe.snapshot(ring, spare, marks);
+    if (!captured || token !== state.cutoutToken) return false;
+    const context = canvas.getContext("2d");
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(spare, 0, 0);
+    return true;
+  };
+  // Map tiles keep sharpening after the globe arrives, so take the picture again a few seconds later.
+  if (await paint()) window.setTimeout(paint, 5000);
+}
+
+// The big figure: Vela's weekly burning-activity estimate for the week that
+// holds the observation date. It exists only where weekly history has been
+// processed; everywhere else the widget says so instead of showing a number.
+async function loadWeeklyActivity() {
+  const label = document.querySelector("#activity-label");
+  const value = document.querySelector("#activity-value");
+  const note = document.querySelector("#activity-note");
+  if (!label || !state.box) return;
+  const date = dayInput.value;
+  const year = date.slice(0, 4);
+  const requestId = ++state.activityRequestId;
+  const words = (text) => {
+    value.textContent = text;
+    value.classList.add("is-words");
+  };
+  label.textContent = "Burning activity";
+  words("Loading…");
+  note.hidden = false;
+  note.textContent = `Reading the weekly estimate for ${formatObservationDay(date)}.`;
+  const [west, south, east, north] = state.box;
+  let payload;
+  try {
+    const response = await fetch(`/api/calendar?west=${west}&south=${south}&east=${east}&north=${north}&year=${year}`);
+    if (!response.ok) throw new Error("calendar failed");
+    payload = await response.json();
+  } catch (_error) {
+    if (requestId !== state.activityRequestId) return;
+    words("Unavailable");
+    note.textContent = "The weekly history request failed. Check your connection, then change the date or redraw to try again.";
+    return;
+  }
+  if (requestId !== state.activityRequestId) return;
+  const weeks = payload.weeks || [];
+  const published = (week) =>
+    week.activity_rate != null && (week.activity_status === "complete" || week.activity_status === "partial");
+  const week = weeks.find((item) => item.week_start <= date && date <= item.week_end);
+  if (week && published(week)) {
+    label.textContent = `Burning activity · ${formatWeekRange(week.week_start, week.week_end)}`;
+    value.textContent = `${(week.activity_rate * 100).toFixed(1)}%`;
+    value.classList.remove("is-words");
+    note.textContent =
+      (week.activity_status === "partial" ? "Partial estimate: some days that week lacked usable coverage. " : "")
+      + "How often this land’s grid squares showed burning activity that week. It is not a wildfire probability.";
+    return;
+  }
+  words("No estimate yet");
+  note.textContent = "";
+  note.hidden = true;
+}
+
+// Open-Meteo weather codes (WMO) reduced to seven drawn conditions.
+function weatherIcon(code, isDay) {
+  const cloud = '<path d="M10.500 22.500h11a4 4 0 0 0 .600-7.960 6 6 0 0 0-11.400-.940 3.600 3.600 0 0 0-.200 8.900Z"/>';
+  const high = `<g transform="translate(0 -3)">${cloud}</g>`;
+  const sun = '<circle cx="16" cy="16" r="4.600"/><path d="M16 6.500v2.200M16 23.300v2.200M6.500 16h2.200M23.300 16h2.200M9.300 9.300l1.550 1.550M21.150 21.150l1.550 1.550M9.300 22.700l1.550-1.550M21.150 10.850l1.550-1.550"/>';
+  const moon = '<path d="M22.500 18.600A8.300 8.300 0 0 1 13.400 9.500a7.300 7.300 0 1 0 9.100 9.100Z"/>';
+  const smallSun = '<circle cx="21.500" cy="10.500" r="3"/><path d="M21.500 4.800v1.500M27.200 10.500h-1.500M25.530 6.470l-1.060 1.060M17.470 6.470l1.060 1.060"/>';
+  const smallMoon = '<path d="M26 11.300a4.600 4.600 0 0 1-5.300-5.300 4.300 4.300 0 1 0 5.300 5.300Z"/>';
+  const wrap = (body) => `<svg viewBox="0 0 32 32" aria-hidden="true">${body}</svg>`;
+  if (code == null) return { label: "Conditions missing", svg: wrap('<path d="M11 16h10"/>') };
+  if (code === 0 || code === 1) {
+    return isDay === false ? { label: "Clear night", svg: wrap(moon) } : { label: "Clear", svg: wrap(sun) };
+  }
+  if (code === 2) {
+    return { label: "Partly cloudy", svg: wrap(`${isDay === false ? smallMoon : smallSun}<g transform="translate(-2 2)">${cloud}</g>`) };
+  }
+  if (code === 3) return { label: "Cloudy", svg: wrap(cloud) };
+  if (code === 45 || code === 48) return { label: "Fog", svg: wrap(`${high}<path d="M9 23.500h14M11.500 27h9"/>`) };
+  if (code >= 95) return { label: "Thunderstorm", svg: wrap(`${high}<path d="m16.500 21-2.500 4h3.500l-2 3.500"/>`) };
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) {
+    return { label: "Snow", svg: wrap(`${high}<path d="M11.500 24h.01M16 24h.01M20.500 24h.01M13.750 27.500h.01M18.250 27.500h.01" stroke-width="2.200"/>`) };
+  }
+  if (code >= 51) return { label: "Rain", svg: wrap(`${high}<path d="m12.500 23-1.300 3.500M17 23l-1.300 3.500M21.500 23l-1.300 3.500"/>`) };
+  return { label: "Cloudy", svg: wrap(cloud) };
+}
+
+async function loadDayOutlook() {
+  if (!state.box) return;
+  const [west, south, east, north] = state.box;
+  const lat = (south + north) / 2;
+  const lon = (west + east) / 2;
+  const key = `${lat.toFixed(3)},${lon.toFixed(3)}`;
+  if (state.dayOutlook && state.dayOutlookKey === key) {
+    renderDayOutlook(state.dayOutlook);
+    return;
+  }
+  const requestId = ++state.outlookRequestId;
+  document.querySelector("#hours-strip").innerHTML = "";
+  document.querySelector("#hours-title").textContent = "Today at this land";
+  document.querySelector("#hours-note").hidden = false;
+  document.querySelector("#hours-note").textContent = "Loading today’s temperature and wind…";
+  let payload = null;
+  try {
+    const response = await fetch(`/api/day-outlook?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`);
+    if (response.ok) payload = await response.json();
+  } catch (_error) {
+    payload = null;
+  }
+  if (requestId !== state.outlookRequestId) return;
+  if (payload && payload.ok) {
+    state.dayOutlook = payload;
+    state.dayOutlookKey = key;
+  }
+  renderDayOutlook(payload);
+}
+
+function renderDayOutlook(outlook) {
+  const strip = document.querySelector("#hours-strip");
+  const title = document.querySelector("#hours-title");
+  const note = document.querySelector("#hours-note");
+  if (!outlook || !outlook.ok || !(outlook.slots || []).length) {
+    strip.innerHTML = "";
+    title.textContent = "Today at this land";
+    note.hidden = false;
+    note.textContent = "Today’s temperature and wind could not be loaded. Vela needs a connection to Open-Meteo for this.";
+    updateHoursNav();
+    return;
+  }
+  const step = outlook.step_hours || 3;
+  const nowHour = outlook.now ? Number(String(outlook.now).slice(11, 13)) : null;
+  title.textContent = `Today at this land · ${formatShortForecastDay(outlook.date, "UTC")}`;
+  strip.innerHTML = outlook.slots.map((slot) => {
+    const current = nowHour != null && nowHour >= slot.hour && nowHour < slot.hour + step;
+    const icon = weatherIcon(slot.weather_code, slot.is_day);
+    const clock = `${String(slot.hour).padStart(2, "0")}:00`;
+    const temperature = slot.temperature_c == null ? "—" : `${Math.round(slot.temperature_c)}°`;
+    const wind = slot.wind_speed_km_h == null ? "wind missing" : `${Math.round(slot.wind_speed_km_h)} km/h`;
+    return `<li class="hour${current ? " now" : ""}">
+      <span class="hour-time">${current ? "Now" : clock}</span>
+      ${icon.svg}<span class="visually-hidden">${escapeHtml(icon.label)}</span>
+      <strong class="hour-temp">${temperature}</strong>
+      <span class="hour-wind">${wind}</span>
+    </li>`;
+  }).join("");
+  note.textContent = "";
+  note.hidden = true;
+  positionHours();
+}
+
+// Start the strip at the current hour so the rest of the day reads left to right.
+function positionHours() {
+  const strip = document.querySelector("#hours-strip");
+  if (!strip || !strip.clientWidth) return;
+  const current = strip.querySelector(".hour.now");
+  strip.scrollLeft = current ? Math.max(0, current.offsetLeft - strip.offsetLeft - 14) : 0;
+  updateHoursNav();
+}
+
+function scrollHours(direction) {
+  const strip = document.querySelector("#hours-strip");
+  const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  strip.scrollBy({ left: direction * strip.clientWidth, behavior: calm ? "auto" : "smooth" });
+}
+
+function updateHoursNav() {
+  const strip = document.querySelector("#hours-strip");
+  const previous = document.querySelector("#hours-prev");
+  const next = document.querySelector("#hours-next");
+  if (!strip || !previous || !next) return;
+  previous.disabled = strip.scrollLeft <= 2;
+  next.disabled = strip.scrollLeft + strip.clientWidth >= strip.scrollWidth - 2;
 }

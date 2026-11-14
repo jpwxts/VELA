@@ -6,9 +6,9 @@ You draw or search for a plot of land, pick a date, and explore four questions i
 
 | Tab | Question it answers |
 | --- | --- |
-| **Where is this?** | What heat did the satellites see on this land, grouped in 5 km squares? |
+| **Burn activity** | What heat did the satellites see on this land, grouped in 5 km squares? |
 | **Weather outlook** | Which day has the highest fire danger near this land, and why? |
-| **Weekly trends** | When was burning activity highest on this land? |
+| **History** | How did burning activity change across a month or year on this land? |
 | **Research** | How did Vela reach this result? |
 
 Vela keeps **satellite heat**, **fire-danger weather**, **weekly activity estimates**, and **official wildfire reports** as separate answers. It never turns FWI, hotspot counts, MODIS confidence, or the harmonization model into a wildfire probability.
@@ -27,7 +27,9 @@ FIRMS detections are clipped to your actual drawn boundary. Switching tabs prese
 
 For Philippine selections, place labels prefer **barangay → city/municipality → province**, and forecast dates use **Asia/Manila** time.
 
-### Where is this?
+### Burn activity
+
+Once land is selected, the pane leads with a compact summary: a map cutout of the boundary, the weekly burning-activity estimate for the observation date, and three-hour temperature and wind slots through today. Missing weekly history or weather is labeled unavailable rather than turned into a zero.
 
 - Ember heat markers: **circle = 1 satellite**, **square = 2+ satellites**, with text labels in the legend.
 - Click a square to see satellite names, local observation times (UTC also shown), and every original detection.
@@ -57,7 +59,11 @@ Point forecasts are labeled **Weather near the center of your selection.** Histo
 | [GWIS / Copernicus ECMWF FWI](https://gwis.jrc.ec.europa.eu/) | Numeric fire-danger index at the forecast point |
 | [ASMC Fire Weather Index map](https://asmc.asean.org/asmc-fire-fwi/) | Regional map reference for Southeast Asia / Philippines only — **never** inferred from image colors |
 
-### Weekly trends
+### History
+
+The monthly calendar lets you choose a month and year back to January 1990. Each date shows its stored burning-activity estimate, with missing dates and measured 0% days shown separately. Select a day for its coverage details. The chart switches between daily values for the selected month and weighted monthly values for the selected year; chart values are also available in a table. Earlier dates without stored observations remain unavailable.
+
+The Weekly view retains the existing trends:
 
 - Plain-language finding for the selected year (highest week, ties, or single available week).
 - Compact calendar with readable ranges such as **19–25 July**.
@@ -204,6 +210,8 @@ Browser (CesiumJS globe + land card)
         ▼
 FastAPI (app/main.py)
   /api/check-land      FIRMS → polygon clip → hotspot areas + forecast
+  /api/day-outlook     Open-Meteo → today’s temperature + wind slots
+  /api/history/month  Stored cell-days → monthly calendar + history chart
   /api/preparedness    Open-Meteo + GWIS FWI point forecast
   /api/calendar*       Weekly activity for the selected land
   /api/place           Nominatim reverse / search (cached)

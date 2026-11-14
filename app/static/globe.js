@@ -186,6 +186,7 @@
       addPath() { return handle; },
       addPoint() { return handle; },
       addOverlay(_lat, _lon, element) { return { ...handle, element }; },
+      snapshot() { return Promise.resolve(false); },
     };
   }
 
@@ -618,6 +619,8 @@
 
     /* ---- camera ---- */
     const insets = { top: 0, right: 0, bottom: 0, left: 0 };
+    let flying = false;
+    let flightSerial = 0;
     const viewListeners = [];
 
     function focalPixels() {
@@ -689,16 +692,159 @@
       west -= width * (scaleX - 1) * (insets.left / sideways);
       south -= height * (scaleY - 1) * (insets.bottom / upright);
       north += height * (scaleY - 1) * (insets.top / upright);
-      camera.flyTo({
-        destination: Cesium.Rectangle.fromDegrees(
-          clamp(west, -180, 540),
-          clamp(south, -89, 89),
-          clamp(east, -180, 540),
-          clamp(north, -89, 89)
-        ),
-        duration: flightSeconds(flight.duration == null ? 1.2 : flight.duration),
-      });
+      // Set this before flyTo: with reduced motion Cesium can call `complete`
+      // synchronously. The serial keeps an older flight's cancel callback from
+      // marking a newer flight complete when selections change quickly.
+      const thisFlight = ++flightSerial;
+      const finishFlight = () => {
+        if (thisFlight === flightSerial) flying = false;
+      };
+      flying = true;
+      try {
+        camera.flyTo({
+          destination: Cesium.Rectangle.fromDegrees(
+            clamp(west, -180, 540),
+            clamp(south, -89, 89),
+            clamp(east, -180, 540),
+            clamp(north, -89, 89)
+          ),
+          duration: flightSeconds(flight.duration == null ? 1.2 : flight.duration),
+          complete: finishFlight,
+          cancel: finishFlight,
+        });
+      } catch (error) {
+        finishFlight();
+        throw error;
+      }
       scene.requestRender();
+    }
+
+    /* ---- snapshot: the land as a cutout of the plate ----
+       Copies what the globe currently shows into `target`, clipped to the
+       ring's outline and fitted to the canvas, then marks any heat on top.
+       Resolves false when the land is not in view. */
+    function drawCutout(ring, target, marks) {
+      const project = (lon, lat) => scene.cartesianToCanvasCoordinates(
+        Cesium.Cartesian3.fromDegrees(Number(lon), Number(lat)),
+        new Cesium.Cartesian2()
+      );
+      const corners = ring.map(([lon, lat]) => project(lon, lat));
+      if (!corners.length || corners.some((corner) => !corner)) return false;
+      const xs = corners.map((corner) => corner.x);
+      const ys = corners.map((corner) => corner.y);
+      let left = Math.min(...xs);
+      let top = Math.min(...ys);
+      let right = Math.max(...xs);
+      let bottom = Math.max(...ys);
+      if (right - left < 6 || bottom - top < 6) return false;
+      /* Heat just outside the boundary is part of the picture: widen the frame
+         to hold marks within half the land's size, and leave farther ones out. */
+      const reachX = (right - left) * 0.5;
+      const reachY = (bottom - top) * 0.5;
+      const spots = (marks || [])
+        .map((mark) => ({ mark, spot: project(mark.lon, mark.lat) }))
+        .filter(({ spot }) => spot
+          && spot.x > left - reachX && spot.x < right + reachX
+          && spot.y > top - reachY && spot.y < bottom + reachY);
+      spots.forEach(({ spot }) => {
+        left = Math.min(left, spot.x - 6);
+        right = Math.max(right, spot.x + 6);
+        top = Math.min(top, spot.y - 6);
+        bottom = Math.max(bottom, spot.y + 6);
+      });
+      const width = right - left;
+      const height = bottom - top;
+      const margin = 18;
+      const scale = Math.min((target.width - margin * 2) / width, (target.height - margin * 2) / height);
+      const shiftX = (target.width - width * scale) / 2 - left * scale;
+      const shiftY = (target.height - height * scale) / 2 - top * scale;
+      const context = target.getContext("2d");
+      const trace = () => {
+        context.beginPath();
+        corners.forEach((corner, index) => {
+          const x = corner.x * scale + shiftX;
+          const y = corner.y * scale + shiftY;
+          if (index) context.lineTo(x, y);
+          else context.moveTo(x, y);
+        });
+        context.closePath();
+      };
+      context.clearRect(0, 0, target.width, target.height);
+      context.save();
+      trace();
+      context.clip();
+      context.imageSmoothingQuality = "high";
+      context.drawImage(
+        canvas,
+        0, 0, canvas.width, canvas.height,
+        shiftX, shiftY, canvas.clientWidth * scale, canvas.clientHeight * scale
+      );
+      context.restore();
+      trace();
+      context.lineJoin = "round";
+      context.lineWidth = 3;
+      context.strokeStyle = "#e8ebe1";
+      context.stroke();
+      spots.forEach(({ mark, spot }) => {
+        const x = spot.x * scale + shiftX;
+        const y = spot.y * scale + shiftY;
+        if (mark.multi) {
+          context.beginPath();
+          context.arc(x, y, 15, 0, Math.PI * 2);
+          context.lineWidth = 3;
+          context.strokeStyle = "#ee6540";
+          context.stroke();
+        }
+        context.beginPath();
+        context.arc(x, y, 8, 0, Math.PI * 2);
+        context.fillStyle = "#ee6540";
+        context.fill();
+        context.lineWidth = 3;
+        context.strokeStyle = "#fffdf8";
+        context.stroke();
+      });
+      return true;
+    }
+
+    function snapshot(ring, target, marks) {
+      return new Promise((resolve) => {
+        const started = performance.now();
+        const attempt = () => {
+          const settling = flying || !globe.tilesLoaded;
+          if (settling && performance.now() - started < 9000) {
+            scene.requestRender();
+            window.setTimeout(attempt, 250);
+            return;
+          }
+          // Copy in postRender, while this frame's WebGL pixels are still
+          // available. Calling render() here can skip drawing in request-render
+          // mode, leaving a cleared buffer that looks like a plain outline.
+          let removeCapture;
+          let captureTimeout;
+          const finish = (drawn) => {
+            removeCapture();
+            window.clearTimeout(captureTimeout);
+            updateLabels(camera.positionCartographic.height);
+            scene.requestRender();
+            resolve(drawn);
+          };
+          removeCapture = scene.postRender.addEventListener(() => {
+            let drawn = false;
+            try {
+              drawn = drawCutout(ring, target, marks);
+            } catch (_error) {
+              // Keep the existing preview if the browser cannot copy this frame.
+            }
+            finish(drawn);
+          });
+          // Hide place labels for this frame only; finish() restores the live
+          // globe's current label settings, including after a basemap change.
+          atlasLabels.show = false;
+          captureTimeout = window.setTimeout(() => finish(false), 3000);
+          scene.requestRender();
+        };
+        attempt();
+      });
     }
 
     function zoomBy(factor) {
@@ -823,6 +969,7 @@
       addPath,
       addPoint,
       addOverlay,
+      snapshot,
     };
   }
 
