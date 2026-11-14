@@ -107,6 +107,11 @@
         </header>
 
         <div class="card-body">
+          <div id="hotspot-search-progress" class="hotspot-search-progress" role="status" hidden>
+            <p id="hotspot-search-label">Finding your hotspots<span class="hotspot-search-dots" aria-hidden="true"><span></span><span></span><span></span></span></p>
+            <div class="hotspot-search-bar" role="progressbar" aria-labelledby="hotspot-search-label"></div>
+          </div>
+
           <!-- The picture of the land or square stays above every tab. -->
           <section id="land-picture" class="land-picture" aria-label="Picture of the selection" hidden>
             <button type="button" id="cell-back" class="link-button back-link" hidden>Back to land</button>

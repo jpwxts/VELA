@@ -116,6 +116,8 @@ function updateSelectionBanner() {
 }
 
 function closeAreaPanel() {
+  state.detailRequestId += 1;
+  clearHotspotSearches();
   state.summarySquare = null;
   document.querySelector("#cell-back").hidden = true;
   document.querySelector("#satellite-picker").hidden = false;

@@ -255,6 +255,8 @@ function squareAround(lat, lon) {
 
 // Leave a heat dot's details and return to the land summary.
 function leaveCellDetail() {
+  state.detailRequestId += 1;
+  clearHotspotSearches("square");
   state.selectedArea = null;
   stopReplayTimer();
   state.replayPasses = [];
@@ -562,6 +564,7 @@ async function showArea(area) {
     area;
   state.selectedArea = matched;
   const detailId = ++state.detailRequestId;
+  clearHotspotSearches("square");
   stopReplayTimer();
   outlineSquare(matched, "Selected square");
   refreshMarkerSelection();
@@ -782,6 +785,7 @@ async function askAboutPoint(lat, lon) {
   state.selectedArea = null;
   refreshMarkerSelection();
 
+  const finishSearch = beginHotspotSearch("square");
   try {
     const [west, south, east, north] = state.box;
     const response = await fetch("/api/observation-ask", {
@@ -795,6 +799,7 @@ async function askAboutPoint(lat, lon) {
       }),
     });
     const payload = await response.json();
+    if (!response.ok) throw new Error(payload.detail || "Satellite lookup failed");
     if (requestId !== state.requestId || detailId !== state.detailRequestId) return;
     const match = ((payload.hotspot_areas || {}).areas || []).find((area) => area.cell_id === payload.cell_id);
     if (match) {
@@ -830,15 +835,19 @@ async function askAboutPoint(lat, lon) {
       "Selected square"
     );
   } catch (error) {
-    if (detailId !== state.detailRequestId) return;
+    if (requestId !== state.requestId || detailId !== state.detailRequestId) return;
     setSquareHeat({ state: "failed" });
     document.querySelector("#other-sats-list").innerHTML =
       "<li>Coverage lookup failed. Missing evidence is not treated as zero heat.</li>";
+  } finally {
+    finishSearch();
   }
   panel.focus({ preventScroll: true });
 }
 
 function showDetection(spot) {
+  state.detailRequestId += 1;
+  clearHotspotSearches("square");
   revealCellDetail(squareAround(Number(spot.lat), Number(spot.lon)), [{ lat: Number(spot.lat), lon: Number(spot.lon) }],
     { state: "seen", platforms: [spot.platform] });
   const place = spot.place_name || spot.place_or_coordinates

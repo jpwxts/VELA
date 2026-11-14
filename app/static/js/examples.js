@@ -68,6 +68,8 @@ async function loadPhilippinesPublicExample(options = {}) {
   const region = options.region || "philippines";
   const requestId = ++state.landRequestId;
   // Saved examples never rewrite what Live treats as today.
+  setChecking(false);
+  clearHotspotSearches();
   syncMapMode("saved");
   state.publicSnapshot = { day, region };
   state.savedExample = true;

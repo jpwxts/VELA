@@ -1,5 +1,29 @@
 // Choosing land (search, drawing, saved box) and checking it for heat.
 
+// Each search owns its indicator so an older response cannot hide a newer search.
+const hotspotSearches = new Map();
+
+function syncHotspotSearchProgress() {
+  document.querySelector("#hotspot-search-progress").hidden = hotspotSearches.size === 0;
+}
+
+function beginHotspotSearch(scope) {
+  const token = {};
+  hotspotSearches.set(scope, token);
+  syncHotspotSearchProgress();
+  return () => {
+    if (hotspotSearches.get(scope) !== token) return;
+    hotspotSearches.delete(scope);
+    syncHotspotSearchProgress();
+  };
+}
+
+function clearHotspotSearches(scope) {
+  if (scope) hotspotSearches.delete(scope);
+  else hotspotSearches.clear();
+  syncHotspotSearchProgress();
+}
+
 function updateDayWords(options = {}) {
   const node = document.querySelector("#day-words");
   const value = dayInput.value;
@@ -196,6 +220,8 @@ function setPolygon(coordinates, label) {
   state.weatherRequestId += 1;
   state.landRequestId += 1;
   state.requestId += 1;
+  setChecking(false);
+  clearHotspotSearches();
   state.selectedForecastDay = null;
   state.lastLandCheck = null;
   state.lastPayload = null;
@@ -321,7 +347,7 @@ function setDrawing(on) {
   document.querySelector("#map-hint").hidden = !on;
 }
 
-// The Check button shows its own progress, since results land in the same pane.
+// Keep the Check button disabled while the land search is running.
 function setChecking(on) {
   const button = document.querySelector("#confirm");
   button.disabled = Boolean(on);
@@ -391,6 +417,7 @@ function setDefaultPlatforms() {
 }
 
 function resetLandResult() {
+  clearHotspotSearches();
   document.querySelector("#fixture-banner").hidden = true;
   document.querySelector("#separation-note").hidden = true;
   document.querySelector("#heat-block").hidden = true;
@@ -444,6 +471,7 @@ async function checkLand(options = {}) {
     `Checking satellite heat for ${formatObservationDay(date)}…`;
   renderDaySummary();
   openLandPanel({ tab: state.panelTab || "where", focus: false });
+  const finishSearch = beginHotspotSearch("land");
   try {
     const body = {
       coordinates: state.polygon,
@@ -457,6 +485,7 @@ async function checkLand(options = {}) {
       body: JSON.stringify(body),
     });
     const payload = await response.json();
+    if (!response.ok) throw new Error(payload.detail || "Land check failed");
     if (requestId !== state.landRequestId) return;
     renderLandCheck(payload);
   } catch (error) {
@@ -472,6 +501,8 @@ async function checkLand(options = {}) {
       applyLandActivity({ status: "request_failed", explanation: "The land check failed. Check your connection and try again." });
     }
     renderDaySummary();
+  } finally {
+    finishSearch();
   }
 }
 

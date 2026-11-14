@@ -1,5 +1,55 @@
 /* land summary: the cutout, the weekly figure, and today's hours */
 
+.hotspot-search-progress {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+  color: var(--ink-soft);
+  font-size: 0.9375rem;
+}
+.hotspot-search-dots {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+.hotspot-search-dots span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: hotspot-search-dot 1.2s ease-in-out infinite;
+}
+.hotspot-search-dots span:nth-child(2) { animation-delay: 0.15s; }
+.hotspot-search-dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes hotspot-search-dot {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+.hotspot-search-bar {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--line);
+}
+.hotspot-search-bar::after {
+  content: "";
+  display: block;
+  width: 40%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--teal);
+  animation: hotspot-search 1.5s ease-in-out infinite;
+}
+@keyframes hotspot-search {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(250%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hotspot-search-bar::after { animation: none; transform: translateX(75%); }
+  .hotspot-search-dots span { animation: none; }
+}
+
 /* One shrinkable column: the hour strip scrolls inside the card instead of widening it. */
 .land-summary { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
 .land-summary > *, .hours-frame { min-width: 0; }
