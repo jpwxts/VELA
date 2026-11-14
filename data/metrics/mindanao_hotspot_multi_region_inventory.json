@@ -1,0 +1,256 @@
+{
+  "updated_at_utc": "2026-11-14T15:04:38.667882+00:00",
+  "windows": [
+    [
+      "2024-02-01",
+      "2024-02-14"
+    ],
+    [
+      "2024-03-01",
+      "2024-03-07"
+    ]
+  ],
+  "regions": {
+    "bukidnon_compact_v1": [
+      {
+        "start": "2024-02-01",
+        "end": "2024-02-14",
+        "daytime_complete_n": 31,
+        "estimated_bytes": 3047140177,
+        "aqua_daytime_n": 14,
+        "aqua_bytes": 412110804,
+        "sample_aqua": [
+          {
+            "platform": "Aqua",
+            "stamp": "A2024039.0455",
+            "when_utc": "2024-02-08T04:55:00+00:00",
+            "fire_name": "MYD14.A2024039.0455.061.2024039173732",
+            "geo_name": "MYD03.A2024039.0455.061.2024039181226.hdf",
+            "fire_bytes": 298415,
+            "geo_bytes": 26663578,
+            "pair_bytes": 26961993,
+            "fire_cache_hit": false,
+            "geo_cache_hit": false,
+            "cache_complete": false,
+            "daytime_local_rough": true,
+            "local_hour_rough": 12.92,
+            "utc_date": "2024-02-08"
+          },
+          {
+            "platform": "Aqua",
+            "stamp": "A2024044.0505",
+            "when_utc": "2024-02-13T05:05:00+00:00",
+            "fire_name": "MYD14.A2024044.0505.061.2024044112443",
+            "geo_name": "MYD03.A2024044.0505.061.2024044154717.hdf",
+            "fire_bytes": 345270,
+            "geo_bytes": 27179171,
+            "pair_bytes": 27524441,
+            "fire_cache_hit": false,
+            "geo_cache_hit": false,
+            "cache_complete": false,
+            "daytime_local_rough": true,
+            "local_hour_rough": 13.08,
+            "utc_date": "2024-02-13"
+          },
+          {
+            "platform": "Aqua",
+            "stamp": "A2024032.0500",
+            "when_utc": "2024-02-01T05:00:00+00:00",
+            "fire_name": "MYD14.A2024032.0500.061.2024038010009",
+            "geo_name": "MYD03.A2024032.0500.061.2024038042710.hdf",
+            "fire_bytes": 343453,
+            "geo_bytes": 27916284,
+            "pair_bytes": 28259737,
+            "fire_cache_hit": false,
+            "geo_cache_hit": false,
+            "cache_complete": false,
+            "daytime_local_rough": true,
+            "local_hour_rough": 13.0,
+            "utc_date": "2024-02-01"
+          }
+        ]
+      },
+      {
+        "start": "2024-03-01",
+        "end": "2024-03-07",
+        "daytime_complete_n": 14,
+        "estimated_bytes": 1310325310,
+        "aqua_daytime_n": 6,
+        "aqua_bytes": 173158243,
+        "sample_aqua": [
+          {
+            "platform": "Aqua",
+            "stamp": "A2024063.0505",
+            "when_utc": "2024-03-03T05:05:00+00:00",
+            "fire_name": "MYD14.A2024063.0505.061.2024063111908",
+            "geo_name": "MYD03.A2024063.0505.061.2024063155727.hdf",
+            "fire_bytes": 308646,
+            "geo_bytes": 27090226,
+            "pair_bytes": 27398872,
+            "fire_cache_hit": false,
+            "geo_cache_hit": true,
+            "cache_complete": false,
+            "daytime_local_rough": true,
+            "local_hour_rough": 13.08,
+            "utc_date": "2024-03-03"
+          },
+          {
+            "platform": "Aqua",
+            "stamp": "A2024061.0520",
+            "when_utc": "2024-03-01T05:20:00+00:00",
+            "fire_name": "MYD14.A2024061.0520.061.2024061113147",
+            "geo_name": "MYD03.A2024061.0520.061.2024061161424.hdf",
+            "fire_bytes": 313884,
+            "geo_bytes": 27581769,
+            "pair_bytes": 27895653,
+            "fire_cache_hit": false,
+            "geo_cache_hit": true,
+            "cache_complete": false,
+            "daytime_local_rough": true,
+            "local_hour_rough": 13.33,
+            "utc_date": "2024-03-01"
+          },
+          {
+            "platform": "Aqua",
+            "stamp": "A2024066.0530",
+            "when_utc": "2024-03-06T05:30:00+00:00",
+            "fire_name": "MYD14.A2024066.0530.061.2024066120151",
+            "geo_name": "MYD03.A2024066.0530.061.2024066160505.hdf",
+            "fire_bytes": 321245,
+            "geo_bytes": 28274417,
+            "pair_bytes": 28595662,
+            "fire_cache_hit": false,
+            "geo_cache_hit": true,
+            "cache_complete": false,
+            "daytime_local_rough": true,
+            "local_hour_rough": 13.5,
+            "utc_date": "2024-03-06"
+          }
+        ]
+      }
+    ],
+    "davao_norte_compact_v1": [
+      {
+        "start": "2024-02-01",
+        "end": "2024-02-14",
+        "daytime_complete_n": 29,
+        "estimated_bytes": 2986809317,
+        "aqua_daytime_n": 12,
+        "aqua_bytes": 351779944,
+        "sample_aqua": [
+          {
+            "platform": "Aqua",
+            "stamp": "A2024039.0455",
+            "when_utc": "2024-02-08T04:55:00+00:00",
+            "fire_name": "MYD14.A2024039.0455.061.2024039173732",
+            "geo_name": "MYD03.A2024039.0455.061.2024039181226.hdf",
+            "fire_bytes": 298415,
+            "geo_bytes": 26663578,
+            "pair_bytes": 26961993,
+            "fire_cache_hit": false,
+            "geo_cache_hit": false,
+            "cache_complete": false,
+            "daytime_local_rough": true,
+            "local_hour_rough": 12.92,
+            "utc_date": "2024-02-08"
+          },
+          {
+            "platform": "Aqua",
+            "stamp": "A2024044.0505",
+            "when_utc": "2024-02-13T05:05:00+00:00",
+            "fire_name": "MYD14.A2024044.0505.061.2024044112443",
+            "geo_name": "MYD03.A2024044.0505.061.2024044154717.hdf",
+            "fire_bytes": 345270,
+            "geo_bytes": 27179171,
+            "pair_bytes": 27524441,
+            "fire_cache_hit": false,
+            "geo_cache_hit": false,
+            "cache_complete": false,
+            "daytime_local_rough": true,
+            "local_hour_rough": 13.08,
+            "utc_date": "2024-02-13"
+          },
+          {
+            "platform": "Aqua",
+            "stamp": "A2024032.0500",
+            "when_utc": "2024-02-01T05:00:00+00:00",
+            "fire_name": "MYD14.A2024032.0500.061.2024038010009",
+            "geo_name": "MYD03.A2024032.0500.061.2024038042710.hdf",
+            "fire_bytes": 343453,
+            "geo_bytes": 27916284,
+            "pair_bytes": 28259737,
+            "fire_cache_hit": false,
+            "geo_cache_hit": false,
+            "cache_complete": false,
+            "daytime_local_rough": true,
+            "local_hour_rough": 13.0,
+            "utc_date": "2024-02-01"
+          }
+        ]
+      },
+      {
+        "start": "2024-03-01",
+        "end": "2024-03-07",
+        "daytime_complete_n": 14,
+        "estimated_bytes": 1310325310,
+        "aqua_daytime_n": 6,
+        "aqua_bytes": 173158243,
+        "sample_aqua": [
+          {
+            "platform": "Aqua",
+            "stamp": "A2024063.0505",
+            "when_utc": "2024-03-03T05:05:00+00:00",
+            "fire_name": "MYD14.A2024063.0505.061.2024063111908",
+            "geo_name": "MYD03.A2024063.0505.061.2024063155727.hdf",
+            "fire_bytes": 308646,
+            "geo_bytes": 27090226,
+            "pair_bytes": 27398872,
+            "fire_cache_hit": false,
+            "geo_cache_hit": true,
+            "cache_complete": false,
+            "daytime_local_rough": true,
+            "local_hour_rough": 13.08,
+            "utc_date": "2024-03-03"
+          },
+          {
+            "platform": "Aqua",
+            "stamp": "A2024061.0520",
+            "when_utc": "2024-03-01T05:20:00+00:00",
+            "fire_name": "MYD14.A2024061.0520.061.2024061113147",
+            "geo_name": "MYD03.A2024061.0520.061.2024061161424.hdf",
+            "fire_bytes": 313884,
+            "geo_bytes": 27581769,
+            "pair_bytes": 27895653,
+            "fire_cache_hit": false,
+            "geo_cache_hit": true,
+            "cache_complete": false,
+            "daytime_local_rough": true,
+            "local_hour_rough": 13.33,
+            "utc_date": "2024-03-01"
+          },
+          {
+            "platform": "Aqua",
+            "stamp": "A2024066.0530",
+            "when_utc": "2024-03-06T05:30:00+00:00",
+            "fire_name": "MYD14.A2024066.0530.061.2024066120151",
+            "geo_name": "MYD03.A2024066.0530.061.2024066160505.hdf",
+            "fire_bytes": 321245,
+            "geo_bytes": 28274417,
+            "pair_bytes": 28595662,
+            "fire_cache_hit": false,
+            "geo_cache_hit": true,
+            "cache_complete": false,
+            "daytime_local_rough": true,
+            "local_hour_rough": 13.5,
+            "utc_date": "2024-03-06"
+          }
+        ]
+      }
+    ]
+  },
+  "disk_policy": {
+    "aqua_dry_season_only": true,
+    "max_batch_bytes": 1500000000,
+    "quarantine_raw_after_extract": true
+  }
+}

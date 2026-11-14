@@ -1,0 +1,173 @@
+{
+  "title": "Mindanao hotspot forecast supported areas",
+  "updated_at_utc": "2026-11-14T15:02:17.097087+00:00",
+  "ph_clock_reference": "2026-11-14",
+  "regions": [
+    {
+      "id": "maguindanao_compact_v1",
+      "label": "Compact Maguindanao / western Mindanao",
+      "bbox": {
+        "west": 123.6,
+        "south": 6.3,
+        "east": 124.7,
+        "north": 7.4
+      },
+      "role": "control_existing_v2_1_serving",
+      "overwrite_v2_1_selection": false,
+      "n_land_cells": 432,
+      "evaluated": true,
+      "metrics_ref": "data/metrics/philippines_hotspot_model_comparison.json",
+      "demo_cell": "2398:168",
+      "geojson": {
+        "type": "Feature",
+        "properties": {
+          "id": "maguindanao_compact_v1",
+          "label": "Compact Maguindanao / western Mindanao",
+          "evaluated": true
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                123.6,
+                6.3
+              ],
+              [
+                124.7,
+                6.3
+              ],
+              [
+                124.7,
+                7.4
+              ],
+              [
+                123.6,
+                7.4
+              ],
+              [
+                123.6,
+                6.3
+              ]
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "bukidnon_compact_v1",
+      "label": "Bukidnon compact",
+      "bbox": {
+        "west": 124.6,
+        "south": 7.6,
+        "east": 125.4,
+        "north": 8.4
+      },
+      "role": "train_candidate",
+      "n_land_cells": 336,
+      "evaluated": false,
+      "metrics_ref": null,
+      "demo_cell": "2412:193",
+      "geojson": {
+        "type": "Feature",
+        "properties": {
+          "id": "bukidnon_compact_v1",
+          "label": "Bukidnon compact",
+          "evaluated": false
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                124.6,
+                7.6
+              ],
+              [
+                125.4,
+                7.6
+              ],
+              [
+                125.4,
+                8.4
+              ],
+              [
+                124.6,
+                8.4
+              ],
+              [
+                124.6,
+                7.6
+              ]
+            ]
+          ]
+        }
+      },
+      "firms_in_store": {
+        "n_detections": 7,
+        "n_cell_days": 4,
+        "n_cells": 4
+      },
+      "serving": "readings_and_weather_only"
+    },
+    {
+      "id": "davao_norte_compact_v1",
+      "label": "Davao del Norte compact",
+      "bbox": {
+        "west": 125.4,
+        "south": 7.2,
+        "east": 126.2,
+        "north": 7.9
+      },
+      "role": "geographic_holdout",
+      "n_land_cells": 270,
+      "evaluated": false,
+      "metrics_ref": null,
+      "demo_cell": "2427:192",
+      "geojson": {
+        "type": "Feature",
+        "properties": {
+          "id": "davao_norte_compact_v1",
+          "label": "Davao del Norte compact",
+          "evaluated": false
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                125.4,
+                7.2
+              ],
+              [
+                126.2,
+                7.2
+              ],
+              [
+                126.2,
+                7.9
+              ],
+              [
+                125.4,
+                7.9
+              ],
+              [
+                125.4,
+                7.2
+              ]
+            ]
+          ]
+        }
+      },
+      "firms_in_store": {
+        "n_detections": 4,
+        "n_cell_days": 4,
+        "n_cells": 4
+      },
+      "serving": "readings_and_weather_only"
+    }
+  ],
+  "serving_rule": "Serve Maguindanao v2.1 model only inside maguindanao_compact_v1. New regions appear on the map when their holdout evaluation artifact exists. Elsewhere: satellite readings + weather + coverage status, no percentage.",
+  "multi_region_comparison": "data/metrics/mindanao_hotspot_multi_region_comparison.json",
+  "inventory": "data/metrics/mindanao_hotspot_multi_region_inventory.json"
+}

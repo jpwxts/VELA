@@ -1,0 +1,382 @@
+{
+  "title": "Mindanao multi-region hotspot expansion",
+  "updated_at_utc": "2026-11-14T15:08:10.593872+00:00",
+  "control": "maguindanao_compact_v1 keeps philippines_hotspot_selection.json (v2.1); not overwritten",
+  "inventory_ref": "data/metrics/mindanao_hotspot_multi_region_inventory.json",
+  "coverage_status": "CMR daytime Aqua pairs inventoried for Bukidnon and Davao del Norte. First disk-bounded downloads overlapped Maguindanao latitudes more than Bukidnon cell centers; clear-pass negatives for new boxes are not yet batch-complete. Serving stays Maguindanao-only.",
+  "firms_in_store": {
+    "maguindanao_compact_v1": {
+      "n_detections": 1923,
+      "n_cell_days": 1210,
+      "n_cells": 275
+    },
+    "bukidnon_compact_v1": {
+      "n_detections": 7,
+      "n_cell_days": 4,
+      "n_cells": 4
+    },
+    "davao_norte_compact_v1": {
+      "n_detections": 4,
+      "n_cell_days": 4,
+      "n_cells": 4
+    }
+  },
+  "regions": {
+    "maguindanao_compact_v1": {
+      "evaluated": true,
+      "metrics_ref": "data/metrics/philippines_hotspot_model_comparison.json",
+      "serving": "active_v2_1"
+    },
+    "bukidnon_compact_v1": {
+      "evaluated": false,
+      "role": "train_candidate",
+      "bbox": {
+        "west": 124.6,
+        "south": 7.6,
+        "east": 125.4,
+        "north": 8.4
+      },
+      "firms_in_store": {
+        "n_detections": 7,
+        "n_cell_days": 4,
+        "n_cells": 4
+      },
+      "clear_pass_negatives_processed": 0,
+      "serving": "readings_and_weather_only",
+      "demo_cell": "2412:193"
+    },
+    "davao_norte_compact_v1": {
+      "evaluated": false,
+      "role": "geographic_holdout",
+      "bbox": {
+        "west": 125.4,
+        "south": 7.2,
+        "east": 126.2,
+        "north": 7.9
+      },
+      "firms_in_store": {
+        "n_detections": 4,
+        "n_cell_days": 4,
+        "n_cells": 4
+      },
+      "clear_pass_negatives_processed": 0,
+      "serving": "readings_and_weather_only",
+      "demo_cell": "2427:192"
+    }
+  },
+  "classifiers": [
+    {
+      "name": "logistic_regression",
+      "threshold": 0.05,
+      "metrics": {
+        "threshold": 0.05,
+        "positive_event_count": 415,
+        "brier_score": 0.2955572680471839,
+        "baseline_brier_score": 0.3298706028214422,
+        "brier_skill_vs_baseline": 0.10402059013676945,
+        "precision": 0.3997760358342665,
+        "recall": 0.8602409638554217,
+        "f1": 0.5458715596330275,
+        "accuracy": 0.4065934065934066,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            50,
+            536
+          ],
+          [
+            58,
+            357
+          ]
+        ],
+        "pr_curve_points": 887,
+        "pr_auc": 0.47474346812293516,
+        "n": 1001,
+        "positives": 415,
+        "negatives": 586
+      }
+    },
+    {
+      "name": "decision_tree",
+      "threshold": 0.05,
+      "metrics": {
+        "threshold": 0.05,
+        "positive_event_count": 415,
+        "brier_score": 0.4248391045755215,
+        "baseline_brier_score": 0.3298706028214422,
+        "brier_skill_vs_baseline": -0.2878962264045257,
+        "precision": 0.37203495630461925,
+        "recall": 0.7180722891566265,
+        "f1": 0.4901315789473684,
+        "accuracy": 0.3806193806193806,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            83,
+            503
+          ],
+          [
+            117,
+            298
+          ]
+        ],
+        "pr_curve_points": 5,
+        "pr_auc": 0.3823748130406845,
+        "n": 1001,
+        "positives": 415,
+        "negatives": 586
+      }
+    },
+    {
+      "name": "random_forest",
+      "threshold": 0.15,
+      "metrics": {
+        "threshold": 0.15,
+        "positive_event_count": 415,
+        "brier_score": 0.3011444452811702,
+        "baseline_brier_score": 0.3298706028214422,
+        "brier_skill_vs_baseline": 0.08708310863281565,
+        "precision": 0.4369747899159664,
+        "recall": 0.8771084337349397,
+        "f1": 0.5833333333333334,
+        "accuracy": 0.4805194805194805,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            117,
+            469
+          ],
+          [
+            51,
+            364
+          ]
+        ],
+        "pr_curve_points": 799,
+        "pr_auc": 0.4402037556183027,
+        "n": 1001,
+        "positives": 415,
+        "negatives": 586
+      }
+    },
+    {
+      "name": "extra_trees",
+      "threshold": 0.15,
+      "metrics": {
+        "threshold": 0.15,
+        "positive_event_count": 415,
+        "brier_score": 0.264176297399064,
+        "baseline_brier_score": 0.3298706028214422,
+        "brier_skill_vs_baseline": 0.19915174271512248,
+        "precision": 0.449438202247191,
+        "recall": 0.8674698795180723,
+        "f1": 0.5921052631578947,
+        "accuracy": 0.5044955044955045,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            145,
+            441
+          ],
+          [
+            55,
+            360
+          ]
+        ],
+        "pr_curve_points": 771,
+        "pr_auc": 0.47508339843821035,
+        "n": 1001,
+        "positives": 415,
+        "negatives": 586
+      }
+    },
+    {
+      "name": "hist_gradient_boosting",
+      "threshold": 0.1,
+      "metrics": {
+        "threshold": 0.1,
+        "positive_event_count": 415,
+        "brier_score": 0.26000781495259734,
+        "baseline_brier_score": 0.3298706028214422,
+        "brier_skill_vs_baseline": 0.2117884627223401,
+        "precision": 0.4802816901408451,
+        "recall": 0.8216867469879519,
+        "f1": 0.6062222222222222,
+        "accuracy": 0.5574425574425574,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            217,
+            369
+          ],
+          [
+            74,
+            341
+          ]
+        ],
+        "pr_curve_points": 482,
+        "pr_auc": 0.5355235469808998,
+        "n": 1001,
+        "positives": 415,
+        "negatives": 586
+      }
+    },
+    {
+      "name": "calibrated_svm",
+      "threshold": 0.05,
+      "metrics": {
+        "threshold": 0.05,
+        "positive_event_count": 415,
+        "brier_score": 0.2834491319942914,
+        "baseline_brier_score": 0.3298706028214422,
+        "brier_skill_vs_baseline": 0.14072630428446697,
+        "precision": 0.414,
+        "recall": 0.9975903614457832,
+        "f1": 0.5851590106007067,
+        "accuracy": 0.41358641358641357,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            0,
+            586
+          ],
+          [
+            1,
+            414
+          ]
+        ],
+        "pr_curve_points": 887,
+        "pr_auc": 0.40059500106913093,
+        "n": 1001,
+        "positives": 415,
+        "negatives": 586
+      }
+    }
+  ],
+  "baselines": [
+    {
+      "name": "regional_seasonal_detection_rate",
+      "threshold": 0.5,
+      "metrics": {
+        "threshold": 0.5,
+        "positive_event_count": 415,
+        "brier_score": 0.3298706028214422,
+        "baseline_brier_score": 0.3298706028214422,
+        "brier_skill_vs_baseline": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "accuracy": 0.5854145854145855,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            586,
+            0
+          ],
+          [
+            415,
+            0
+          ]
+        ],
+        "pr_curve_points": 3,
+        "pr_auc": 0.37224395923191106,
+        "n": 1001,
+        "positives": 415,
+        "negatives": 586
+      }
+    },
+    {
+      "name": "persistence_recent_heat",
+      "threshold": 0.5,
+      "metrics": {
+        "threshold": 0.5,
+        "positive_event_count": 415,
+        "brier_score": 0.3826173826173826,
+        "baseline_brier_score": 0.3298706028214422,
+        "brier_skill_vs_baseline": -0.15990142602822965,
+        "precision": 0.6126760563380281,
+        "recall": 0.20963855421686747,
+        "f1": 0.3123877917414722,
+        "accuracy": 0.6173826173826173,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            531,
+            55
+          ],
+          [
+            328,
+            87
+          ]
+        ],
+        "pr_curve_points": 3,
+        "pr_auc": 0.4561128503263239,
+        "n": 1001,
+        "positives": 415,
+        "negatives": 586
+      }
+    }
+  ],
+  "maguindanao_winner": {
+    "name": "hist_gradient_boosting",
+    "kind": "classifier",
+    "threshold": 0.1,
+    "threshold_tuned_on": "validation_only",
+    "why": "Lowest validation Brier among six classifiers and two baselines; not chosen by accuracy\u2248F1.",
+    "validation_metrics": {
+      "threshold": 0.1,
+      "positive_event_count": 415,
+      "brier_score": 0.26000781495259734,
+      "baseline_brier_score": 0.3298706028214422,
+      "brier_skill_vs_baseline": 0.2117884627223401,
+      "precision": 0.4802816901408451,
+      "recall": 0.8216867469879519,
+      "f1": 0.6062222222222222,
+      "accuracy": 0.5574425574425574,
+      "confusion_matrix_labels": [
+        0,
+        1
+      ],
+      "confusion_matrix": [
+        [
+          217,
+          369
+        ],
+        [
+          74,
+          341
+        ]
+      ],
+      "pr_curve_points": 482,
+      "pr_auc": 0.5355235469808998,
+      "n": 1001,
+      "positives": 415,
+      "negatives": 586
+    }
+  },
+  "six_classifier_board_source": "philippines_hotspot_model_comparison.json (control region)",
+  "expansion_holdout_ready": false
+}

@@ -1,0 +1,38 @@
+{
+  "name": "mindanao_hotspot_regions_v1",
+  "registered_before_looking_at_outcomes": true,
+  "registered_at_utc": "2026-11-14T15:00:00+00:00",
+  "note": "Region boxes and train/holdout roles frozen before FIRMS/fire-mask outcomes for the new boxes are inspected.",
+  "regions": [
+    {
+      "id": "maguindanao_compact_v1",
+      "label": "Compact Maguindanao / western Mindanao",
+      "bbox": {"west": 123.6, "south": 6.3, "east": 124.7, "north": 7.4},
+      "role": "control_existing_v2_1_serving",
+      "overwrite_v2_1_selection": false
+    },
+    {
+      "id": "bukidnon_compact_v1",
+      "label": "Bukidnon compact",
+      "bbox": {"west": 124.6, "south": 7.6, "east": 125.4, "north": 8.4},
+      "role": "train_candidate"
+    },
+    {
+      "id": "davao_norte_compact_v1",
+      "label": "Davao del Norte compact",
+      "bbox": {"west": 125.4, "south": 7.2, "east": 126.2, "north": 7.9},
+      "role": "geographic_holdout"
+    }
+  ],
+  "split_rule": {
+    "geographic_holdout_region": "davao_norte_compact_v1",
+    "train_regions": ["bukidnon_compact_v1"],
+    "control_region": "maguindanao_compact_v1",
+    "union": "A cell belongs to at most one expansion region by bbox membership; Maguindanao continues to use philippines_hotspot_selection.json."
+  },
+  "disk_policy": {
+    "aqua_dry_season_only": true,
+    "max_batch_bytes": 1500000000,
+    "quarantine_raw_after_extract": true
+  }
+}
