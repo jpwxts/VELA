@@ -1,6 +1,7 @@
 {
   "status": "refused_insufficient_labels",
-  "recorded_at_utc": "2026-11-14T13:04:58.216451+00:00",
+  "state": "research_blocked",
+  "recorded_at_utc": "2026-11-14T13:15:27.759232+00:00",
   "target": {
     "question": "Estimated probability that at least one new wildfire will start in this 5 km square during the next 24 hours.",
     "issue_time": "00:00 Asia/Manila",
@@ -33,32 +34,23 @@
     "month_cos"
   ],
   "split_manifest": "data/manifests/philippines_onset_split.json",
-  "split_status": "manifest_ready_labels_absent",
-  "split_row_counts": {
+  "row_counts": {
     "train": 0,
     "validation": 0,
     "test": 0,
-    "reason": "No usable unique wildfire starts or credible negative square-days are present in the label audit."
+    "labeled_total": 0,
+    "positives": 0,
+    "negatives": 0
   },
   "audit_path": "data/metrics/philippines_onset_label_audit.json",
   "usable_unique_wildfire_starts": 0,
   "square_days_with_credible_reporting_coverage": 0,
   "negatives_supported": false,
-  "classifiers_prepared": [
-    "logistic_regression",
-    "decision_tree",
-    "random_forest",
-    "extra_trees",
-    "hist_gradient_boosting",
-    "calibrated_svm",
-    "regional_seasonal_event_rate_baseline"
-  ],
-  "selection_rule": "Choose on validation by Brier score relative to the seasonal baseline and calibration; report PR/F1/accuracy/confusion on the same cases. Do not choose by how close accuracy is to F1. Evaluate the winner once on the untouched holdout.",
-  "tuning_budget": "Resource-conscious: \u2264 24 validation trials per classifier family on laptop-class hardware; no GPU required.",
   "winner": null,
   "holdout_evaluation": null,
   "publish_probability": false,
+  "approved_for_serving": false,
   "reason": "0 usable unique wildfire starts and 0 square-days with credible reporting coverage. Negatives are not supported. Vela will not publish an onset percentage.",
-  "next_runnable_step": "File a Mindanao onset CSV/GeoJSON under data/labels/philippines_onset/ with the missing fields above (BFP FOI microdata or DENR/LDRRMO extract), then re-run `python -m scripts.audit_philippines_onset_labels` and `python -m scripts.train_philippines_onset`.",
+  "next_runnable_step": "Obtain Mindanao onset + coverage tables (or recover BFP-669031036800 attachment when eFOI is back), place under data/labels/philippines_onset/, then re-run import and audit.",
   "harmonization_model_untouched": true
 }

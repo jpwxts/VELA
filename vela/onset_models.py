@@ -42,7 +42,8 @@ CLASSIFIER_NAMES = (
 )
 
 
-def build_classifiers(random_state: int = 0) -> dict[str, Any]:
+def build_classifiers(random_state: int = 0, *, cv_folds: int = 3) -> dict[str, Any]:
+    folds = max(2, int(cv_folds))
     return {
         "logistic_regression": Pipeline(
             [
@@ -50,7 +51,7 @@ def build_classifiers(random_state: int = 0) -> dict[str, Any]:
                 (
                     "clf",
                     LogisticRegression(
-                        max_iter=200,
+                        max_iter=400,
                         class_weight=None,
                         random_state=random_state,
                     ),
@@ -59,20 +60,20 @@ def build_classifiers(random_state: int = 0) -> dict[str, Any]:
         ),
         "decision_tree": DecisionTreeClassifier(
             max_depth=4,
-            min_samples_leaf=5,
+            min_samples_leaf=2,
             random_state=random_state,
         ),
         "random_forest": RandomForestClassifier(
             n_estimators=80,
             max_depth=6,
-            min_samples_leaf=5,
+            min_samples_leaf=2,
             n_jobs=1,
             random_state=random_state,
         ),
         "extra_trees": ExtraTreesClassifier(
             n_estimators=80,
             max_depth=6,
-            min_samples_leaf=5,
+            min_samples_leaf=2,
             n_jobs=1,
             random_state=random_state,
         ),
@@ -86,11 +87,11 @@ def build_classifiers(random_state: int = 0) -> dict[str, Any]:
             estimator=Pipeline(
                 [
                     ("scale", StandardScaler()),
-                    ("clf", LinearSVC(max_iter=2000, dual="auto", random_state=random_state)),
+                    ("clf", LinearSVC(max_iter=4000, dual="auto", random_state=random_state)),
                 ]
             ),
             method="sigmoid",
-            cv=3,
+            cv=folds,
         ),
     }
 
@@ -188,10 +189,23 @@ def compare_on_validation(
         y_valid, baseline, threshold=0.5, baseline_prob=baseline
     )
     rows = []
-    models = build_classifiers(random_state=random_state)
+    positive_count = int(np.sum(y_train == 1))
+    cv_folds = max(2, min(3, positive_count)) if positive_count else 2
+    models = build_classifiers(random_state=random_state, cv_folds=cv_folds)
     for name, model in models.items():
-        model.fit(x_train, y_train)
-        proba = predict_proba_positive(model, x_valid)
+        try:
+            model.fit(x_train, y_train)
+            proba = predict_proba_positive(model, x_valid)
+        except Exception as exc:  # noqa: BLE001 - keep comparison going if one family fails
+            rows.append(
+                {
+                    "name": name,
+                    "threshold": None,
+                    "metrics": None,
+                    "fit_error": str(exc),
+                }
+            )
+            continue
         threshold = choose_threshold_on_validation(y_valid, proba)
         metrics = classification_report_block(
             y_valid, proba, threshold=threshold, baseline_prob=baseline
@@ -199,12 +213,12 @@ def compare_on_validation(
         rows.append({"name": name, "threshold": threshold, "metrics": metrics})
     # Winner: lowest Brier; tie-break by higher brier skill vs baseline. Never by |acc-F1|.
     def sort_key(row: dict) -> tuple:
-        m = row["metrics"]
-        brier = m["brier_score"] if m["brier_score"] is not None else 1e9
-        skill = m["brier_skill_vs_baseline"] if m["brier_skill_vs_baseline"] is not None else -1e9
+        m = row.get("metrics") or {}
+        brier = m["brier_score"] if m.get("brier_score") is not None else 1e9
+        skill = m["brier_skill_vs_baseline"] if m.get("brier_skill_vs_baseline") is not None else -1e9
         return (brier, -skill)
 
-    ranked = sorted(rows, key=sort_key)
+    ranked = sorted([row for row in rows if row.get("metrics")], key=sort_key)
     winner = ranked[0] if ranked else None
     return {
         "baseline": {"name": "regional_seasonal_event_rate", "metrics": baseline_metrics},

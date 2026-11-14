@@ -1,21 +1,29 @@
 {
   "label": "Philippine onset holdout evaluation",
-  "recorded_at_utc": "2026-11-14T13:04:58.243075+00:00",
+  "recorded_at_utc": "2026-11-14T13:15:31.615231+00:00",
   "labels_sufficient": false,
   "selection": {
     "status": "not_selected",
+    "state": "research_blocked",
+    "approved_for_serving": false,
     "reason": "0 usable unique wildfire starts and 0 square-days with credible reporting coverage. Negatives are not supported. Vela will not publish an onset percentage.",
-    "comparison_path": "data/metrics/philippines_onset_model_comparison.json",
-    "recorded_at_utc": "2026-11-14T13:04:58.216451+00:00"
+    "comparison_path": "/Users/florlyn/Desktop/MODISVIIRS/data/metrics/philippines_onset_model_comparison.json",
+    "recorded_at_utc": "2026-11-14T13:15:27.759232+00:00"
   },
-  "split_test_rule": {
-    "train_issue_dates_ph": "\u2264 2023-12-31",
-    "validation_issue_dates_ph": "2024-01-01 .. 2024-12-31",
-    "test_issue_dates_ph": "\u2265 2025-01-01",
-    "rule": "Later Philippine dates are reserved before fitting. A fire that starts near a split boundary is assigned entirely by incident id."
+  "row_counts": {
+    "train": 0,
+    "validation": 0,
+    "test": 0,
+    "labeled_total": 0,
+    "positives": 0,
+    "negatives": 0
   },
+  "holdout_rows": 0,
   "metrics": null,
-  "status": "blocked_insufficient_labels",
+  "status": "blocked_no_selected_model",
+  "state": "blocked_no_selected_model",
+  "approved_for_serving": false,
   "harmonization_model_excluded": true,
-  "reason": "0 usable unique wildfire starts and 0 square-days with credible reporting coverage. Negatives are not supported. Vela will not publish an onset percentage."
+  "synthetic_fixture": false,
+  "reason": "No frozen onset model selection is present."
 }

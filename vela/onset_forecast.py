@@ -133,10 +133,21 @@ def labels_sufficient(audit: dict[str, Any] | None = None) -> bool:
 
 def unavailable_reason(audit: dict[str, Any] | None = None) -> str:
     payload = audit or load_audit()
+    if payload.get("synthetic_fixture"):
+        return (
+            payload.get("publish_blocker")
+            or "Synthetic fixture labels cannot publish production onset percentages."
+        )
     if labels_sufficient(payload):
         selection = load_selection()
-        if selection and selection.get("status") == "selected":
+        if selection and selection.get("approved_for_serving") is True and selection.get("status") == "selected":
             return ""
+        if selection and selection.get("status") == "selected":
+            return (
+                f"Research model selected ({selection.get('chosen_model')}) but serving "
+                f"is not approved (state={selection.get('state')}). "
+                "Training, holdout evaluation, and serving approval stay distinct."
+            )
         return (
             "Verified onset labels exist in the audit, but no frozen Philippine onset "
             "model has been selected yet. Run scripts/train_philippines_onset.py."

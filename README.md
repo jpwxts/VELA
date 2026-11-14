@@ -61,32 +61,44 @@ Product question (when labels exist): *What is the estimated probability that at
 
 | Piece | Location |
 | --- | --- |
+| Label schemas + import | `vela/onset_labels.py`, `scripts/import_philippines_onset_labels.py` |
 | Label audit | `data/metrics/philippines_onset_label_audit.json` |
+| BFP-669031036800 investigation | `data/metrics/bfp_669031036800_investigation.json` |
 | Split (registered before fitting) | `data/manifests/philippines_onset_split.json` |
 | Feature schema | `vela/onset_features.py` (`onset_features_v1`) |
-| Six-model comparison harness | `vela/onset_models.py` + `scripts/train_philippines_onset.py` |
+| Dataset + split assignment | `vela/onset_dataset.py` |
+| Six-model comparison | `vela/onset_models.py` + `scripts/train_philippines_onset.py` |
+| Holdout evaluation | `scripts/evaluate_philippines_onset.py` |
 | Issued-forecast store | `data/observations/philippines_onset.sqlite` (write-once per cell×day) |
 | Calendar / square API | `GET /api/onset/forecast?cell_id=…` |
 
 **Target & issue time.** One forecast per 5 km land square, issued at **00:00 Asia/Manila**, valid for the following Philippine day. Live satellite heat may update after midnight; the issued onset forecast does not. Historical simulations must be labeled separately from forecasts actually issued by Vela.
 
-**Data audit (current).** Usable unique wildfire starts: **0**. Square-days with credible reporting coverage for negatives: **0**. BFP eFOI and DENR/LDRRMO sources are documented in the audit; none are mounted as open geocoded onset microdata in this repo. FIRMS heat is available as issue-time context only and is **not** an onset label. Negatives are unsupported until reporting coverage exists. Stronger “onset” wording is blocked; at best an FOI ingest would support “reported fire incident” until onset≠discovery is verified.
+**Input schemas (under `data/labels/philippines_onset/`)**
 
-**Split.** Geographic Mindanao province partitions and later-date holdouts are pre-registered in the split manifest. Same-incident / adjacent-cell / overlapping-window leakage controls are listed there. Harmonization reserved sets stay untouched.
+1. **Incidents** (`*incident*.csv|json`): `incident_id`, `onset_date_ph`, `latitude`, `longitude` (+ optional `province`, `wildfire_class`, `ongoing`, `date_precision`, `location_precision`, `source`). Accept only day-precision onset dates that resolve to one 5 km square. Reject report-only dates, ongoing fires, ambiguous locations, and non-wildfire classes (left unknown).
+2. **Coverage** (`*coverage*.csv|json`): `coverage_date_ph`, `reporting_adequate`, plus `cell_id` or lat/lon. Adequate covered days without a start become negatives. Unmonitored / inadequate days stay unknown.
 
-**Six classifiers (fair comparison when labels exist).** Logistic regression, decision tree, random forest, Extra Trees, histogram gradient boosting, calibrated SVM, plus a regional seasonal event-rate baseline. Selection uses validation **Brier score vs baseline** (not accuracy≈F1). Thresholds are chosen on validation; holdout is scored once afterward. Today training **refuses** (`refused_insufficient_labels`) and publishes **no** onset percentage.
+**Data audit (production labels today).** Import/audit counts are computed from files on disk (not hardcoded): usable unique wildfire starts **0**; square-days with credible reporting coverage **0**. BFP request **BFP-669031036800** (“Consolidated Forest Fire”, listed 2015–2024) could not be opened: eFOI portal returned **Temporary Maintenance (ADV-2026-10-01)** / Cloudflare block — attachment fields unverified. Davao DENR Region XI remains a **separate** acquisition lead. FIRMS heat is issue-time context only, never an onset label.
 
-**Serving rules.** The square panel shows “Estimated chance of a new wildfire in the next 24 hours” as **Not published** with the audit reason. Missing dates get a specific reason. Vela never fills onset gaps with 0%, an FWI class, or the harmonization model. For a drawn polygon, square states may be listed and the highest estimated square identified; their average/maximum is never the polygon-wide wildfire chance.
+**States stay distinct.** `research_trained` → `holdout_evaluated` → `approved_for_serving`. Research training/selection does **not** publish a Live percentage. Synthetic fixtures used in tests are marked and never approve serving.
+
+**Six classifiers.** Logistic regression, decision tree, random forest, Extra Trees, histogram gradient boosting, calibrated SVM, plus regional seasonal event-rate baseline. Preprocessing is fit on training folds only. Selection uses validation **Brier vs baseline** (not accuracy≈F1). Holdout is scored once afterward from actual held-out rows.
+
+**Serving rules.** Square panel shows onset as **Not published** until serving is approved. Never fill gaps with 0%, FWI, or the harmonization model. Polygon summaries never average/max squares into a polygon-wide wildfire chance.
 
 ```bash
 conda activate vela
+python -m scripts.import_philippines_onset_labels
 python -m scripts.audit_philippines_onset_labels
 python -m scripts.train_philippines_onset
 python -m scripts.evaluate_philippines_onset
-python -m pytest tests/test_philippines_onset.py -q
+python -m pytest tests/test_philippines_onset.py tests/test_philippines_onset_pipeline.py -q
 ```
 
-**Next runnable step after labels arrive.** File a Mindanao onset table under `data/labels/philippines_onset/` with `incident_id`, wildfire class, lat/lon, onset time (Asia/Manila), ongoing-vs-new, and square-day reporting coverage; re-run the audit and train scripts.
+**Plumbing proof.** `tests/test_philippines_onset_pipeline.py` builds a temporary synthetic incident+coverage pair and runs import → audit → train → evaluate through the normal commands. A known positive is counted once, a covered no-event day is negative, an unmonitored day stays absent/unknown, and the evaluator scores real holdout rows. Those artifacts stay isolated from production forecasts and accuracy claims.
+
+**Next runnable step for real PH records.** Recover the BFP-669031036800 attachment when eFOI is back (or file DENR XI / LDRRMO microdata) under `data/labels/philippines_onset/`, then re-run import → audit → train → evaluate.
 
 ### Exact demo clicks
 

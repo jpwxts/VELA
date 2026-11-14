@@ -1,0 +1,32 @@
+{
+  "tracking_no": "BFP-669031036800",
+  "title": "Request for Forest Fire Incident Data in the Philippines (2015-2024)",
+  "agency": "Bureau of Fire Protection (BFP)",
+  "requester": "J. Lopez",
+  "purpose": "For Academic Research",
+  "published_date": "2025-01-03",
+  "request_url": "https://www.foi.gov.ph/agencies/bfp/request-for-forest-fire-incident-data-in-the-philippines-2015-2024/",
+  "listing_url": "https://www.foi.gov.ph/agencies/bfp/SUCCESSFUL/",
+  "attachment_name_claimed": "Consolidated Forest Fire",
+  "investigated_at_utc": "2026-11-14T13:10:00+00:00",
+  "access_status": "portal_unavailable",
+  "attachment_accessible": false,
+  "access_issue": "eFOI portal returned Temporary Maintenance (Advisory ADV-2026-10-01) when opening the request URL; Cloudflare challenge also blocks non-browser download. Attachment bytes were not retrieved.",
+  "fields_actually_available": [],
+  "geographic_coverage": "Unknown until attachment opens; listing claims Philippines 2015–2024 forest-fire incident data.",
+  "date_coverage": "Listed as 2015–2024; not verified from the file.",
+  "individual_incidents_or_aggregates": "Unknown — title says Consolidated Forest Fire; could be aggregates and/or incident rows. Not verified.",
+  "supports_positive_onset_labels": false,
+  "supports_reporting_coverage": false,
+  "usable_unique_wildfire_starts": 0,
+  "notes": [
+    "Do not invent coordinates or onset times from the listing text.",
+    "If the attachment is aggregate province/year totals only, it cannot supply 5 km square-day positives or negatives.",
+    "If it later proves to contain point incidents with report times only, keep date_precision=report_only and leave onset unknown."
+  ],
+  "separate_acquisition_lead": {
+    "name": "Davao DENR Region XI",
+    "url": "https://r11.denr.gov.ph/",
+    "note": "Keep as a separate lead from BFP-669031036800. Prior Davao City FOI (#BFP-338191405957) is also distinct and city-scoped."
+  }
+}

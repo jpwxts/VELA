@@ -3,7 +3,7 @@
   "registered_before_fitting": true,
   "registered_at_utc": "2026-11-14T13:00:00+00:00",
   "scope": "mindanao",
-  "unit": "5 km cell × Philippine local day forecast issue",
+  "unit": "5 km cell \u00d7 Philippine local day forecast issue",
   "leakage_controls": [
     "All records of the same incident stay in one split",
     "Adjacent 5 km cells of the same onset event stay in one split",
@@ -14,7 +14,7 @@
   "existing_harmonization_reserves_untouched": [
     "data/manifests/validation_primary.csv",
     "data/manifests/validation_reserves.csv",
-    "Reveal 2023–2024",
+    "Reveal 2023\u20132024",
     "Pantanal transfer"
   ],
   "geographic_holdout": {
@@ -42,9 +42,9 @@
     "note": "Province lists are pre-registered before any onset model fitting. They are geographic partitions only; they do not imply that labeled starts currently exist."
   },
   "temporal_holdout": {
-    "train_issue_dates_ph": "≤ 2023-12-31",
+    "train_issue_dates_ph": "\u2264 2023-12-31",
     "validation_issue_dates_ph": "2024-01-01 .. 2024-12-31",
-    "test_issue_dates_ph": "≥ 2025-01-01",
+    "test_issue_dates_ph": "\u2265 2025-01-01",
     "rule": "Later Philippine dates are reserved before fitting. A fire that starts near a split boundary is assigned entirely by incident id."
   },
   "status": "manifest_ready_labels_absent",
@@ -52,6 +52,9 @@
     "train": 0,
     "validation": 0,
     "test": 0,
-    "reason": "No usable unique wildfire starts or credible negative square-days are present in the label audit."
+    "labeled_total": 0,
+    "positives": 0,
+    "negatives": 0,
+    "reason": "No usable unique wildfire starts or credible negative square-days."
   }
 }
