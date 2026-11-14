@@ -1,481 +1,236 @@
 {
-  "status": "research_trained",
-  "state": "holdout_evaluated",
-  "recorded_at_utc": "2026-11-14T13:42:52.357473+00:00",
+  "status": "refused_insufficient_fire_mask_negatives",
+  "state": "serving_blocked",
+  "reason": "Coverage v2 requires measured fire-mask/geolocation negatives. Found positives=1187, negatives=0 (need \u226550 / \u226550). Empty FIRMS searches are unknown, not negative.",
+  "recorded_at_utc": "2026-11-14T14:03:32.666911+00:00",
   "seed": 0,
   "feature_schema_version": "hotspot_features_v1",
+  "coverage_rule_version": "hotspot_coverage_v2",
   "dataset_path": "/Users/florlyn/Desktop/MODISVIIRS/data/processed/philippines_hotspot_cell_days.parquet",
   "split_manifest": "/Users/florlyn/Desktop/MODISVIIRS/data/manifests/philippines_hotspot_split.json",
-  "data_version": "e386ae30b22038a0",
-  "row_counts": {
-    "train": 24192,
-    "validation": 12528,
-    "test": 27216,
-    "positive_train": 229,
-    "positive_valid": 818,
-    "positive_test": 140
+  "data_version": "295c0c890afdd7c0",
+  "label_counts": {
+    "positive": 1187,
+    "negative": 0,
+    "scored_rows": 1187
   },
-  "classifiers": [
-    {
-      "name": "logistic_regression",
-      "threshold": 0.05,
-      "metrics": {
+  "split_diagnostics": {
+    "train": {
+      "n": 229,
+      "positives": 229,
+      "negatives": 0,
+      "positive_rate": 1.0,
+      "date_min": "2023-02-19",
+      "date_max": "2023-08-26",
+      "n_cells": 127,
+      "recent_heat_n": 23,
+      "cold_n": 206,
+      "recent_heat_positive_rate": 1.0,
+      "cold_positive_rate": 1.0
+    },
+    "validation": {
+      "n": 818,
+      "positives": 818,
+      "negatives": 0,
+      "positive_rate": 1.0,
+      "date_min": "2024-02-15",
+      "date_max": "2024-03-14",
+      "n_cells": 223,
+      "recent_heat_n": 175,
+      "cold_n": 643,
+      "recent_heat_positive_rate": 1.0,
+      "cold_positive_rate": 1.0
+    },
+    "test": {
+      "n": 140,
+      "positives": 140,
+      "negatives": 0,
+      "positive_rate": 1.0,
+      "date_min": "2024-08-03",
+      "date_max": "2026-11-14",
+      "n_cells": 79,
+      "recent_heat_n": 2,
+      "cold_n": 138,
+      "recent_heat_positive_rate": 1.0,
+      "cold_positive_rate": 1.0
+    },
+    "geographic_overlap": {
+      "train_val": 100,
+      "train_test": 46,
+      "val_test": 65,
+      "note": "Chronological split by issue date; same Maguindanao cells appear in all splits. Episodes are prevented from spanning opposing splits."
+    },
+    "temporal_ordering": {
+      "max_train": "2023-08-26",
+      "min_validation": "2024-02-15",
+      "max_validation": "2024-03-14",
+      "min_test": "2024-08-03",
+      "ordered": true
+    },
+    "test_never_used_for": [
+      "imputation",
+      "scaling",
+      "resampling",
+      "feature_selection",
+      "calibration",
+      "threshold_selection",
+      "model_selection"
+    ]
+  },
+  "v1_audit": {
+    "available": true,
+    "source": "data/metrics/philippines_hotspot_model_comparison_v1_flawed_negatives.json",
+    "validation_brier": 0.05829823289905099,
+    "holdout_brier": 0.0051229443627867095,
+    "explanation": "Validation (2024-02-15\u20262024-03-14) was a peak dry-season window with positive rate ~6.5% (818/12528), so Brier\u22480.058. Holdout mixed Aug 2024 wet season with 2025\u20132026 windows at positive rate ~0.51% (140/27216), so even a constant seasonal rate has Brier\u2248p(1\u2212p)\u22480.005. The drop is mostly base-rate change, not sudden calibration skill. Skill vs seasonal baseline on holdout was ~0.002. These v1 numbers used flawed empty-FIRMS negatives and must not be promoted as Philippine performance.",
+    "cold_square_recall_near_zero": {
+      "holdout_cold_recall": 0.0,
+      "holdout_cold_precision": 0.0,
+      "holdout_cold_f1": 0.0,
+      "holdout_cold_pr_auc_note": "PR-AUC added in v2 training path when negatives exist.",
+      "holdout_recent_recall": 1.0,
+      "threshold_used": 0.05,
+      "threshold_selection": "Chosen on validation by max F1 only \u2014 never on holdout.",
+      "why_cold_recall_approx_0": "At the validation-chosen threshold 0.05, Extra Trees fired on recent-heat patterns but almost never crossed 0.05 on cold squares in the sparse holdout (0/138 true positives recovered). Low threshold still yields near-zero cold recall because predicted probabilities for brand-new heat stayed below the cut.",
+      "revision_policy": "Holdout was inspected in this audit. Any threshold/model revision after this inspection is recorded as holdout-influenced; reserve new independent Philippine data for the next final evaluation."
+    },
+    "leakage_check_v1": {
+      "test_influenced_feature_selection": false,
+      "test_influenced_calibration": false,
+      "test_influenced_threshold": false,
+      "imputation_fit_on": "train only"
+    },
+    "holdout_enrichment": {
+      "note": "Recomputed on archived v1 flawed-negative dataset + 11f1861 model for audit only. Not Philippine performance claims under coverage v2.",
+      "threshold_validation_only": 0.05,
+      "overall": {
         "threshold": 0.05,
-        "positive_event_count": 818,
-        "brier_score": 0.06363192968866746,
-        "baseline_brier_score": 0.06363444297472076,
-        "brier_skill_vs_baseline": 3.949568717531715e-05,
-        "precision": 0.1958502024291498,
-        "recall": 0.4731051344743276,
-        "f1": 0.2770221904080172,
-        "accuracy": 0.8387611749680716,
+        "positive_event_count": 140,
+        "brier_score": 0.0051229443627867095,
+        "baseline_brier_score": 0.00513574666495685,
+        "brier_skill_vs_baseline": 0.00249278303727396,
+        "precision": 0.02040816326530612,
+        "recall": 0.014285714285714285,
+        "f1": 0.01680672268907563,
+        "accuracy": 0.9914021164021164,
         "confusion_matrix_labels": [
           0,
           1
         ],
         "confusion_matrix": [
           [
-            10121,
-            1589
+            26980,
+            96
           ],
           [
-            431,
-            387
+            138,
+            2
           ]
         ],
-        "pr_curve_points": 6274
-      }
-    },
-    {
-      "name": "decision_tree",
-      "threshold": 0.15,
-      "metrics": {
-        "threshold": 0.15,
-        "positive_event_count": 818,
-        "brier_score": 0.06915344419080818,
-        "baseline_brier_score": 0.06363444297472076,
-        "brier_skill_vs_baseline": -0.08672977963019002,
-        "precision": 0.20723226703755215,
-        "recall": 0.1821515892420538,
-        "f1": 0.19388418998048146,
-        "accuracy": 0.9011015325670498,
-        "confusion_matrix_labels": [
-          0,
-          1
-        ],
-        "confusion_matrix": [
-          [
-            11140,
-            570
-          ],
-          [
-            669,
-            149
-          ]
-        ],
-        "pr_curve_points": 13
-      }
-    },
-    {
-      "name": "random_forest",
-      "threshold": 0.05,
-      "metrics": {
+        "pr_curve_points": 979,
+        "pr_auc": 0.01410502757969112
+      },
+      "recent_heat_squares": {
         "threshold": 0.05,
-        "positive_event_count": 818,
-        "brier_score": 0.05882710828532441,
-        "baseline_brier_score": 0.06363444297472076,
-        "brier_skill_vs_baseline": 0.07554611095293307,
-        "precision": 0.15467854869509867,
-        "recall": 0.5941320293398533,
-        "f1": 0.24545454545454545,
-        "accuracy": 0.7614942528735632,
+        "positive_event_count": 2,
+        "brier_score": 0.017798414998655424,
+        "baseline_brier_score": 0.016147531939373114,
+        "brier_skill_vs_baseline": -0.10223748529996102,
+        "precision": 0.03773584905660377,
+        "recall": 1.0,
+        "f1": 0.07272727272727272,
+        "accuracy": 0.5785123966942148,
         "confusion_matrix_labels": [
           0,
           1
         ],
         "confusion_matrix": [
           [
-            9054,
-            2656
+            68,
+            51
           ],
           [
-            332,
-            486
+            0,
+            2
           ]
         ],
-        "pr_curve_points": 4211
-      }
-    },
-    {
-      "name": "extra_trees",
-      "threshold": 0.05,
-      "metrics": {
+        "pr_curve_points": 96,
+        "pr_auc": 0.16666666666666669,
+        "subset": "recent_heat",
+        "n": 121
+      },
+      "no_recent_heat_squares": {
         "threshold": 0.05,
-        "positive_event_count": 818,
-        "brier_score": 0.05829823289905099,
-        "baseline_brier_score": 0.06363444297472076,
-        "brier_skill_vs_baseline": 0.0838572607257616,
-        "precision": 0.17959183673469387,
-        "recall": 0.5378973105134475,
-        "f1": 0.2692778457772338,
-        "accuracy": 0.8093869731800766,
-        "confusion_matrix_labels": [
-          0,
-          1
-        ],
-        "confusion_matrix": [
-          [
-            9700,
-            2010
-          ],
-          [
-            378,
-            440
-          ]
-        ],
-        "pr_curve_points": 3618
-      }
-    },
-    {
-      "name": "hist_gradient_boosting",
-      "threshold": 0.05,
-      "metrics": {
-        "threshold": 0.05,
-        "positive_event_count": 818,
-        "brier_score": 0.06338195836238023,
-        "baseline_brier_score": 0.06363444297472076,
-        "brier_skill_vs_baseline": 0.003967735090269264,
-        "precision": 0.16127401415571285,
-        "recall": 0.3899755501222494,
-        "f1": 0.22818311874105865,
-        "accuracy": 0.8277458492975734,
-        "confusion_matrix_labels": [
-          0,
-          1
-        ],
-        "confusion_matrix": [
-          [
-            10051,
-            1659
-          ],
-          [
-            499,
-            319
-          ]
-        ],
-        "pr_curve_points": 2739
-      }
-    },
-    {
-      "name": "calibrated_svm",
-      "threshold": 0.15,
-      "metrics": {
-        "threshold": 0.15,
-        "positive_event_count": 818,
-        "brier_score": 0.0677733464933274,
-        "baseline_brier_score": 0.06363444297472076,
-        "brier_skill_vs_baseline": -0.06504187551780483,
-        "precision": 0.20067114093959731,
-        "recall": 0.36552567237163813,
-        "f1": 0.25909878682842286,
-        "accuracy": 0.8635057471264368,
-        "confusion_matrix_labels": [
-          0,
-          1
-        ],
-        "confusion_matrix": [
-          [
-            10519,
-            1191
-          ],
-          [
-            519,
-            299
-          ]
-        ],
-        "pr_curve_points": 6274
-      }
-    }
-  ],
-  "baselines": [
-    {
-      "name": "regional_seasonal_detection_rate",
-      "metrics": {
-        "threshold": 0.5,
-        "positive_event_count": 818,
-        "brier_score": 0.06363444297472076,
-        "baseline_brier_score": 0.06363444297472076,
-        "brier_skill_vs_baseline": 0.0,
+        "positive_event_count": 138,
+        "brier_score": 0.0050663386441323404,
+        "baseline_brier_score": 0.00508657058013661,
+        "brier_skill_vs_baseline": 0.00397751995878648,
         "precision": 0.0,
         "recall": 0.0,
         "f1": 0.0,
-        "accuracy": 0.93470625798212,
+        "accuracy": 0.993245986344344,
         "confusion_matrix_labels": [
           0,
           1
         ],
         "confusion_matrix": [
           [
-            11710,
-            0
+            26912,
+            45
           ],
           [
-            818,
+            138,
             0
           ]
         ],
-        "pr_curve_points": 3
+        "pr_curve_points": 884,
+        "pr_auc": 0.012069575190813222,
+        "subset": "cold",
+        "n": 27095
       }
-    },
-    {
-      "name": "persistence_recent_heat",
-      "metrics": {
-        "threshold": 0.5,
-        "positive_event_count": 818,
-        "brier_score": 0.09985632183908046,
-        "baseline_brier_score": 0.06363444297472076,
-        "brier_skill_vs_baseline": -0.5692181336253559,
-        "precision": 0.22349936143039592,
-        "recall": 0.2139364303178484,
-        "f1": 0.21861336664584635,
-        "accuracy": 0.9001436781609196,
-        "confusion_matrix_labels": [
-          0,
-          1
-        ],
-        "confusion_matrix": [
-          [
-            11102,
-            608
-          ],
-          [
-            643,
-            175
-          ]
-        ],
-        "pr_curve_points": 3
-      }
-    }
-  ],
-  "leaderboard": [
-    {
-      "name": "extra_trees",
-      "kind": "classifier",
-      "brier": 0.05829823289905099
-    },
-    {
-      "name": "random_forest",
-      "kind": "classifier",
-      "brier": 0.05882710828532441
-    },
-    {
-      "name": "hist_gradient_boosting",
-      "kind": "classifier",
-      "brier": 0.06338195836238023
-    },
-    {
-      "name": "logistic_regression",
-      "kind": "classifier",
-      "brier": 0.06363192968866746
-    },
-    {
-      "name": "regional_seasonal_detection_rate",
-      "kind": "baseline",
-      "brier": 0.06363444297472076
-    },
-    {
-      "name": "calibrated_svm",
-      "kind": "classifier",
-      "brier": 0.0677733464933274
-    },
-    {
-      "name": "decision_tree",
-      "kind": "classifier",
-      "brier": 0.06915344419080818
-    },
-    {
-      "name": "persistence_recent_heat",
-      "kind": "baseline",
-      "brier": 0.09985632183908046
-    }
-  ],
-  "winner": {
-    "name": "extra_trees",
-    "kind": "classifier",
-    "threshold": 0.05,
-    "why": "Lowest validation Brier among six classifiers and two baselines (seasonal rate, persistence). Not chosen by accuracy\u2248F1.",
-    "validation_metrics": {
-      "threshold": 0.05,
-      "positive_event_count": 818,
-      "brier_score": 0.05829823289905099,
-      "baseline_brier_score": 0.06363444297472076,
-      "brier_skill_vs_baseline": 0.0838572607257616,
-      "precision": 0.17959183673469387,
-      "recall": 0.5378973105134475,
-      "f1": 0.2692778457772338,
-      "accuracy": 0.8093869731800766,
-      "confusion_matrix_labels": [
-        0,
-        1
-      ],
-      "confusion_matrix": [
-        [
-          9700,
-          2010
-        ],
-        [
-          378,
-          440
-        ]
-      ],
-      "pr_curve_points": 3618
     }
   },
-  "holdout": {
-    "metrics": {
-      "threshold": 0.05,
-      "positive_event_count": 140,
-      "brier_score": 0.0051229443627867095,
-      "baseline_brier_score": 0.00513574666495685,
-      "brier_skill_vs_baseline": 0.00249278303727396,
-      "precision": 0.02040816326530612,
-      "recall": 0.014285714285714285,
-      "f1": 0.01680672268907563,
-      "accuracy": 0.9914021164021164,
-      "confusion_matrix_labels": [
-        0,
-        1
-      ],
-      "confusion_matrix": [
-        [
-          26980,
-          96
-        ],
-        [
-          138,
-          2
-        ]
-      ],
-      "pr_curve_points": 979
-    },
-    "reliability_table": [
+  "coverage_audit_path": "/Users/florlyn/Desktop/MODISVIIRS/data/metrics/philippines_hotspot_coverage_audit.json",
+  "approved_for_serving": false,
+  "public_label": "Chance of satellite-detected heat",
+  "next_runnable_step": "Ingest Maguindanao fire-mask + geolocation pairs into paired_cells/activity_cell_days, rebuild the dataset, then re-run this trainer.",
+  "publication_delay_sensitivity": {
+    "sample_n": 500,
+    "delays_hours": [
+      0.0,
+      6.0,
+      24.0
+    ],
+    "comparisons": [
       {
-        "bin": "0.0-0.1",
-        "n": 27199,
-        "mean_predicted": 0.0076345128910839,
-        "observed_rate": 0.005110482003014817
+        "delay_hours": 6.0,
+        "fraction_rows_changed": 0.0,
+        "fraction_persistence_lost": 0.0,
+        "mean_heat_detections_1d_removed": 0.0,
+        "note": "Historical replay with this delay better reflects what Vela could have known at issue time when FIRMS publication lagged acquisition."
       },
       {
-        "bin": "0.1-0.2",
-        "n": 15,
-        "mean_predicted": 0.1356001779150199,
-        "observed_rate": 0.06666666666666667
-      },
-      {
-        "bin": "0.2-0.3",
-        "n": 1,
-        "mean_predicted": 0.22197384782337784,
-        "observed_rate": 0.0
-      },
-      {
-        "bin": "0.3-0.4",
-        "n": 1,
-        "mean_predicted": 0.3090249541136491,
-        "observed_rate": 0.0
-      },
-      {
-        "bin": "0.4-0.5",
-        "n": 0,
-        "mean_predicted": null,
-        "observed_rate": null
-      },
-      {
-        "bin": "0.5-0.6",
-        "n": 0,
-        "mean_predicted": null,
-        "observed_rate": null
-      },
-      {
-        "bin": "0.6-0.7",
-        "n": 0,
-        "mean_predicted": null,
-        "observed_rate": null
-      },
-      {
-        "bin": "0.7-0.8",
-        "n": 0,
-        "mean_predicted": null,
-        "observed_rate": null
-      },
-      {
-        "bin": "0.8-0.9",
-        "n": 0,
-        "mean_predicted": null,
-        "observed_rate": null
-      },
-      {
-        "bin": "0.9-1.0",
-        "n": 0,
-        "mean_predicted": null,
-        "observed_rate": null
+        "delay_hours": 24.0,
+        "fraction_rows_changed": 0.09,
+        "fraction_persistence_lost": 0.016,
+        "mean_heat_detections_1d_removed": 0.022,
+        "note": "Historical replay with this delay better reflects what Vela could have known at issue time when FIRMS publication lagged acquisition."
       }
     ],
-    "recent_heat_squares": {
-      "threshold": 0.05,
-      "positive_event_count": 2,
-      "brier_score": 0.017798414998655424,
-      "baseline_brier_score": 0.016147531939373114,
-      "brier_skill_vs_baseline": -0.10223748529996102,
-      "precision": 0.03773584905660377,
-      "recall": 1.0,
-      "f1": 0.07272727272727272,
-      "accuracy": 0.5785123966942148,
-      "confusion_matrix_labels": [
-        0,
-        1
-      ],
-      "confusion_matrix": [
-        [
-          68,
-          51
-        ],
-        [
-          0,
-          2
-        ]
-      ],
-      "pr_curve_points": 96
-    },
-    "no_recent_heat_squares": {
-      "threshold": 0.05,
-      "positive_event_count": 138,
-      "brier_score": 0.0050663386441323404,
-      "baseline_brier_score": 0.00508657058013661,
-      "brier_skill_vs_baseline": 0.00397751995878648,
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1": 0.0,
-      "accuracy": 0.993245986344344,
-      "confusion_matrix_labels": [
-        0,
-        1
-      ],
-      "confusion_matrix": [
-        [
-          26912,
-          45
-        ],
-        [
-          138,
-          0
-        ]
-      ],
-      "pr_curve_points": 884
-    },
-    "scored_on": "adequately observed square-days only (positives + covered negatives)"
+    "assumption": "Default features use acq\u2248avail (delay=0). Delay>0 withholds detections whose acquisition is within the lag window before issue."
   },
-  "model_artifact": "/Users/florlyn/Desktop/MODISVIIRS/data/models/philippines_hotspot_winner.joblib",
-  "model_hash": "b299a230f29f8c39",
-  "approved_for_serving": true,
-  "public_label": "Chance of satellite-detected heat"
+  "coverage_evidence": {
+    "fire_mask_geolocation_square_days": 0,
+    "label_counts_v2": {
+      "positive": 1187,
+      "negative": 0,
+      "unknown": 62749
+    },
+    "unknown_reasons": {
+      "firms_empty_search_insufficient": 62749,
+      "no_fire_mask_coverage": 62749,
+      "firms_query_incomplete": 0
+    },
+    "v1_defect": "Negatives were inferred from successful FIRMS searches including empty returns (ok/ok_zero), not from fire-mask/geolocation usable coverage."
+  }
 }

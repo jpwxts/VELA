@@ -14,7 +14,7 @@
     "clip_preset": "mindanao"
   },
   "coverage_rule": {
-    "version": "hotspot_coverage_v1",
+    "version": "hotspot_coverage_v2",
     "platforms": [
       "Aqua",
       "Terra",
@@ -22,12 +22,14 @@
       "NOAA-20",
       "NOAA-21"
     ],
-    "products": "FIRMS area CSV via FirmsClient (MODIS_SP/NRT, VIIRS_*_SP/NRT)",
-    "detection_quality_filters": "All FIRMS points returned for the platforms above are qualifying. No confidence/FRP filter in v1 (frozen before model comparison).",
-    "positive": "\u22651 qualifying detection whose Philippine-local acquisition falls inside the square and the [00:00, +24h) Manila window.",
-    "negative": "regional_query_ok for the study bbox on that Philippine day (\u22652 platforms status in {ok, no_hotspots}) AND zero qualifying detections in the square-window. This is successful FIRMS retrieval including zeros, not a per-pixel clear-sky proof.",
-    "unknown": "Day not queried successfully, or fewer than 2 platform successes.",
-    "availability_assumption": "Historical publication timestamps are unavailable. Conservative rule: treat acquisition time as availability time. Predictors use only detections with acquisition < issue time. Target-window detections are labels only."
+    "products": "Labels: FIRMS detections for positives; fire-mask + geolocation (MYD14/MYD03, VNP14IMG/VNP03IMG, VJ1/VJ2) for usable clear coverage / negatives. FIRMS area CSV alone never establishes a clear zero.",
+    "detection_quality_filters": "All FIRMS points returned for the platforms above are qualifying positives. No confidence/FRP filter in v2 (frozen before model comparison).",
+    "positive": "\u22651 qualifying FIRMS detection whose acquisition falls inside the square and the [00:00, +24h) Asia/Manila window. Multiple pixels/passes/satellites \u2192 one positive.",
+    "negative": "Measured usable fire-mask/geolocation coverage for that square-day (visible land meets Vela\u2019s \u226550% cell coverage rule on at least one MODIS/VIIRS platform pass) AND zero qualifying detections in the square-window.",
+    "unknown": "No usable fire-mask/geolocation coverage for the square-day, OR incomplete retrieval. A successful FIRMS search that returns zero detections is insufficient evidence of clear coverage and is labeled unknown \u2014 never negative.",
+    "availability_assumption": "Historical FIRMS publication timestamps are unavailable. Default research rule: treat acquisition time as availability time (acq\u2248avail). Predictors use only detections with acquisition < issue time. Target-window detections are labels only. A conservative publication-delay sensitivity (6h / 24h) is reported separately.",
+    "supersedes": "hotspot_coverage_v1",
+    "v1_defect": "v1 treated regional FIRMS query ok/ok_zero (\u22652 platforms) as adequate coverage for negatives. Audit of 11f1861: 62,749 negatives and 0 unknowns were inferred from empty searches without fire-mask evidence."
   },
   "feature_schema_version": "hotspot_features_v1",
   "feature_names": [
@@ -44,7 +46,7 @@
     "month_sin",
     "month_cos"
   ],
-  "frozen_at_utc": "2026-11-14T13:43:32.227777+00:00",
+  "frozen_at_utc": "2026-11-14T14:05:22.626548+00:00",
   "harmonization_untouched": true,
   "onset_pipeline_untouched": true,
   "excludes": [

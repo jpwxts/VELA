@@ -1,5 +1,5 @@
 {
-  "name": "philippines_hotspot_split_v1",
+  "name": "philippines_hotspot_split_v2",
   "registered_before_fitting": true,
   "study": {
     "id": "mindanao_maguindanao_compact_v1",
@@ -13,19 +13,27 @@
     "clip_preset": "mindanao"
   },
   "feature_schema_version": "hotspot_features_v1",
-  "dataset_path": "data/processed/philippines_hotspot_cell_days.parquet",
+  "coverage_rule_version": "hotspot_coverage_v2",
   "row_counts": {
-    "train": 24192,
-    "validation": 12528,
-    "test": 27216
+    "train": 229,
+    "validation": 818,
+    "test": 140
   },
   "label_counts": {
     "positive": 1187,
-    "negative": 62749,
-    "unknown": 0
+    "negative": 0,
+    "unknown": 62749
   },
-  "coverage_days": 148,
+  "unknown_reasons": {
+    "firms_empty_search_insufficient": 62749,
+    "no_fire_mask_coverage": 62749,
+    "firms_query_incomplete": 0
+  },
+  "fire_mask_coverage_square_days": 0,
+  "firms_regional_ok_days": 148,
   "cells": 432,
-  "availability_assumption": "Acquisition time treated as availability time; target-window detections excluded from features.",
-  "harmonization_holdouts_untouched": true
+  "availability_assumption": "Acquisition time treated as availability time by default; publication-delay sensitivity recorded in philippines_hotspot_coverage_audit.json.",
+  "harmonization_holdouts_untouched": true,
+  "serving_blocked_until_negatives": true,
+  "dataset_path": "data/processed/philippines_hotspot_cell_days.parquet"
 }
