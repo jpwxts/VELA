@@ -59,8 +59,11 @@
 .history-chart-hit { fill: transparent; stroke: none; }
 .history-chart-value { fill: var(--ember); stroke: none; }
 .history-chart-value.zero { fill: var(--ink-soft); }
+.history-chart-value.hotspot { fill: var(--teal); }
+.history-chart-value.heat { fill: var(--ink-soft); }
 .history-chart-bar.partial .history-chart-value { fill-opacity: 0.7; }
 .history-chart-bar.selected .history-chart-value { fill: var(--teal); }
+.history-chart-bar.selected .history-chart-value.hotspot { fill: var(--ember); }
 .history-chart-bar[role="button"] { cursor: pointer; }
 .history-chart-bar[role="button"]:hover .history-chart-hit { fill: var(--teal-wash); fill-opacity: 0.4; }
 .history-chart-bar:focus-visible { outline: none; }
