@@ -14,14 +14,19 @@ import numpy as np
 from vela.hotspot_forecast import (
     FEATURE_NAMES,
     PRODUCT,
-    SELECTION_PATH,
     STUDY,
     forecast_unavailable_reason,
     issue_datetime_manila,
     load_selection,
     valid_interval,
 )
-from vela.hotspot_forecast_dataset import build_feature_row, load_study_detections, regional_query_ok
+from vela.hotspot_forecast_dataset import (
+    build_feature_row,
+    fire_mask_coverage_keys,
+    firms_regional_query_ok,
+    load_study_detections,
+    study_cells,
+)
 from vela.observation_store import ObservationStore, _connect as store_connect
 from vela.settings import DATA_DIR
 
@@ -103,7 +108,9 @@ class HotspotForecastStore:
             connection.commit()
         return self.get(cell_id, issue_date_ph) or stored
 
-    def record_outcome(self, cell_id: str, issue_date_ph: str, status: str, label: str, detection_count: int = 0) -> dict:
+    def record_outcome(
+        self, cell_id: str, issue_date_ph: str, status: str, label: str, detection_count: int = 0
+    ) -> dict:
         key = f"{cell_id}|{issue_date_ph}"
         payload = {
             "status": status,
@@ -142,7 +149,6 @@ def _predict_probability(bundle: dict, features: dict) -> float:
     if kind == "baseline":
         if bundle.get("winner_name") == "persistence_recent_heat":
             return float(features.get("persistence_heat_yesterday") or 0.0)
-        # seasonal baseline without full train table: use month prior from model meta if present
         return float(bundle.get("global_rate") or 0.0)
     model = bundle["model"]
     if hasattr(model, "predict_proba"):
@@ -152,11 +158,48 @@ def _predict_probability(bundle: dict, features: dict) -> float:
     return float(1.0 / (1.0 + np.exp(-scores[0])))
 
 
+def _support_metadata(
+    *,
+    cell_id: str,
+    issue_date_ph: str,
+    detections: list[dict],
+    observation_store: ObservationStore,
+) -> dict[str, Any]:
+    issue = issue_datetime_manila(issue_date_ph)
+    issue_utc = issue.astimezone(timezone.utc)
+    prior = [spot for spot in detections if spot["_acq_utc"] < issue_utc]
+    newest = max((spot["_acq_utc"] for spot in prior), default=None)
+    cell_prior = [spot for spot in prior if spot.get("_cell_id") == cell_id]
+    newest_cell = max((spot["_acq_utc"] for spot in cell_prior), default=None)
+    mask = fire_mask_coverage_keys([cell_id])
+    in_study = cell_id in set(study_cells())
+    firms_ok = firms_regional_query_ok(observation_store, issue_date_ph)
+    return {
+        "geographic_support": {
+            "in_study_region": in_study,
+            "study": STUDY,
+            "cell_id": cell_id,
+        },
+        "input_cutoff_utc": issue_utc.isoformat(),
+        "input_cutoff_manila": issue.isoformat(),
+        "newest_available_input_utc": None if newest is None else newest.isoformat(),
+        "newest_cell_detection_utc": None if newest_cell is None else newest_cell.isoformat(),
+        "prior_detection_count_study": len(prior),
+        "prior_detection_count_cell": len(cell_prior),
+        "firms_regional_query_ok": firms_ok,
+        "firms_empty_is_not_clear_coverage": True,
+        "fire_mask_coverage_for_cell": mask["count"] > 0,
+        "fire_mask_coverage_square_days_study": mask["count"],
+        "availability_assumption": "acquisition≈availability unless a publication delay is applied",
+    }
+
+
 def forecast_for_cell(
     *,
     cell_id: str,
     issue_date_ph: str | None = None,
     historical_simulation: bool = False,
+    availability_delay_hours: float = 0.0,
     store: HotspotForecastStore | None = None,
     observation_store: ObservationStore | None = None,
 ) -> dict[str, Any]:
@@ -165,6 +208,14 @@ def forecast_for_cell(
     day = str(issue_date_ph or philippine_issue_date())[:10]
     selection = load_selection()
     reason = forecast_unavailable_reason(selection)
+    obs = observation_store or ObservationStore()
+    detections = load_study_detections(obs)
+    support = _support_metadata(
+        cell_id=cell_id,
+        issue_date_ph=day,
+        detections=detections,
+        observation_store=obs,
+    )
     base = {
         "product": PRODUCT,
         "public_label": "Chance of satellite-detected heat",
@@ -178,7 +229,30 @@ def forecast_for_cell(
         "valid_interval": valid_interval(day),
         "study": STUDY,
         "historical_simulation": historical_simulation,
+        "support": support,
+        "availability_delay_hours": float(availability_delay_hours),
     }
+    archive = store or HotspotForecastStore()
+    existing = archive.get(cell_id, day)
+    # Preserved issued forecasts remain readable even when new serving is blocked.
+    if existing is not None and availability_delay_hours == 0:
+        existing = dict(existing)
+        existing["support"] = support
+        existing["outcome"] = archive.outcome(cell_id, day) or {
+            "status": "awaiting_observation",
+            "label": "Outcome awaiting observation",
+        }
+        if historical_simulation:
+            existing["historical_simulation"] = False
+            existing["label_note"] = (
+                "Preserved forecast as originally issued — not a fresh historical simulation."
+            )
+            existing["calendar_state"] = "forecast_available"
+            return existing
+        if not reason:
+            existing["calendar_state"] = "forecast_available"
+            return existing
+
     if reason:
         return {
             **base,
@@ -189,31 +263,17 @@ def forecast_for_cell(
             "calendar_state": "insufficient_inputs",
         }
 
-    archive = store or HotspotForecastStore()
-    existing = archive.get(cell_id, day)
-    if existing is not None and not historical_simulation:
-        existing = dict(existing)
-        existing["outcome"] = archive.outcome(cell_id, day) or {
-            "status": "awaiting_observation",
-            "label": "Outcome awaiting observation",
-        }
-        existing["calendar_state"] = "forecast_available"
-        return existing
-
-    obs = observation_store or ObservationStore()
-    detections = load_study_detections(obs)
-    with store_connect(obs.path) as connection:
-        days = [row[0] for row in connection.execute("SELECT DISTINCT ph_date FROM feed_checks").fetchall()]
-    coverage_days = {d for d in days if regional_query_ok(obs, d)}
+    mask_info = fire_mask_coverage_keys(study_cells())
+    coverage_days = {d for (_, d) in mask_info["square_days"]}
     features = build_feature_row(
         cell_id=cell_id,
         issue_date_ph=day,
         detections=detections,
         coverage_days=coverage_days,
+        availability_delay_hours=availability_delay_hours,
     )
     bundle = joblib.load(selection["model_artifact"])
     if bundle.get("kind") == "baseline" and bundle.get("winner_name") != "persistence_recent_heat":
-        # Fall back to validation positive rate stored at train time if present
         comparison = json.loads(Path(selection["comparison_path"]).read_text(encoding="utf-8"))
         rate = comparison.get("row_counts", {}).get("positive_train", 0) / max(
             1, comparison.get("row_counts", {}).get("train", 1)
@@ -235,7 +295,10 @@ def forecast_for_cell(
     }
     if historical_simulation:
         payload["historical_simulation"] = True
-        payload["label_note"] = "Historical simulation — not an originally issued Vela forecast."
+        payload["label_note"] = (
+            "Historical simulation — not an originally issued Vela forecast unless a preserved "
+            "issue archive entry exists for this square and date."
+        )
         return payload
     stored = archive.put_if_absent(payload)
     stored = dict(stored)
@@ -243,6 +306,7 @@ def forecast_for_cell(
         "status": "awaiting_observation",
         "label": "Outcome awaiting observation",
     }
+    stored["support"] = support
     return stored
 
 

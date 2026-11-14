@@ -1,0 +1,55 @@
+{
+  "audited_commit": "11f1861",
+  "coverage_rule_version": "hotspot_coverage_v2",
+  "v1_claimed_negatives": 62749,
+  "v1_claimed_unknowns": 0,
+  "v1_defect": "Negatives were inferred from successful FIRMS searches including empty returns (ok/ok_zero), not from fire-mask/geolocation usable coverage.",
+  "fire_mask_geolocation_square_days": 2458,
+  "fire_mask_sources": {
+    "hotspot_coverage_parquet": 2458,
+    "activity_cell_days": 0,
+    "paired_cells": 0
+  },
+  "firms_regional_ok_days": 149,
+  "firms_ok_is_not_clear_coverage": true,
+  "label_counts_v2": {
+    "positive": 1187,
+    "negative": 2211,
+    "unknown": 60970
+  },
+  "unknown_reasons": {
+    "firms_empty_search_insufficient": 60970,
+    "no_fire_mask_coverage": 60970,
+    "firms_query_incomplete": 0,
+    "fire_mask_insufficient_land": 0
+  },
+  "total_square_days_considered": 64368,
+  "cells": 432,
+  "feed_check_days": 149,
+  "smallest_next_step": "Download and process fire-mask + geolocation pairs (MYD14/MYD03 and VNP14IMG/VNP03IMG at minimum) for Maguindanao study days; ingest into paired_cells / activity_cell_days; then rebuild and retrain. A priori March 2019 quartet alone is ~170 MB (see mindanao_2019-03_download_plan.json); multi-season coverage for 148 FIRMS days needs a staged disk plan (~12 GB free).",
+  "publication_delay": {
+    "sample_n": 500,
+    "delays_hours": [
+      0.0,
+      6.0,
+      24.0
+    ],
+    "comparisons": [
+      {
+        "delay_hours": 6.0,
+        "fraction_rows_changed": 0.0,
+        "fraction_persistence_lost": 0.0,
+        "mean_heat_detections_1d_removed": 0.0,
+        "note": "Historical replay with this delay better reflects what Vela could have known at issue time when FIRMS publication lagged acquisition."
+      },
+      {
+        "delay_hours": 24.0,
+        "fraction_rows_changed": 0.1,
+        "fraction_persistence_lost": 0.022,
+        "mean_heat_detections_1d_removed": 0.056,
+        "note": "Historical replay with this delay better reflects what Vela could have known at issue time when FIRMS publication lagged acquisition."
+      }
+    ],
+    "assumption": "Default features use acq\u2248avail (delay=0). Delay>0 withholds detections whose acquisition is within the lag window before issue."
+  }
+}

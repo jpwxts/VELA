@@ -303,14 +303,17 @@ def hotspot_forecast_replay(cell_id: str = Query(...), issue_date: str = Query(.
     from vela.hotspot_forecast_serve import HotspotForecastStore, forecast_for_cell
     from vela.observation_store import ObservationStore
 
+    from vela.hotspot_forecast_dataset import fire_mask_coverage_keys
+
+    day = issue_date[:10]
     forecast = forecast_for_cell(
         cell_id=cell_id,
-        issue_date_ph=issue_date[:10],
+        issue_date_ph=day,
         historical_simulation=True,
     )
     obs = ObservationStore()
     detections = load_study_detections(obs)
-    start = issue_datetime_manila(issue_date[:10]).astimezone(timezone.utc)
+    start = issue_datetime_manila(day).astimezone(timezone.utc)
     end = start + timedelta(days=1)
     followed = [
         {
@@ -323,18 +326,33 @@ def hotspot_forecast_replay(cell_id: str = Query(...), issue_date: str = Query(.
         for spot in detections
         if spot.get("_cell_id") == cell_id and start <= spot["_acq_utc"] < end
     ]
-    status = "heat_detected" if followed else "no_heat_observed"
-    label = (
-        f"Observed · {len(followed)} qualifying detection(s) after issue"
-        if followed
-        else "Observed · no qualifying MODIS/VIIRS heat in the window"
-    )
-    HotspotForecastStore().record_outcome(cell_id, issue_date[:10], status, label, len(followed))
+    mask_keys = fire_mask_coverage_keys([cell_id])["square_days"]
+    has_mask = (cell_id, day) in mask_keys
+    if followed:
+        status = "heat_detected"
+        label = f"Observed · {len(followed)} qualifying detection(s) after issue"
+    elif has_mask:
+        status = "no_heat_observed"
+        label = "Observed · usable fire-mask coverage and no qualifying MODIS/VIIRS heat"
+    else:
+        status = "unknown_insufficient_coverage"
+        label = (
+            "Outcome unknown · FIRMS empty search is not clear coverage; "
+            "no usable fire-mask/geolocation evidence for this square-day"
+        )
+    HotspotForecastStore().record_outcome(cell_id, day, status, label, len(followed))
+    archived = HotspotForecastStore().get(cell_id, day)
+    genuinely_issued = archived is not None and not archived.get("historical_simulation")
     return {
         "forecast": forecast,
         "followed_detections": followed,
         "outcome": {"status": status, "label": label, "detection_count": len(followed)},
-        "note": "Historical simulation replay. Live issued forecasts are preserved separately.",
+        "genuinely_issued": genuinely_issued,
+        "note": (
+            "Preserved issued forecast replay."
+            if genuinely_issued
+            else "Historical simulation — not an originally issued Vela forecast."
+        ),
     }
 
 
@@ -352,12 +370,22 @@ def hotspot_polygon_summary(body: HotspotPolygonRequest):
 
 @app.get("/api/hotspot-forecast/metrics")
 def hotspot_forecast_metrics():
-    from vela.hotspot_forecast import COMPARISON_PATH, RULES_PATH
+    from vela.hotspot_forecast import COMPARISON_PATH, COMPARISON_V1_ARCHIVE, RULES_PATH
+    from vela.hotspot_coverage import INVENTORY_PATH, PILOT_TRACE_PATH
     import json as _json
 
     comparison = _json.loads(COMPARISON_PATH.read_text()) if COMPARISON_PATH.is_file() else None
     rules = _json.loads(RULES_PATH.read_text()) if RULES_PATH.is_file() else None
-    return {"comparison": comparison, "rules": rules}
+    v1 = _json.loads(COMPARISON_V1_ARCHIVE.read_text()) if COMPARISON_V1_ARCHIVE.is_file() else None
+    inventory = _json.loads(INVENTORY_PATH.read_text()) if INVENTORY_PATH.is_file() else None
+    pilot = _json.loads(PILOT_TRACE_PATH.read_text()) if PILOT_TRACE_PATH.is_file() else None
+    return {
+        "comparison": comparison,
+        "rules": rules,
+        "v1_archived": v1,
+        "granule_inventory": inventory,
+        "pilot_trace": pilot,
+    }
 
 
 @app.get("/api/onset/forecast")

@@ -60,37 +60,45 @@ Activity (%) = 100 × (sum of Aqua activity indicators + sum of eligible calibra
 Public question: *For this 5 km square, what is the estimated chance that MODIS or VIIRS will detect heat in the next 24 hours?*  
 Label shown in the UI: **Chance of satellite-detected heat.**
 
-This product is **separate** from Aqua–Suomi harmonization and from the Philippine wildfire-onset research pipeline. It uses **NASA FIRMS MODIS/VIIRS only** (no BFP, no weather APIs).
+This product is **separate** from Aqua–Suomi harmonization and from the Philippine wildfire-onset research pipeline. It uses **NASA MODIS/VIIRS only** (no BFP, no weather APIs).
 
 | Piece | Location |
 | --- | --- |
-| Coverage rules (frozen) | `data/metrics/philippines_hotspot_coverage_rules.json` |
-| Backfill inventory | `data/metrics/philippines_hotspot_inventory.json` |
-| Cell-day dataset | `data/processed/philippines_hotspot_cell_days.parquet` |
+| Daily coverage rule (v2.1) | `data/metrics/philippines_hotspot_coverage_rules.json` |
+| Granule CMR inventory | `data/metrics/philippines_hotspot_granule_inventory.json` |
+| Pilot trace | `data/metrics/philippines_hotspot_coverage_pilot_trace.json` |
+| Coverage cell-days | `data/processed/philippines_hotspot_coverage_cell_days.parquet` |
+| Training cell-days | `data/processed/philippines_hotspot_cell_days.parquet` |
 | Split + counts | `data/manifests/philippines_hotspot_split.json` |
-| Six-model comparison | `data/metrics/philippines_hotspot_model_comparison.json` |
-| Selected model | `data/models/philippines_hotspot_winner.joblib` |
+| v2.1 comparison | `data/metrics/philippines_hotspot_model_comparison.json` |
+| Flawed v1 archive | `data/metrics/philippines_hotspot_model_comparison_v1_flawed_negatives.json` |
 | API | `GET /api/hotspot-forecast`, `/replay`, `/metrics` |
 
-**Study region.** Compact Maguindanao / western Mindanao box `123.6–124.7°E, 6.3–7.4°N`, clipped to the Mindanao land multipolygon. Multi-season FIRMS windows: 2023-02/03, 2023-08, 2024-02/03, 2024-08, 2025-02/03, 2026-11 (includes the 7 Nov snapshot).
+**Study region.** Compact Maguindanao box `123.6–124.7°E, 6.3–7.4°N`. FIRMS windows 2023–2026; fire-mask recovery prioritized on **2023–2024** dry-season Aqua MYD14/MYD03 pairs. March 2019 is **reader smoke-test only**.
 
-**Labels.** One example = one 5 km square issued at **00:00 Asia/Manila**. Positive = ≥1 qualifying FIRMS detection in the square during the next 24 h. Negative = regional query OK (≥2 platforms `ok`/`no_hotspots`) and zero detections. Unknown = failed/incomplete retrieval. Availability assumption: acquisition time ≈ availability time; target-window detections are labels only.
+**Daily coverage rule (v2.1).** Daytime fire+geo pass; visible land = clear or fire (≥50% of 25 km² = 12.5 km²). Cloud/water/unknown/glint/bow-tie/missing do not count. A no-detection pass with enough visible land supports “no heat at that observation time.” Daily **negative** = ≥1 such pass and zero FIRMS/fire-mask detections that Philippine day. Empty FIRMS search alone = **unknown**. The public percentage is the chance of ≥1 qualifying detection in the next 24 h (Manila midnight issue), scored on adequately observed square-days.
 
-**Latest trained counts (real FIRMS):** positives **1187** · negatives **62749** · unknown **0** · cells **432** · coverage days **148** · splits train/val/test **24192 / 12528 / 27216**.
+**First coverage-backed negative.** Cell **`2396:181`** · PH date **`2024-02-25`** · Aqua `2024-02-25T05:10:00Z` · granules `MYD14.A2024056.0510…` + `MYD03.A2024056.0510…` · visible land **13.0 km² (52%)** · detections **0** · label **negative**. Cloudy unknown demo: **`2389:173`** on **`2023-08-17`** (size-first pilot; 0 km² clear).
 
-**Leaderboard (validation Brier, lower better):** Extra Trees **0.0583** (winner) · Random Forest 0.0588 · HistGradientBoosting 0.0634 · Logistic 0.0636 · seasonal baseline 0.0636 · calibrated SVM 0.0678 · decision tree 0.0692 · persistence 0.0999. Extra Trees beats persistence, so the model is not only repeating yesterday’s heat.
+**CMR inventory (2023–2024 recover windows).** 259 daytime complete fire+geo pairs; estimated full daytime transfer ~25.9 GB (exceeds free disk) → Aqua-only dry-season batches (~27 MB/pair). Pilot chosen by size/opportunity before fire outcomes.
 
-**Holdout (adequately observed days only):** Brier **0.00512** vs seasonal **0.00514** (tiny skill). Recent-heat squares vs no-recent-heat squares are reported separately in the comparison JSON — cold-square recall is near zero, so anticipating brand-new heat remains hard. Analytics shows overall metrics; each calendar/square cell shows the **issued** forecast for that date.
+**Labels (revised counts).** positives **1187** · supported negatives **2211** · unknown **60970** · scored rows train/val/test **589 / 1001 / 1808**. Independent eval = odd x-index cells **or** dates ≥ 2024-08-01 (previously inspected v1 holdout stays archived).
+
+**v2.1 leaderboard (validation Brier).** HistGradientBoosting **0.260** (winner) · Extra Trees 0.264 · calibrated SVM 0.283 · logistic 0.296 · RF 0.301 · seasonal 0.330 · persistence 0.383 · tree 0.425.
+
+**Independent holdout.** Brier **0.199** · P 0.483 · R 0.755 · F1 0.589 · PR-AUC 0.673. Cold squares: P 0.453 · R 0.714 · F1 0.554 · PR-AUC 0.654 · skill vs seasonal +0.168. Recent-heat: R 0.971 · PR-AUC 0.726 · skill +0.399.
+
+**Analytics.** Research tab shows v2.1 scores and **“Archived experiment — coverage labels revised”** for the six v1 models. Preserved `2393:174` 1% replay keeps v1 `extra_trees` and distinguishes recorded creation time from the Manila midnight issue slot.
 
 ```bash
 conda activate vela
-python -m scripts.backfill_mindanao_firms_hotspot --plan   # disk estimate
-python -m scripts.backfill_mindanao_firms_hotspot --run    # needs FIRMS_MAP_KEY
+python -m scripts.inventory_mindanao_hotspot_granules
+python -m scripts.process_mindanao_hotspot_coverage --pilot
 python -m scripts.build_hotspot_forecast_dataset
 python -m scripts.train_hotspot_forecast
 ```
 
-**Demo clicks.** Live or Saved example → Mindanao / Maguindanao → open cell `2393:174` → **Satellite heat forecast** shows percentage + Manila issue time → **Replay yesterday’s forecast** reveals later MODIS/VIIRS passes and observed outcome (historical simulations are labeled).
+**Demo clicks.** Live → Maguindanao land → cell `2396:181` / `2393:174` → Satellite heat forecast · Research → Analytics · Replay 2026-11-07 preserved 1%.
 
 ### Philippine 24-hour wildfire-onset forecast (Mindanao-first)
 

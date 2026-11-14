@@ -291,18 +291,30 @@ function renderHotspotForecast(payload) {
   const replay = document.querySelector("#replay-hotspot-forecast");
   if (!value) return;
   if (label && payload?.public_label) label.textContent = payload.public_label;
+  const support = payload?.support || {};
   if (payload?.status === "issued" && payload.probability_percent != null) {
     value.textContent = `${payload.probability_percent}%`;
     value.classList.remove("is-words");
+    const created = payload.issued_at_utc || payload.recorded_at_utc;
     meta.textContent = [
-      payload.issue_time_manila ? `Issued ${payload.issue_time_manila}` : "",
+      payload.issue_time_manila ? `Issue slot ${payload.issue_time_manila}` : "",
+      created ? `Recorded ${created}` : "",
+      support.input_cutoff_manila ? `Inputs cut off ${support.input_cutoff_manila}` : "",
       payload.model_version ? `Model ${payload.model_version}` : "",
-      payload.historical_simulation ? "Historical simulation" : "Issued forecast",
+      payload.model_hash ? `hash ${payload.model_hash}` : "",
+      payload.label_note
+        || (payload.historical_simulation ? "Historical simulation" : "Issued forecast"),
     ].filter(Boolean).join(" · ");
   } else {
     value.textContent = payload?.calendar_state === "insufficient_inputs" ? "Insufficient inputs" : "Not available";
     value.classList.add("is-words");
-    meta.textContent = payload?.issue_time_manila ? `Issue slot ${payload.issue_time_manila}` : "";
+    meta.textContent = [
+      payload?.issue_time_manila ? `Issue slot ${payload.issue_time_manila}` : "",
+      support.input_cutoff_manila ? `Inputs cut off ${support.input_cutoff_manila}` : "",
+      support.newest_available_input_utc ? `Newest input ${support.newest_available_input_utc}` : "",
+      support.geographic_support?.in_study_region === false ? "Outside Maguindanao study box" : "",
+      support.geographic_support?.in_study_region ? "Maguindanao study box" : "",
+    ].filter(Boolean).join(" · ");
   }
   const out = payload?.outcome || {};
   outcome.textContent = out.label || "Outcome awaiting observation";

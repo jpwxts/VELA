@@ -61,6 +61,80 @@ function renderResearch(payload) {
   });
 }
 
+function _fmtPct(value) {
+  if (value == null || Number.isNaN(Number(value))) return "—";
+  return `${(Number(value) * 100).toFixed(1)}%`;
+}
+
+function _metricLine(label, metrics) {
+  if (!metrics) return `${label}: no scores yet.`;
+  return (
+    `${label}: Brier ${metrics.brier_score?.toFixed?.(4) ?? metrics.brier_score}`
+    + ` · P ${_fmtPct(metrics.precision)} · R ${_fmtPct(metrics.recall)} · F1 ${_fmtPct(metrics.f1)}`
+    + (metrics.pr_auc != null ? ` · PR-AUC ${_fmtPct(metrics.pr_auc)}` : "")
+    + (metrics.brier_skill_vs_baseline != null
+      ? ` · skill vs seasonal ${Number(metrics.brier_skill_vs_baseline).toFixed(3)}`
+      : "")
+  );
+}
+
+async function loadHotspotAnalytics() {
+  const summary = document.querySelector("#hotspot-analytics-summary");
+  const v2 = document.querySelector("#hotspot-analytics-v2");
+  const v1 = document.querySelector("#hotspot-analytics-v1");
+  const replay = document.querySelector("#hotspot-analytics-replay");
+  if (!summary || !v2 || !v1) return;
+  try {
+    const response = await fetch("/api/hotspot-forecast/metrics");
+    const payload = await response.json();
+    const analytics = payload?.comparison?.analytics || {};
+    const current = analytics.v2_1 || {};
+    const archived = analytics.v1_archived_experiment || {};
+    const holdout = current.holdout || {};
+    summary.textContent =
+      current.winner
+        ? `Selected coverage-backed model: ${current.winner.name} (threshold ${current.winner.threshold}). Scores below use fire-mask/geolocation negatives.`
+        : (payload?.comparison?.reason || "Hotspot-forecast analytics unavailable.");
+    const board = (current.leaderboard || [])
+      .map((row) => `${row.name}: Brier ${Number(row.brier).toFixed(4)}`)
+      .join(" · ");
+    v2.innerHTML = [
+      `<p><strong>Coverage-backed (v2.1)</strong></p>`,
+      `<p>${_metricLine("Independent holdout", holdout.metrics)}</p>`,
+      `<p>${_metricLine("Recent-heat squares", holdout.recent_heat_squares)}</p>`,
+      `<p>${_metricLine("No recent heat (cold)", holdout.no_recent_heat_squares)}</p>`,
+      board ? `<p class="quiet">Leaderboard · ${escapeHtml(board)}</p>` : "",
+    ].join("");
+    const v1board = (archived.leaderboard || [])
+      .map((row) => `${row.name}: Brier ${Number(row.brier).toFixed(4)}`)
+      .join(" · ");
+    const cold = archived.holdout_enrichment?.no_recent_heat_squares;
+    v1.innerHTML = [
+      `<p><strong>Archived experiment — coverage labels revised</strong></p>`,
+      `<p class="quiet">${escapeHtml(archived.note || "Six v1 models under empty-FIRMS negatives.")}</p>`,
+      v1board ? `<p class="quiet">${escapeHtml(v1board)}</p>` : "",
+      cold ? `<p class="quiet">${_metricLine("Archived cold squares", cold)}</p>` : "",
+    ].join("");
+    const preserved = analytics.preserved_replay_example || {};
+    if (replay) {
+      replay.innerHTML = preserved.cell_id
+        ? `<p><strong>Preserved replay</strong> · cell ${escapeHtml(preserved.cell_id)} · `
+          + `issue slot ${escapeHtml(preserved.issue_date_ph)} 00:00 Asia/Manila · `
+          + `${preserved.probability_percent}% from v1 model ${escapeHtml(preserved.v1_model_version || "—")}. `
+          + `${escapeHtml(preserved.note || "")}</p>`
+        : "";
+    }
+  } catch (_error) {
+    summary.textContent = "Hotspot-forecast analytics could not be loaded.";
+  }
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("DOMContentLoaded", () => {
+    loadHotspotAnalytics();
+  });
+}
+
 async function showTrace() {
   const detail = document.querySelector("#trace-detail");
   detail.hidden = false;

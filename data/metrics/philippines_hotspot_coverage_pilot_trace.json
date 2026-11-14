@@ -1,0 +1,100 @@
+{
+  "status": "ok",
+  "size_first_pilot_cloudy": {
+    "kind": "unknown",
+    "cell_id": "2389:173",
+    "ph_date": "2023-08-17",
+    "platform": "Aqua",
+    "pass_time_utc": "2023-08-17T04:50:00+00:00",
+    "source_granules": {
+      "fire": "MYD14.A2023229.0450.061.2023229204804.hdf",
+      "geo": "MYD03.A2023229.0450.061.2023230002100.hdf"
+    },
+    "valid_observed_land_km2": 0.0,
+    "valid_observed_land_fraction": 0.0,
+    "qualifying_detection_count": 0,
+    "coverage_status": "insufficient",
+    "label_support": "unknown",
+    "resulting_label": "unknown"
+  },
+  "dry_season_attempts": [
+    {
+      "when": "2023-02-25T04:40:00+00:00",
+      "neg": 0,
+      "heat": 0,
+      "unk": 210,
+      "max_vis_km2": 5.0,
+      "ok": true,
+      "reason": null
+    },
+    {
+      "when": "2024-02-20T05:00:00+00:00",
+      "neg": 0,
+      "heat": 0,
+      "unk": 432,
+      "max_vis_km2": 10.0,
+      "ok": true,
+      "reason": null
+    },
+    {
+      "when": "2024-03-03T05:05:00+00:00",
+      "neg": 0,
+      "heat": 0,
+      "unk": 331,
+      "max_vis_km2": 11.0,
+      "ok": true,
+      "reason": null
+    },
+    {
+      "when": "2024-03-10T04:55:00+00:00",
+      "neg": 0,
+      "heat": 0,
+      "unk": 10,
+      "max_vis_km2": 1.0,
+      "ok": true,
+      "reason": null
+    },
+    {
+      "when": "2023-03-11T04:45:00+00:00",
+      "neg": 0,
+      "heat": 0,
+      "unk": 31,
+      "max_vis_km2": 5.0,
+      "ok": true,
+      "reason": null
+    },
+    {
+      "when": "2024-02-25T05:10:00+00:00",
+      "neg": 16,
+      "heat": 0,
+      "unk": 416,
+      "max_vis_km2": 16.0,
+      "ok": true,
+      "reason": null
+    }
+  ],
+  "traceable_coverage_backed_negative": {
+    "cell_id": "2396:181",
+    "ph_date": "2024-02-25",
+    "platform": "Aqua",
+    "pass_time_utc": "2024-02-25T05:10:00+00:00",
+    "source_granules": {
+      "fire": "MYD14.A2024056.0510.061.2024056122830.hdf",
+      "geo": "MYD03.A2024056.0510.061.2024056153828.hdf"
+    },
+    "valid_observed_land_km2": 13.0,
+    "valid_observed_land_fraction": 0.52,
+    "qualifying_detection_count": 0,
+    "coverage_status": "ok_clear_zero",
+    "resulting_label": "negative"
+  },
+  "insufficient_unknown_example": {
+    "cell_id": "2396:184",
+    "ph_date": "2023-02-25",
+    "visible_land_km2": 0.0,
+    "visible_land_fraction": 0.0,
+    "resulting_label": "unknown",
+    "reason": "visible land < 50% of cell"
+  },
+  "free_bytes": 16480841728
+}
