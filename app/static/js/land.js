@@ -14,7 +14,11 @@ function updateDayWords() {
   renderObservationCalendar();
   renderDaySummary();
   updateSelectionBanner();
-  if (state.polygon && state.polygon.length >= 4) loadWeeklyActivity();
+  if (state.polygon && state.polygon.length >= 4) {
+    // Date changes re-check heat for the Philippine calendar day while keeping
+    // the fire-weather card tied to the latest check-land forecast.
+    checkLand();
+  }
   if (previousMonth !== state.calendarMonth && state.panelTab === "weekly" && state.historyView === "present") loadMonthlyHistory();
 }
 
@@ -132,11 +136,20 @@ function setPolygon(coordinates, label) {
     Math.max(...lons),
     Math.max(...lats),
   ].map((value) => Number(value.toFixed(4)));
-  // Invalidate any in-flight outlook for the previous plot.
+  // Invalidate any in-flight outlook / check for the previous plot.
   state.weatherRequestId += 1;
+  state.landRequestId += 1;
+  state.requestId += 1;
   state.selectedForecastDay = null;
+  state.lastLandCheck = null;
+  state.lastPayload = null;
+  state.forecast = null;
+  state.dayOutlook = null;
+  state.dayOutlookKey = null;
   clearPolygonLayers();
   clearRectangle();
+  clearMapLayers();
+  clearForecastMarker();
   state.polygonLayer = globe.addArea(ring, {
     stroke: LAND_STROKE,
     weight: 2.5,
@@ -154,8 +167,8 @@ function setPolygon(coordinates, label) {
   state.placeRequestId += 1;
   state.landLabel = label || "Your land";
   document.querySelector("#area-label").textContent =
-    `${label || "Your land"}. ${ring.length - 1} corners. You can redraw after checking.`;
-  document.querySelector("#map-hint").textContent = "Boundary selected. Choose Check my land.";
+    `${label || "Your land"}. ${ring.length - 1} corners. Checking this land…`;
+  document.querySelector("#map-hint").textContent = "Boundary selected. Loading heat and fire weather…";
   clearWeatherOutlook();
   updateSelectionBanner();
   renderObservationCalendar();
@@ -499,6 +512,8 @@ function renderLandCheck(payload) {
   if (center.lat != null && center.lon != null) {
     beginPlaceLookup({ mode: "center", lat: center.lat, lon: center.lon });
   }
+  // Land summary reuses the same forecast object as Weather Outlook.
+  applyLandSummaryFromCheck(payload);
   openLandPanel({ tab: state.panelTab || "where", focus: false });
   updateSelectionBanner();
   drawLandCutout(synthetic.hotspot_areas.areas || []);
@@ -515,13 +530,18 @@ function renderHeatGroup(title, rows, nearby = false) {
     return `<p class="quiet">${nearby ? "No nearby detections within 5 km." : "No detections inside the boundary."}</p>`;
   }
   return `<h5 class="heat-group-title">${escapeHtml(title)}</h5>
-    <ul class="heat-items">${rows.map((row) => `
-      <li>
+    <ul class="heat-items">${rows.map((row) => {
+      const local = row.acq_time_ph
+        ? `${row.acq_date_ph || row.acq_date || ""} ${row.acq_time_ph} PH time`
+        : formatDetectionLocalTime(row);
+      return `<li>
         <strong>${escapeHtml(row.platform)}</strong>
-        · ${escapeHtml(row.acq_date || "—")} ${escapeHtml(row.acq_time || "")} UTC
+        · ${escapeHtml(local || "—")}
+        · ${escapeHtml(row.acq_time || "—")} UTC
         ${nearby ? `· ${Number(row.distance_km).toFixed(1)} km from boundary` : ""}
         · ${Number(row.lat).toFixed(4)}, ${Number(row.lon).toFixed(4)}
-      </li>`).join("")}</ul>`;
+      </li>`;
+    }).join("")}</ul>`;
 }
 
 function renderStatuses(results) {

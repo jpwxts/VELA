@@ -13,6 +13,31 @@ You draw or search for a plot of land, pick a date, and explore four questions i
 
 Vela keeps **satellite heat**, **fire-danger weather**, **weekly activity estimates**, and **official wildfire reports** as separate answers. It never turns FWI, hotspot counts, MODIS confidence, or the harmonization model into a wildfire probability.
 
+### Draw-land activity formula
+
+When eligible inputs exist for the drawn boundary:
+
+```text
+Activity (%) = 100 × (sum of Aqua activity indicators + sum of eligible calibrated fallback probabilities)
+             ÷ (number of square-days with valid contributions)
+```
+
+- Aqua contributes an observed 0 or 1 (clear zeros stay zeros).
+- Eligible Suomi-NPP contributes its frozen random-forest probability when required inputs exist.
+- Calibration-pending NOAA-20/21 readings stay visible as raw evidence and do not enter the total.
+- Each contributing square-day counts once. Partial coverage is labeled partial and uses only the estimated denominator.
+
+**Validation (satellite model, not weather):** weekly activity-share mean absolute error is **0.66 percentage points** across four development weeks. Philippine locations are supported for place labels and Asia/Manila times; they are **not** in the training sample, and no Philippine held-out harmonization error has been measured. Weather-forecast performance stays separate. Vela never generates a wildfire probability or converts weekly error into an accuracy percentage.
+
+### Exact demo clicks (draw-land vs Weather Outlook)
+
+1. **Burn activity** → **Draw area** a small polygon in the Philippines (for example Negros Occidental near 10.66°N, 123.03°E).
+2. Keep the observation date as today or a historical Philippine day.
+3. Stay on **Burn activity**: the land summary should show **Fire-weather outlook · Low** (or the same GWIS class as Weather Outlook), with forecast point, valid date, source, and drivers — even when burning activity still says **No estimate yet**.
+4. Open **Weather Outlook**: headline class and valid date must match the land-summary fire-weather card for the same point.
+5. Satellite heat loads independently inside the polygon (Asia/Manila pass times). A missing estimate must not hide real detections.
+6. Redraw a second polygon before the first check finishes: the first plot’s forecast must not appear on the second plot.
+
 ## Explore the Philippine Satellite Hotspot Map
 
 [Open the Philippine hotspot map for 7 November 2026](data/public/philippines/2026-11-07.geojson)

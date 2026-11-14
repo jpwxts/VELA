@@ -25,6 +25,35 @@
 /* Words in place of a figure ("No estimate yet") are set smaller so they do not shout. */
 .activity-value.is-words { font-size: 1.75rem; line-height: 1.2; letter-spacing: -0.01em; }
 .activity-value + .quiet { margin-top: 6px; }
+.reliability-line { margin-top: 8px; font-size: 0.8125rem; }
+
+.land-fire-weather,
+.land-heat-summary {
+  display: grid;
+  gap: 4px;
+  padding-top: 4px;
+}
+.land-fwi-value,
+.land-heat-value {
+  margin: 0;
+  font: 500 1.75rem/1.2 var(--font-display);
+  letter-spacing: -0.01em;
+}
+.land-fwi-value:not(.is-words) {
+  font-size: 2.5rem;
+  line-height: 1.05;
+}
+.land-fwi-drivers {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+}
+.land-combine { margin-top: 4px; }
+.land-combine-body { display: grid; gap: 8px; padding-top: 8px; font-size: 0.875rem; color: var(--ink-soft); }
 
 .hours h4 { margin-bottom: 10px; }
 .hours-frame { position: relative; }

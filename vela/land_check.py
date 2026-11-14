@@ -751,6 +751,11 @@ def build_land_check(
         incident_line = "Reported incident · Vela has no wildfire-report data for this location."
 
     center_lat, center_lon = forecast_point(west, south, east, north)
+    # Harmonized weekly activity + reliability for the land summary card.
+    from vela.findings import model_for_drawn_area, reliability_block
+
+    activity = model_for_drawn_area(west, south, east, north, observation_date or date.today().isoformat())
+    reliability = reliability_block()
     return {
         "ok": True,
         "label": label or "Your land",
@@ -760,6 +765,8 @@ def build_land_check(
         "observation_date": observation_date,
         "forecast": annotated,
         "heat": heat,
+        "activity": activity,
+        "reliability": reliability,
         "incident": {"line": incident_line, **wildfire},
         "questions": {
             "forecast_danger": annotated.get("headline"),

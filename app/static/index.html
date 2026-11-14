@@ -120,7 +120,31 @@
                 <p id="activity-value" class="activity-value"></p>
                 <p id="square-heat" class="square-heat" hidden></p>
                 <p id="activity-note" class="quiet"></p>
+                <p id="activity-reliability" class="quiet reliability-line" hidden></p>
               </div>
+
+              <section id="land-fire-weather" class="land-fire-weather" aria-live="polite">
+                <p id="land-fwi-label" class="activity-label">Fire-weather outlook</p>
+                <p id="land-fwi-value" class="land-fwi-value is-words">Loading…</p>
+                <p id="land-fwi-meta" class="quiet"></p>
+                <ul id="land-fwi-drivers" class="land-fwi-drivers" hidden></ul>
+                <p id="land-fwi-note" class="quiet"></p>
+              </section>
+
+              <section id="land-heat-summary" class="land-heat-summary" aria-live="polite">
+                <p id="land-heat-label" class="activity-label">Satellite heat</p>
+                <p id="land-heat-value" class="land-heat-value">Checking…</p>
+                <p id="land-heat-passes" class="quiet"></p>
+                <div class="result-filter">
+                  <button type="button" id="show-readings-on-map" class="filter-button" hidden>Show readings on map</button>
+                </div>
+                <p id="land-heat-note" class="quiet"></p>
+              </section>
+
+              <details id="land-combine" class="fold land-combine" hidden>
+                <summary>How did Vela combine the satellites?</summary>
+                <div id="land-combine-body" class="land-combine-body"></div>
+              </details>
 
               <div class="hours">
                 <h4 id="hours-title">Today at this land</h4>
