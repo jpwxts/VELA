@@ -164,10 +164,21 @@
             <div id="land-secondary-content">
             <section class="pane-block land-controls">
               <p id="area-label" class="lede">Search for a place or draw a boundary on the globe, then check it for satellite heat.</p>
+              <div id="live-mode-filters" class="result-filter" role="group" aria-label="Map mode">
+                <button type="button" class="filter-button on" data-map-mode="live" aria-pressed="true">Live</button>
+                <button type="button" class="filter-button" data-map-mode="history" aria-pressed="false">History</button>
+                <button type="button" class="filter-button" data-map-mode="saved" aria-pressed="false">Saved example</button>
+              </div>
+              <p id="live-clock" class="quiet">Live uses today’s Philippine date (Asia/Manila).</p>
+              <div class="result-filter">
+                <button type="button" id="refresh-live" class="filter-button">Refresh now</button>
+                <button type="button" id="return-live" class="filter-button" hidden>Return to live</button>
+              </div>
               <dl class="fact">
                 <dt>Observation date</dt>
                 <dd><span id="day-words">Choose a date.</span> <button type="button" id="change-date" class="link-button">Change</button></dd>
               </dl>
+              <p id="live-timestamps" class="quiet" hidden></p>
               <div class="action-row">
                 <button id="clear-area" type="button" class="ghost">Clear</button>
               </div>
@@ -344,8 +355,8 @@
               <div id="cal-grid" class="cal-grid" role="group" aria-labelledby="cal-title"></div>
               <ul class="history-key" aria-label="Burning activity calendar legend">
                 <li><span class="history-swatch active" aria-hidden="true"></span>Estimated burning activity</li>
-                <li><span class="history-swatch zero" aria-hidden="true"></span>Measured 0%</li>
-                <li><span class="history-swatch missing" aria-hidden="true"></span>Satellite heat / not checked</li>
+                <li><span class="history-swatch zero" aria-hidden="true"></span>Usable zero estimate</li>
+                <li><span class="history-swatch missing" aria-hidden="true"></span>Satellite heat readings / unchecked / gap</li>
               </ul>
               <p id="history-status" class="quiet" aria-live="polite"></p>
               <button id="history-retry" type="button" class="filter-button" hidden>Retry history</button>

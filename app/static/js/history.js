@@ -314,9 +314,22 @@ function historyPercent(value) {
   return typeof value === "number" && Number.isFinite(value) ? `${(value * 100).toFixed(1)}%` : "—";
 }
 
-function historyStatusWords(status) {
-  return ({ complete: "Available estimate", partial: "Partial estimate", hidden: "Estimate withheld for validation",
-    insufficient: "Insufficient usable coverage", not_processed: "No stored observations", future: "Not yet observed" })[status] || "No estimate";
+function historyStatusWords(status, day) {
+  if (day?.display_label) return day.display_label;
+  if (day?.heat_status === "readings") {
+    return `Satellite heat readings · ${day.heat_count || 0}`;
+  }
+  if (day?.heat_status === "checked_empty") {
+    return "Checked · no readings returned";
+  }
+  return ({
+    complete: "Available estimate",
+    partial: "Partial estimate",
+    hidden: "Estimate withheld for validation",
+    insufficient: "Insufficient usable coverage",
+    not_processed: "Heat readings available · activity estimate not processed",
+    future: "Not yet observed",
+  })[status] || "No estimate";
 }
 
 function currentMonthHistory() {
@@ -416,9 +429,13 @@ function renderObservationCalendar() {
     const rate = record?.activity_rate;
     const available = typeof rate === "number" && Number.isFinite(rate);
     const classes = ["cal-day", "activity-day"];
-    const notes = [available ? `${historyPercent(rate)} burning activity` : historyStatusWords(record?.activity_status)];
+    const notes = [available ? `${historyPercent(rate)} burning activity` : historyStatusWords(record?.activity_status, record)];
     if (available) classes.push(rate > 0 ? "has-activity" : "measured-zero");
     else classes.push("no-estimate");
+    if (record?.heat_status === "readings") {
+      classes.push("heat");
+      notes.push(`${record.heat_count || 0} satellite heat readings`);
+    }
     if (record?.activity_status === "partial") {
       classes.push("partial");
       notes.push("partial estimate");
@@ -433,10 +450,13 @@ function renderObservationCalendar() {
     }
     const disabled = iso > today;
     const label = `${formatObservationDay(iso)}${notes.length ? `, ${notes.join(", ")}` : ""}`;
+    const rateText = available
+      ? historyPercent(rate)
+      : (record?.heat_status === "readings" ? String(record.heat_count || "·") : "—");
     cells.push(
       `<button type="button" class="${classes.join(" ")}" data-day="${iso}" aria-label="${escapeHtml(label)}"`
       + ` aria-pressed="${iso === selected}" style="--activity-strength:${available ? 10 + Math.min(1, Math.max(0, rate)) * 28 : 0}%"`
-      + `${disabled ? " disabled" : ""}><span>${day}</span><span class="cal-day-rate">${available ? historyPercent(rate) : "—"}</span></button>`
+      + `${disabled ? " disabled" : ""}><span>${day}</span><span class="cal-day-rate">${rateText}</span></button>`
     );
   }
   grid.innerHTML = cells.join("");
@@ -514,7 +534,7 @@ function renderHistoryChart() {
       <title>${escapeHtml(description)}</title>
       <rect class="history-chart-hit" x="${x}" y="20" width="${band}" height="138"/>
       ${available ? `<rect class="history-chart-value${row.activity_rate === 0 ? " zero" : ""}" x="${x + (band - barWidth) / 2}" y="${bottom - barHeight}" width="${barWidth}" height="${barHeight}" rx="1"/>`
-        : `<text class="history-chart-gap" x="${x + band / 2}" y="${bottom - 3}" text-anchor="middle">${future ? "" : "·"}</text>`}
+        : ""}
       ${annual || index === 0 || (index + 1) % 5 === 0 || index === rows.length - 1 ? `<text class="history-chart-axis" x="${x + band / 2}" y="172" text-anchor="middle">${label}</text>` : ""}
     </g>`);
   });
@@ -554,10 +574,12 @@ function renderDaySummary() {
     noteNode.textContent = "The request failed. Use Retry history to try again.";
   } else if (record?.activity_rate != null) {
     countNode.textContent = historyPercent(record.activity_rate);
-    noteNode.textContent = `${historyStatusWords(record.activity_status)}. ${record.estimated_cell_days} of ${record.eligible_cell_days} observed grid squares have a usable estimate for this day.`;
+    noteNode.textContent = `${historyStatusWords(record.activity_status, record)}. ${record.estimated_cell_days} of ${record.eligible_cell_days} observed grid squares have a usable estimate for this day.`;
   } else if (state.box) {
-    countNode.textContent = "No estimate";
-    noteNode.textContent = historyStatusWords(record?.activity_status);
+    countNode.textContent = record?.heat_status === "readings"
+      ? `Satellite heat · ${record.heat_count || 0}`
+      : "No estimate";
+    noteNode.textContent = historyStatusWords(record?.activity_status, record);
   } else {
     countNode.textContent = "No land selected";
     noteNode.textContent = "Search for a place or draw a boundary on the globe first.";

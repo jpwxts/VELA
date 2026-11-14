@@ -1,6 +1,6 @@
 // Choosing land (search, drawing, saved box) and checking it for heat.
 
-function updateDayWords() {
+function updateDayWords(options = {}) {
   const node = document.querySelector("#day-words");
   const value = dayInput.value;
   if (!value) {
@@ -14,7 +14,9 @@ function updateDayWords() {
   renderObservationCalendar();
   renderDaySummary();
   updateSelectionBanner();
-  if (state.polygon && state.polygon.length >= 4) {
+  // Saved public snapshots set the day before renderLandCheck; skip the live
+  // re-check so resetLandResult cannot clear the region filter mid-load.
+  if (!options.skipCheck && state.polygon && state.polygon.length >= 4 && !state.publicSnapshot) {
     // Date changes re-check heat for the Philippine calendar day while keeping
     // the fire-weather card tied to the latest check-land forecast.
     checkLand();
@@ -22,10 +24,57 @@ function updateDayWords() {
   if (previousMonth !== state.calendarMonth && state.panelTab === "weekly" && state.historyView === "present") loadMonthlyHistory();
 }
 
+function setMapMode(mode) {
+  state.mapMode = mode || "live";
+  document.querySelectorAll("[data-map-mode]").forEach((button) => {
+    const on = button.dataset.mapMode === state.mapMode;
+    button.classList.toggle("on", on);
+    button.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  const returnLive = document.querySelector("#return-live");
+  if (returnLive) returnLive.hidden = state.mapMode === "live";
+  if (state.mapMode === "live" && state.phToday) {
+    dayInput.value = state.phToday;
+    document.querySelector("#year").value = state.phToday.slice(0, 4);
+    updateDayWords();
+  }
+  if (state.mapMode === "history") {
+    openLandPanel({ tab: "weekly", focus: false });
+    state.historyView = "present";
+    setHistoryView("present");
+  }
+  if (state.mapMode === "saved") {
+    loadPhilippinesPublicExample({ day: "2026-11-07", region: "philippines" });
+  }
+}
+
+function renderLiveTimestamps(payload) {
+  const node = document.querySelector("#live-timestamps");
+  if (!node) return;
+  const stamps = payload?.timestamps || state.liveTimestamps || {};
+  const lines = [
+    stamps.latest_satellite_observation_at
+      ? `Latest satellite observation · ${stamps.latest_satellite_observation_at}`
+      : null,
+    stamps.last_successful_source_check_at
+      ? `Last successful source check · ${stamps.last_successful_source_check_at}`
+      : null,
+    stamps.estimates_processed_through
+      ? `Estimates processed through · ${stamps.estimates_processed_through}`
+      : "Estimates processed through · none yet for this Philippine selection",
+  ].filter(Boolean);
+  node.hidden = lines.length === 0;
+  node.textContent = lines.join(" · ");
+  state.liveTimestamps = stamps;
+}
+
 async function loadStatus() {
   const response = await fetch("/api/status");
   if (!response.ok) return;
   const payload = await response.json();
+  if (payload.live?.ph_today) state.phToday = payload.live.ph_today;
+  if (payload.live?.timestamps) state.liveTimestamps = payload.live.timestamps;
+  renderLiveTimestamps({ timestamps: state.liveTimestamps });
   const metric = document.querySelector("#metric");
   if (metric) metric.textContent = payload.metric;
   const note = document.querySelector("#metric-note");
@@ -514,6 +563,7 @@ function renderLandCheck(payload) {
   }
   // Land summary reuses the same forecast object as Weather Outlook.
   applyLandSummaryFromCheck(payload);
+  renderLiveTimestamps(payload);
   openLandPanel({ tab: state.panelTab || "where", focus: false });
   updateSelectionBanner();
   drawLandCutout(synthetic.hotspot_areas.areas || []);
@@ -582,4 +632,53 @@ document.querySelector("#draw").addEventListener("click", startPolygonDraw);
 document.querySelector("#finish-draw").addEventListener("click", finishPolygonDraw);
 document.querySelector("#clear-area").addEventListener("click", clearLand);
 document.querySelector("#confirm").addEventListener("click", () => checkLand());
+document.querySelectorAll("[data-map-mode]").forEach((button) => {
+  button.addEventListener("click", () => setMapMode(button.dataset.mapMode));
+});
+document.querySelector("#return-live")?.addEventListener("click", async () => {
+  state.publicSnapshot = null;
+  state.savedExample = false;
+  if (typeof syncPhilippinesRegionFilters === "function") syncPhilippinesRegionFilters(null);
+  // Re-fetch Philippine today so the demo day cannot stick on Live.
+  try {
+    const response = await fetch("/api/live/today");
+    if (response.ok) {
+      const payload = await response.json();
+      if (payload.ph_today) state.phToday = payload.ph_today;
+    }
+  } catch (_error) {
+    // keep state.phToday / manilaTodayIso fallback below
+  }
+  if (!state.phToday && typeof manilaTodayIso === "function") state.phToday = manilaTodayIso();
+  setMapMode("live");
+  if (state.polygon && state.polygon.length >= 4) checkLand({ label: state.landLabel || "Your land" });
+});
+document.querySelector("#refresh-live")?.addEventListener("click", async () => {
+  setMapMode("live");
+  if (state.phToday) {
+    dayInput.value = state.phToday;
+    document.querySelector("#year").value = state.phToday.slice(0, 4);
+  }
+  const banner = document.querySelector("#fixture-banner");
+  if (banner) {
+    banner.hidden = false;
+    banner.textContent = "Refreshing Philippine Live sources…";
+  }
+  let refreshMeta = null;
+  try {
+    const response = await fetch("/api/live/refresh", { method: "POST" });
+    if (response.ok) refreshMeta = await response.json();
+  } catch (_error) {
+    // Fall through to a land check even if the national refresh fails.
+  }
+  state.lastLiveRefresh = refreshMeta;
+  if (state.polygon && state.polygon.length >= 4) checkLand({ label: state.landLabel || "Your land" });
+  else await loadStatus();
+  if (banner && refreshMeta) {
+    banner.hidden = false;
+    banner.textContent =
+      `Live refresh · PH ${refreshMeta.ph_date || state.phToday || "today"} · `
+      + `${refreshMeta.written ?? 0} store writes · checked ${refreshMeta.checked_at || "just now"}`;
+  }
+});
 document.querySelector("#day").addEventListener("change", updateDayWords);

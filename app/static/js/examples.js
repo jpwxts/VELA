@@ -65,6 +65,15 @@ async function loadPhilippinesPublicExample(options = {}) {
   const day = options.day || "2026-11-07";
   const region = options.region || "philippines";
   const requestId = ++state.landRequestId;
+  // Saved examples never rewrite what Live treats as today.
+  state.mapMode = "saved";
+  document.querySelectorAll("[data-map-mode]").forEach((button) => {
+    const on = button.dataset.mapMode === "saved";
+    button.classList.toggle("on", on);
+    button.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  const returnLive = document.querySelector("#return-live");
+  if (returnLive) returnLive.hidden = false;
   state.publicSnapshot = { day, region };
   state.savedExample = true;
   openLandPanel({ tab: "where", focus: false });
@@ -81,7 +90,7 @@ async function loadPhilippinesPublicExample(options = {}) {
     if (requestId !== state.landRequestId) return;
     if (!response.ok) throw new Error(payload.detail || "Snapshot failed to load");
     dayInput.value = payload.observation_date || day;
-    updateDayWords();
+    updateDayWords({ skipCheck: true });
     const ring = payload.display_ring || payload.polygon?.coordinates?.[0] || [];
     if (ring.length) setPolygon(ring, payload.label || "Philippines snapshot");
     else if (payload.bbox) {
@@ -104,6 +113,8 @@ async function loadPhilippinesPublicExample(options = {}) {
     state.showIndividuals = true;
     const individuals = document.querySelector("#show-individuals");
     if (individuals) individuals.checked = true;
+    // Keep snapshot metadata through renderLandCheck so region filters stay on.
+    state.publicSnapshot = { day, region };
     renderLandCheck(payload);
     syncPhilippinesRegionFilters(region);
     const counts = payload.counts || {};

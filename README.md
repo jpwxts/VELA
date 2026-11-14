@@ -13,6 +13,29 @@ You draw or search for a plot of land, pick a date, and explore four questions i
 
 Vela keeps **satellite heat**, **fire-danger weather**, **weekly activity estimates**, and **official wildfire reports** as separate answers. It never turns FWI, hotspot counts, MODIS confidence, or the harmonization model into a wildfire probability.
 
+### Live is the default (Philippines)
+
+The map opens in **Live**. Drawing land in Mindanao or elsewhere in the Philippines automatically uses today’s **Asia/Manila** calendar day (`GET /api/live/today`). Modes:
+
+| Mode | What it does |
+| --- | --- |
+| **Live** | Philippine today · FIRMS feeds · writes `data/observations/philippines.sqlite` |
+| **History** | Opens the monthly calendar/chart for the selection |
+| **Saved example** | November 7 2026 public snapshot (does **not** change Live’s today) |
+
+Controls: **Refresh now** (national FIRMS refresh into the store) and **Return to live**.
+
+**Background refresh (browser-independent):**
+
+```bash
+conda activate vela
+python -m scripts.refresh_philippines_firms --loop --interval-minutes 30
+```
+
+Requires `FIRMS_MAP_KEY` in `.env`. Persistent store: `data/observations/philippines.sqlite` (shared by worker and web). At Philippine midnight, Live advances because refresh always queries `philippine_today()`.
+
+**Timestamps shown separately:** latest satellite observation · last successful source check · estimates processed through.
+
 ### Draw-land activity formula
 
 When eligible inputs exist for the drawn boundary:
@@ -26,17 +49,32 @@ Activity (%) = 100 × (sum of Aqua activity indicators + sum of eligible calibra
 - Eligible Suomi-NPP contributes its frozen random-forest probability when required inputs exist.
 - Calibration-pending NOAA-20/21 readings stay visible as raw evidence and do not enter the total.
 - Each contributing square-day counts once. Partial coverage is labeled partial and uses only the estimated denominator.
+- When the denominator is zero, Vela explains the missing input and still shows weather + satellite findings.
 
-**Validation (satellite model, not weather):** weekly activity-share mean absolute error is **0.66 percentage points** across four development weeks. Philippine locations are supported for place labels and Asia/Manila times; they are **not** in the training sample, and no Philippine held-out harmonization error has been measured. Weather-forecast performance stays separate. Vela never generates a wildfire probability or converts weekly error into an accuracy percentage.
+**Development validation (not Philippines):** weekly activity-share mean absolute error is **0.66 percentage points** across four development weeks.
 
-### Exact demo clicks (draw-land vs Weather Outlook)
+**Philippine evaluation (“Agreement with Aqua in the Philippines”):** run `python -m scripts.evaluate_philippines_agreement`. Current result: **0 Philippine paired cell-days** in `paired_cells.parquet`, so weekly MAE and Brier score are **undefined**. Smallest archive candidate set remains the a-priori 2019-03-06 Mindanao quartet (**170 243 619 B**, not downloaded). See `data/metrics/philippines_agreement_with_aqua.json`. Wildfire confirmation is a separate evaluation.
 
-1. **Burn activity** → **Draw area** a small polygon in the Philippines (for example Negros Occidental near 10.66°N, 123.03°E).
-2. Keep the observation date as today or a historical Philippine day.
-3. Stay on **Burn activity**: the land summary should show **Fire-weather outlook · Low** (or the same GWIS class as Weather Outlook), with forecast point, valid date, source, and drivers — even when burning activity still says **No estimate yet**.
-4. Open **Weather Outlook**: headline class and valid date must match the land-summary fire-weather card for the same point.
-5. Satellite heat loads independently inside the polygon (Asia/Manila pass times). A missing estimate must not hide real detections.
-6. Redraw a second polygon before the first check finishes: the first plot’s forecast must not appear on the second plot.
+### Exact demo clicks
+
+**Live draw-land**
+
+1. Fresh start → **Live** → draw a Maguindanao polygon around **6.85779°N, 124.05852°E**.
+2. Observation date becomes Philippine today automatically.
+3. Land summary shows fire-weather (same class/point/valid time as **Weather Outlook**), satellite heat clipped to the polygon, and timestamps — even when activity says **No estimate yet**.
+
+**Saved snapshot**
+
+1. **Saved example** or **Philippines · 7 Nov 2026**.
+2. **All Philippines → All Mindanao → All Philippines**: **47 → 12 → 47**. Masbate disappears and returns.
+3. Nationwide saved readings: **43** on 7 Nov PH time, **4** on 8 Nov PH time.
+4. Click Maguindanao cell `2393:174` → NOAA-21 · **12:33 PH** / 04:33 UTC.
+5. **Return to live** restores Philippine today without keeping the saved day as Live.
+
+**History**
+
+1. With land selected → **History** → November 2026.
+2. Days with heat show satellite reading counts; estimate gaps stay gaps (never drawn as zero).
 
 ## Explore the Philippine Satellite Hotspot Map
 
