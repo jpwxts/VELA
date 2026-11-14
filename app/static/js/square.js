@@ -278,6 +278,61 @@ function setPanelMode(mode) {
   }
 }
 
+function renderOnsetForecast(payload) {
+  const value = document.querySelector("#onset-value");
+  const meta = document.querySelector("#onset-meta");
+  const outcome = document.querySelector("#onset-outcome");
+  const note = document.querySelector("#onset-note");
+  const label = document.querySelector("#onset-label");
+  if (!value) return;
+  if (label && payload?.label) label.textContent = payload.label;
+  if (payload?.status === "issued" && payload.probability_percent != null) {
+    value.textContent = `${payload.probability_percent}%`;
+    value.classList.remove("is-words");
+    meta.textContent = [
+      payload.issue_time_manila ? `Issued ${payload.issue_time_manila}` : "",
+      payload.model_version ? `Model ${payload.model_version}` : "",
+      payload.historical_simulation ? "Historical simulation (not an issued Vela forecast)" : "Issued Vela forecast",
+    ].filter(Boolean).join(" · ");
+  } else {
+    value.textContent = "Not published";
+    value.classList.add("is-words");
+    meta.textContent = [
+      payload?.issue_time_manila ? `Issue slot ${payload.issue_time_manila}` : "",
+      payload?.status || "",
+    ].filter(Boolean).join(" · ");
+  }
+  const out = payload?.outcome || {};
+  outcome.textContent = out.label
+    ? `Later outcome · ${out.label}`
+    : "Later outcome · unknown until verified reporting coverage exists";
+  note.textContent = payload?.reason
+    || payload?.next_step
+    || "Separate from satellite heat, fire weather, and MODIS–VIIRS harmonization.";
+}
+
+async function loadOnsetForecast(cellId, issueDate) {
+  const value = document.querySelector("#onset-value");
+  if (value) {
+    value.textContent = "Checking…";
+    value.classList.add("is-words");
+  }
+  try {
+    const params = new URLSearchParams({ cell_id: cellId, scope: "mindanao" });
+    if (issueDate) params.set("issue_date", String(issueDate).slice(0, 10));
+    const response = await fetch(`/api/onset/forecast?${params}`);
+    const payload = await response.json();
+    renderOnsetForecast(payload);
+    state.lastOnsetForecast = payload;
+  } catch (_error) {
+    renderOnsetForecast({
+      status: "unavailable",
+      reason: "Onset forecast could not be loaded for this square.",
+      outcome: { label: "Outcome unknown" },
+    });
+  }
+}
+
 async function loadFindingsForArea(matched, options = {}) {
   const members = matched.members || [];
   const bounds = matched.bounds || {};
@@ -377,6 +432,9 @@ function renderFindingsPanel(matched, findings) {
   }
   if (typeof renderResearchModel === "function") {
     renderResearchModel(model);
+  }
+  if (matched.cell_id) {
+    loadOnsetForecast(matched.cell_id, matched.observation_day || dayInput.value);
   }
 }
 

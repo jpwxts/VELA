@@ -1,0 +1,57 @@
+{
+  "name": "philippines_onset_split_v1",
+  "registered_before_fitting": true,
+  "registered_at_utc": "2026-11-14T13:00:00+00:00",
+  "scope": "mindanao",
+  "unit": "5 km cell × Philippine local day forecast issue",
+  "leakage_controls": [
+    "All records of the same incident stay in one split",
+    "Adjacent 5 km cells of the same onset event stay in one split",
+    "Overlapping 24-hour valid windows for the same fire stay in one split",
+    "Imputation, scaling, feature selection, and resampling fit on training folds only",
+    "Calibration and test preserve natural wildfire frequency (no resampling)"
+  ],
+  "existing_harmonization_reserves_untouched": [
+    "data/manifests/validation_primary.csv",
+    "data/manifests/validation_reserves.csv",
+    "Reveal 2023–2024",
+    "Pantanal transfer"
+  ],
+  "geographic_holdout": {
+    "train_provinces_provisional": [
+      "Maguindanao del Norte",
+      "Maguindanao del Sur",
+      "Cotabato",
+      "Sultan Kudarat",
+      "South Cotabato",
+      "Sarangani"
+    ],
+    "validation_provinces_provisional": [
+      "Bukidnon",
+      "Lanao del Sur",
+      "Lanao del Norte"
+    ],
+    "test_provinces_provisional": [
+      "Davao del Norte",
+      "Davao de Oro",
+      "Davao Oriental",
+      "Davao del Sur",
+      "Davao Occidental",
+      "Davao City"
+    ],
+    "note": "Province lists are pre-registered before any onset model fitting. They are geographic partitions only; they do not imply that labeled starts currently exist."
+  },
+  "temporal_holdout": {
+    "train_issue_dates_ph": "≤ 2023-12-31",
+    "validation_issue_dates_ph": "2024-01-01 .. 2024-12-31",
+    "test_issue_dates_ph": "≥ 2025-01-01",
+    "rule": "Later Philippine dates are reserved before fitting. A fire that starts near a split boundary is assigned entirely by incident id."
+  },
+  "status": "manifest_ready_labels_absent",
+  "row_counts": {
+    "train": 0,
+    "validation": 0,
+    "test": 0,
+    "reason": "No usable unique wildfire starts or credible negative square-days are present in the label audit."
+  }
+}

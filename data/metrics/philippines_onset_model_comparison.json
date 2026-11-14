@@ -1,0 +1,64 @@
+{
+  "status": "refused_insufficient_labels",
+  "recorded_at_utc": "2026-11-14T13:04:58.216451+00:00",
+  "target": {
+    "question": "Estimated probability that at least one new wildfire will start in this 5 km square during the next 24 hours.",
+    "issue_time": "00:00 Asia/Manila",
+    "valid_interval": "Philippine local day [issue_date, issue_date + 1 day)",
+    "unit": "5 km EASE-Grid 2.0 land square",
+    "positive": "Verified new wildfire onset inside the square during the valid interval",
+    "negative": "No verified onset AND reporting coverage is adequate for that square-day; otherwise outcome is unknown (not a negative).",
+    "not_this_target": [
+      "FIRMS / MODIS / VIIRS heat detections",
+      "GWIS / FWI fire-danger class",
+      "MODIS\u2013VIIRS harmonization activity percentage",
+      "Structural or vehicle fires without wildfire confirmation",
+      "Agricultural burning unless independently labeled as wildfire onset",
+      "Ongoing incidents that started before issue time"
+    ]
+  },
+  "feature_schema_version": "onset_features_v1",
+  "feature_names": [
+    "heat_detections_in_cell_prior_24h",
+    "heat_detections_neighbor_prior_24h",
+    "hours_since_last_usable_pass",
+    "usable_pass_count_prior_72h",
+    "observation_coverage_prior_72h",
+    "rainfall_mm_prior_24h_as_of_issue",
+    "days_since_rain_as_of_issue",
+    "forecast_temp_c_next_24h",
+    "forecast_rh_percent_next_24h",
+    "forecast_wind_kmh_next_24h",
+    "month_sin",
+    "month_cos"
+  ],
+  "split_manifest": "data/manifests/philippines_onset_split.json",
+  "split_status": "manifest_ready_labels_absent",
+  "split_row_counts": {
+    "train": 0,
+    "validation": 0,
+    "test": 0,
+    "reason": "No usable unique wildfire starts or credible negative square-days are present in the label audit."
+  },
+  "audit_path": "data/metrics/philippines_onset_label_audit.json",
+  "usable_unique_wildfire_starts": 0,
+  "square_days_with_credible_reporting_coverage": 0,
+  "negatives_supported": false,
+  "classifiers_prepared": [
+    "logistic_regression",
+    "decision_tree",
+    "random_forest",
+    "extra_trees",
+    "hist_gradient_boosting",
+    "calibrated_svm",
+    "regional_seasonal_event_rate_baseline"
+  ],
+  "selection_rule": "Choose on validation by Brier score relative to the seasonal baseline and calibration; report PR/F1/accuracy/confusion on the same cases. Do not choose by how close accuracy is to F1. Evaluate the winner once on the untouched holdout.",
+  "tuning_budget": "Resource-conscious: \u2264 24 validation trials per classifier family on laptop-class hardware; no GPU required.",
+  "winner": null,
+  "holdout_evaluation": null,
+  "publish_probability": false,
+  "reason": "0 usable unique wildfire starts and 0 square-days with credible reporting coverage. Negatives are not supported. Vela will not publish an onset percentage.",
+  "next_runnable_step": "File a Mindanao onset CSV/GeoJSON under data/labels/philippines_onset/ with the missing fields above (BFP FOI microdata or DENR/LDRRMO extract), then re-run `python -m scripts.audit_philippines_onset_labels` and `python -m scripts.train_philippines_onset`.",
+  "harmonization_model_untouched": true
+}

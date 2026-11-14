@@ -276,6 +276,15 @@
               <ul id="area-pass-list" class="week-pass-list"></ul>
               <p id="area-model-note" class="quiet"></p>
 
+              <section id="onset-block" class="sub-block" aria-live="polite">
+                <h5>Wildfire-onset forecast (next 24 hours)</h5>
+                <p id="onset-label" class="reading-label">Estimated chance of a new wildfire in the next 24 hours</p>
+                <p id="onset-value" class="reading-value is-words">Checking…</p>
+                <p id="onset-meta" class="quiet"></p>
+                <p id="onset-outcome" class="quiet"></p>
+                <p id="onset-note" class="quiet"></p>
+              </section>
+
               <section id="replay-block" class="sub-block">
                 <div class="section-head">
                   <h5>Replay observations</h5>
@@ -492,6 +501,7 @@
               <details class="research-q">
                 <summary>What would confirm a wildfire?</summary>
                 <p id="research-q-weekly">An official wildfire or fire report, on-the-ground confirmation, or a responsible agency bulletin confirms a wildfire. Satellite heat and fire-danger ratings alone do not.</p>
+                <p id="research-onset-note" class="quiet">The 24-hour wildfire-onset forecast is a separate product from heat detections, fire weather, and MODIS–VIIRS harmonization. Vela publishes an onset percentage only when verified Mindanao onset labels and reporting coverage exist.</p>
                 <details class="tech-details">
                   <summary>Technical details</summary>
                   <p id="research-q-test" class="quiet">Weekly activity estimates measure how often grid squares showed burning activity on days with usable observations or model estimates. Development validation compares those estimates with held-out satellite observations; independent final testing is recorded separately when completed.</p>

@@ -14,6 +14,7 @@ data/preparedness/
 data/jobs/
 data/observations/*.sqlite
 data/observations/*.sqlite-*
+!data/observations/.gitkeep
 
 # Sensor products and binaries are ignored globally…
 *.hdf

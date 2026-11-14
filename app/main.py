@@ -275,6 +275,77 @@ def live_refresh(ph_date: str | None = None):
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
+@app.get("/api/onset/forecast")
+def onset_forecast(
+    cell_id: str = Query(...),
+    issue_date: str | None = None,
+    scope: str = Query("mindanao"),
+):
+    """24-hour wildfire-onset forecast for one 5 km square (Philippine midnight issue)."""
+
+    from vela.onset_forecast import forecast_for_cell
+
+    return forecast_for_cell(cell_id=cell_id, issue_date=issue_date, scope=scope)
+
+
+@app.get("/api/onset/features")
+def onset_features(
+    cell_id: str = Query(...),
+    issue_date: str | None = None,
+):
+    """Issue-time feature snapshot for auditing what Vela knew at Philippine midnight."""
+
+    from vela.onset_features import build_issue_time_features
+    from vela.onset_forecast import philippine_issue_date
+    from vela.observation_store import ObservationStore
+
+    day = (issue_date or philippine_issue_date().isoformat())[:10]
+    detections = []
+    try:
+        store = ObservationStore()
+        # Pull nearby Philippine days so prior-24h/72h windows can be reconstructed.
+        for offset in (-2, -1, 0):
+            from datetime import date, timedelta
+
+            stamp = (date.fromisoformat(day) + timedelta(days=offset)).isoformat()
+            detections.extend(store.detections_for_ph_date(stamp))
+    except Exception:  # noqa: BLE001
+        detections = []
+    return build_issue_time_features(
+        cell_id=cell_id,
+        issue_date_ph=day,
+        detections=detections,
+        weather_forecast=None,
+        rainfall_history=None,
+    )
+
+
+@app.get("/api/onset/audit")
+def onset_audit():
+    from vela.onset_forecast import load_audit
+
+    return load_audit()
+
+
+class OnsetPolygonRequest(BaseModel):
+    cell_ids: list[str] = Field(default_factory=list)
+    issue_date: str | None = None
+    scope: str = "mindanao"
+
+
+@app.post("/api/onset/polygon-summary")
+def onset_polygon_summary(body: OnsetPolygonRequest):
+    """Square-level onset states for a drawn polygon; never averages into a polygon %."""
+
+    from vela.onset_forecast import forecast_for_cell, polygon_onset_summary
+
+    cells = [
+        forecast_for_cell(cell_id=str(cell_id), issue_date=body.issue_date, scope=body.scope)
+        for cell_id in body.cell_ids
+    ]
+    return {"cells": cells, "summary": polygon_onset_summary(cells)}
+
+
 @app.get("/api/regions")
 def example_regions():
     return [

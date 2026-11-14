@@ -55,6 +55,39 @@ Activity (%) = 100 × (sum of Aqua activity indicators + sum of eligible calibra
 
 **Philippine evaluation (“Agreement with Aqua in the Philippines”):** run `python -m scripts.evaluate_philippines_agreement`. Current result: **0 Philippine paired cell-days** in `paired_cells.parquet`, so weekly MAE and Brier score are **undefined**. Smallest archive candidate set remains the a-priori 2019-03-06 Mindanao quartet (**170 243 619 B**, not downloaded). See `data/metrics/philippines_agreement_with_aqua.json`. Wildfire confirmation is a separate evaluation.
 
+### Philippine 24-hour wildfire-onset forecast (Mindanao-first)
+
+Product question (when labels exist): *What is the estimated probability that at least one new wildfire will start in this 5 km square during the next 24 hours?*
+
+| Piece | Location |
+| --- | --- |
+| Label audit | `data/metrics/philippines_onset_label_audit.json` |
+| Split (registered before fitting) | `data/manifests/philippines_onset_split.json` |
+| Feature schema | `vela/onset_features.py` (`onset_features_v1`) |
+| Six-model comparison harness | `vela/onset_models.py` + `scripts/train_philippines_onset.py` |
+| Issued-forecast store | `data/observations/philippines_onset.sqlite` (write-once per cell×day) |
+| Calendar / square API | `GET /api/onset/forecast?cell_id=…` |
+
+**Target & issue time.** One forecast per 5 km land square, issued at **00:00 Asia/Manila**, valid for the following Philippine day. Live satellite heat may update after midnight; the issued onset forecast does not. Historical simulations must be labeled separately from forecasts actually issued by Vela.
+
+**Data audit (current).** Usable unique wildfire starts: **0**. Square-days with credible reporting coverage for negatives: **0**. BFP eFOI and DENR/LDRRMO sources are documented in the audit; none are mounted as open geocoded onset microdata in this repo. FIRMS heat is available as issue-time context only and is **not** an onset label. Negatives are unsupported until reporting coverage exists. Stronger “onset” wording is blocked; at best an FOI ingest would support “reported fire incident” until onset≠discovery is verified.
+
+**Split.** Geographic Mindanao province partitions and later-date holdouts are pre-registered in the split manifest. Same-incident / adjacent-cell / overlapping-window leakage controls are listed there. Harmonization reserved sets stay untouched.
+
+**Six classifiers (fair comparison when labels exist).** Logistic regression, decision tree, random forest, Extra Trees, histogram gradient boosting, calibrated SVM, plus a regional seasonal event-rate baseline. Selection uses validation **Brier score vs baseline** (not accuracy≈F1). Thresholds are chosen on validation; holdout is scored once afterward. Today training **refuses** (`refused_insufficient_labels`) and publishes **no** onset percentage.
+
+**Serving rules.** The square panel shows “Estimated chance of a new wildfire in the next 24 hours” as **Not published** with the audit reason. Missing dates get a specific reason. Vela never fills onset gaps with 0%, an FWI class, or the harmonization model. For a drawn polygon, square states may be listed and the highest estimated square identified; their average/maximum is never the polygon-wide wildfire chance.
+
+```bash
+conda activate vela
+python -m scripts.audit_philippines_onset_labels
+python -m scripts.train_philippines_onset
+python -m scripts.evaluate_philippines_onset
+python -m pytest tests/test_philippines_onset.py -q
+```
+
+**Next runnable step after labels arrive.** File a Mindanao onset table under `data/labels/philippines_onset/` with `incident_id`, wildfire class, lat/lon, onset time (Asia/Manila), ongoing-vs-new, and square-day reporting coverage; re-run the audit and train scripts.
+
 ### Exact demo clicks
 
 **Live draw-land (verified 14 November 2026 Asia/Manila)**
@@ -83,7 +116,8 @@ Evidence: `data/metrics/mindanao_live_feed_probe.json`.
 2. **All Philippines → All Mindanao → All Philippines**: **47 → 12 → 47**. Masbate disappears and returns.
 3. Nationwide saved readings: **43** on 7 Nov PH time, **4** on 8 Nov PH time.
 4. Click Maguindanao cell `2393:174` → NOAA-21 · **12:33 PH** / 04:33 UTC.
-5. **Return to live** restores Philippine today without keeping the saved day as Live.
+5. In the square panel, open **Wildfire-onset forecast (next 24 hours)** → **Not published** (0 verified onset labels). Trace with `GET /api/onset/forecast?cell_id=2393:174&issue_date=2026-11-07` and `GET /api/onset/features?cell_id=2393:174&issue_date=2026-11-07`.
+6. **Return to live** restores Philippine today without keeping the saved day as Live.
 
 **History / calendar estimate**
 
