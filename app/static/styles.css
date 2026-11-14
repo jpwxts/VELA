@@ -926,6 +926,10 @@ details[open] > summary::before { transform: translateY(-2px) rotate(45deg); }
 .hours-frame:has(.hours-strip:empty) .hours-nav { display: none; }
 .hours-frame + .quiet { margin-top: 8px; }
 
+/* Heat-dot details take the summary's place in the card, so they start flush with its top. */
+#cell-detail { margin-top: 0; padding-top: 0; border-top: 0; }
+.back-link { display: block; margin: 0 0 12px; }
+
 /* burn activity content */
 
 .examples { display: grid; gap: 8px; }

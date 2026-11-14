@@ -194,7 +194,12 @@ document.querySelector("#show-individuals").addEventListener("change", (event) =
   state.showIndividuals = event.target.checked;
   renderIndividuals(state.lastPayload);
 });
-document.querySelector("#sheet-close").addEventListener("click", closeAreaPanel);
+document.querySelector("#sheet-close").addEventListener("click", () => {
+  const hadLand = Boolean(state.polygon);
+  closeAreaPanel();
+  if (hadLand) clearLand();
+});
+document.querySelector("#cell-back")?.addEventListener("click", leaveCellDetail);
 document.querySelector("#copy-coords")?.addEventListener("click", copyPlaceCoordinates);
 document.querySelector("#year").addEventListener("change", loadCalendar);
 document.querySelector("#export").addEventListener("click", (event) => {
@@ -492,6 +497,7 @@ async function searchPlace() {
       // Place search starts from a rectangle visitors can edit into a tighter plot.
       setPolygonFromBox(state.box, place.name);
       openLandPanel({ tab: "where", focus: false });
+      checkLand();
     });
     item.append(button);
     list.append(item);
@@ -741,6 +747,8 @@ function finishPolygonDraw() {
   }
   setPolygon(draft, "Drawn land");
   openLandPanel({ tab: "where", focus: false });
+  // There is no Check button beside the summary: selecting land checks it.
+  checkLand();
 }
 
 function selectedPlatforms() {
@@ -2021,10 +2029,23 @@ function panSelectionClearOfPanel(area) {
 // Selected-square details live in the Burn activity pane; bring them into view.
 function revealCellDetail() {
   openLandPanel({ tab: "where", focus: false });
-  const detail = document.querySelector("#cell-detail");
-  detail.hidden = false;
-  const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  detail.scrollIntoView({ block: "start", behavior: calm ? "auto" : "smooth" });
+  document.querySelector("#land-summary").hidden = true;
+  document.querySelector("#cell-detail").hidden = false;
+  document.querySelector(".card-body")?.scrollTo({ top: 0 });
+}
+
+// Leave a heat dot's details and return to the land summary.
+function leaveCellDetail() {
+  state.selectedArea = null;
+  stopReplayTimer();
+  state.replayPasses = [];
+  clearSelectedSquare();
+  clearMemberPoints();
+  refreshMarkerSelection();
+  document.querySelector("#cell-detail").hidden = true;
+  document.querySelector("#land-summary").hidden = !(state.polygon && state.polygon.length >= 4);
+  document.querySelector(".card-body")?.scrollTo({ top: 0 });
+  positionHours();
 }
 
 function setPanelMode(mode) {
@@ -2337,6 +2358,7 @@ function renderAreaWeather(forecast, observationDay) {
 function closeAreaPanel() {
   document.querySelector("#area-panel").hidden = true;
   document.querySelector("#cell-detail").hidden = true;
+  document.querySelector("#land-summary").hidden = !(state.polygon && state.polygon.length >= 4);
   state.selectedArea = null;
   stopReplayTimer();
   state.replayPasses = [];

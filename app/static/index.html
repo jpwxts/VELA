@@ -9,7 +9,7 @@
   <link rel="preload" href="/static/fonts/source-sans-3-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/static/fonts/source-serif-4-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cesium@1.147.0/Build/Cesium/Widgets/widgets.css">
-  <link rel="stylesheet" href="/static/styles.css?v=atlas-18">
+  <link rel="stylesheet" href="/static/styles.css?v=atlas-19">
 </head>
 <body>
   <header class="masthead">
@@ -122,21 +122,6 @@
               </div>
             </section>
 
-            <details class="fold satellite-details">
-              <summary>Satellites to include</summary>
-              <fieldset>
-                <legend class="visually-hidden">Satellites</legend>
-                <label class="check"><input type="checkbox" value="Aqua" checked> Aqua</label>
-                <label class="check"><input type="checkbox" value="Suomi-NPP" checked> Suomi-NPP</label>
-                <label class="check"><input type="checkbox" value="NOAA-20" checked> NOAA-20</label>
-                <label class="check"><input type="checkbox" value="NOAA-21" checked> NOAA-21</label>
-                <label class="check"><input type="checkbox" value="Terra"> Terra (optional)</label>
-              </fieldset>
-              <div class="action-row">
-                <button id="confirm" type="button" class="primary">Check my land</button>
-              </div>
-            </details>
-
             <div id="land-secondary-content">
             <section class="pane-block land-controls">
               <p id="area-label" class="lede">Search for a place or draw a boundary on the globe, then check it for satellite heat.</p>
@@ -174,7 +159,40 @@
               </section>
             </div>
 
+            <p id="firms-key-banner" class="notice" hidden></p>
+
+            <section class="pane-block examples">
+              <h4>Saved examples</h4>
+              <p class="quiet">These work without a FIRMS key.</p>
+              <button id="try-example" type="button" class="example-button">
+                <strong>California foothills</strong>
+                <span>Competition example with a saved dated forecast</span>
+              </button>
+              <button id="try-zambia" type="button" class="example-button">
+                <strong>Zambia woodland, 2021</strong>
+                <span>Saved weekly burning history</span>
+              </button>
+            </section>
+
+            <details class="fold satellite-details">
+              <summary>Satellites to include</summary>
+              <fieldset>
+                <legend class="visually-hidden">Satellites</legend>
+                <label class="check"><input type="checkbox" value="Aqua" checked> Aqua</label>
+                <label class="check"><input type="checkbox" value="Suomi-NPP" checked> Suomi-NPP</label>
+                <label class="check"><input type="checkbox" value="NOAA-20" checked> NOAA-20</label>
+                <label class="check"><input type="checkbox" value="NOAA-21" checked> NOAA-21</label>
+                <label class="check"><input type="checkbox" value="Terra"> Terra (optional)</label>
+              </fieldset>
+              <div class="action-row">
+                <button id="confirm" type="button" class="primary">Check my land</button>
+              </div>
+            </details>
+
+            </div>
+
             <section id="cell-detail" class="pane-block cell-detail" hidden>
+              <button type="button" id="cell-back" class="link-button back-link">Back</button>
               <h4>Selected square</h4>
               <section id="where-block" class="where-block" aria-live="polite">
                 <p id="area-place" class="place-name" hidden></p>
@@ -233,23 +251,6 @@
               <div id="area-points" class="area-points" hidden></div>
               <button type="button" id="show-detected-areas" class="filter-button" hidden>Show detected areas</button>
             </section>
-
-            <p id="firms-key-banner" class="notice" hidden></p>
-
-            <section class="pane-block examples">
-              <h4>Saved examples</h4>
-              <p class="quiet">These work without a FIRMS key.</p>
-              <button id="try-example" type="button" class="example-button">
-                <strong>California foothills</strong>
-                <span>Competition example with a saved dated forecast</span>
-              </button>
-              <button id="try-zambia" type="button" class="example-button">
-                <strong>Zambia woodland, 2021</strong>
-                <span>Saved weekly burning history</span>
-              </button>
-            </section>
-
-            </div>
           </section>
 
           <!-- History -->
@@ -447,6 +448,6 @@
   <script>window.CESIUM_BASE_URL = "https://cdn.jsdelivr.net/npm/cesium@1.147.0/Build/Cesium/";</script>
   <script src="https://cdn.jsdelivr.net/npm/cesium@1.147.0/Build/Cesium/Cesium.js"></script>
   <script src="/static/globe.js?v=atlas-17"></script>
-  <script src="/static/app.js?v=atlas-18"></script>
+  <script src="/static/app.js?v=atlas-19"></script>
 </body>
 </html>
