@@ -409,6 +409,18 @@ async function checkLand(options = {}) {
     setDefaultPlatforms();
     platforms = [...DEFAULT_PLATFORMS];
   }
+  // Live Philippine plots: omit date so the server uses Asia/Manila today.
+  // History / saved examples keep an explicit dayInput value.
+  const livePhilippine =
+    state.mapMode === "live"
+    && !state.savedExample
+    && !state.publicSnapshot
+    && !options.date
+    && !options.forceDate;
+  if (livePhilippine && state.phToday) {
+    dayInput.value = state.phToday;
+    document.querySelector("#year").value = state.phToday.slice(0, 4);
+  }
   const date = dayInput.value;
   document.querySelector("#year").value = date.slice(0, 4);
   const requestId = ++state.landRequestId;
@@ -422,15 +434,16 @@ async function checkLand(options = {}) {
   renderDaySummary();
   openLandPanel({ tab: state.panelTab || "where", focus: false });
   try {
+    const body = {
+      coordinates: state.polygon,
+      platforms,
+      label: options.label || "Your land",
+    };
+    if (!livePhilippine) body.date = options.date || date;
     const response = await fetch("/api/check-land", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        coordinates: state.polygon,
-        date,
-        platforms,
-        label: options.label || "Your land",
-      }),
+      body: JSON.stringify(body),
     });
     const payload = await response.json();
     if (requestId !== state.landRequestId) return;

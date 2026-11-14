@@ -104,15 +104,26 @@ def merge_hotspot_payloads(payloads: list[dict], *, observation_date: str) -> di
                     "status": result.get("status") or "ok",
                     "coverage": result.get("coverage") or "unknown",
                     "product": result.get("product"),
+                    "processing": result.get("processing"),
                     "hotspots": [],
                     "count": 0,
+                    # Track whether every UTC-day piece came from ResponseCache.
+                    "_cache_votes": [],
                 },
             )
             # Prefer an ok/readings status over failed once any day succeeded.
             if result.get("status") == "ok":
                 bucket["status"] = "ok"
+            elif result.get("status") == "no_hotspots" and bucket["status"] not in {"ok"}:
+                bucket["status"] = "no_hotspots"
             elif bucket["status"] != "ok" and result.get("status"):
                 bucket["status"] = result.get("status")
+            if result.get("product"):
+                bucket["product"] = result.get("product")
+            if result.get("processing"):
+                bucket["processing"] = result.get("processing")
+            if "cached" in result:
+                bucket["_cache_votes"].append(bool(result.get("cached")))
             for spot in result.get("hotspots") or []:
                 item = dict(spot)
                 item.setdefault("platform", platform)
@@ -124,7 +135,15 @@ def merge_hotspot_payloads(payloads: list[dict], *, observation_date: str) -> di
                 bucket["hotspots"].append(item)
             bucket["count"] = len(bucket["hotspots"])
 
-    results = [by_platform[name] for name in sorted(by_platform)]
+    results = []
+    for name in sorted(by_platform):
+        row = by_platform[name]
+        votes = row.pop("_cache_votes", [])
+        # True only when every overlapping UTC day was served from cache.
+        row["cached"] = bool(votes) and all(votes)
+        if row["status"] == "ok" and row["count"] == 0:
+            row["status"] = "no_hotspots"
+        results.append(row)
     total = sum(row["count"] for row in results)
     configured = any(payload.get("configured") for payload in payloads) if payloads else False
     return {

@@ -57,11 +57,25 @@ Activity (%) = 100 × (sum of Aqua activity indicators + sum of eligible calibra
 
 ### Exact demo clicks
 
-**Live draw-land**
+**Live draw-land (verified 14 November 2026 Asia/Manila)**
 
-1. Fresh start → **Live** → draw a Maguindanao polygon around **6.85779°N, 124.05852°E**.
-2. Observation date becomes Philippine today automatically.
-3. Land summary shows fire-weather (same class/point/valid time as **Weather Outlook**), satellite heat clipped to the polygon, and timestamps — even when activity says **No estimate yet**.
+1. Fresh start → leave **Live** selected → do **not** pick a date or saved example.
+2. **Draw area** a Maguindanao polygon around **6.85779°N, 124.05852°E** (e.g. 124.00–124.10°E, 6.82–6.90°N) → **Check my land**.
+3. Browser request omits `date`; server uses `GET /api/live/today` → **2026-11-14**. UTC window queried: **2026-11-13** and **2026-11-14**.
+4. Per-feed Live result for that polygon (zero readings is a successful query):
+
+| Feed | Status | UTC window | Readings in polygon | Latest acquisition | Last successful check |
+| --- | --- | --- | ---: | --- | --- |
+| Aqua | `no_hotspots` | 2026-11-13 … 2026-11-14 | 0 | — | recorded |
+| Suomi-NPP | `product_unavailable` | 2026-11-13 … 2026-11-14 | 0 | — | — |
+| NOAA-20 | `no_hotspots` | 2026-11-13 … 2026-11-14 | 0 | — | recorded |
+| NOAA-21 | `no_hotspots` | 2026-11-13 … 2026-11-14 | 0 | — | recorded |
+| Terra (optional) | `no_hotspots` | 2026-11-13 … 2026-11-14 | 0 | — | recorded |
+
+5. **Refresh now** re-queries FIRMS and writes a new `checked_at` into `philippines.sqlite` (national refresh wrote **65** rows on this pass). A repeat land check within the NRT **3 h** TTL reported `cached=true` for Aqua / NOAA-20 / NOAA-21 / Terra (Suomi-NPP stayed `product_unavailable`). Standard-processing cache entries do not expire.
+6. Open **Philippines · 7 Nov 2026** (day becomes **2026-11-07**) → **Return to live** → day returns to **2026-11-14** and the next check-land again omits `date`.
+
+Evidence: `data/metrics/mindanao_live_feed_probe.json`.
 
 **Saved snapshot**
 
@@ -71,10 +85,12 @@ Activity (%) = 100 × (sum of Aqua activity indicators + sum of eligible calibra
 4. Click Maguindanao cell `2393:174` → NOAA-21 · **12:33 PH** / 04:33 UTC.
 5. **Return to live** restores Philippine today without keeping the saved day as Live.
 
-**History**
+**History / calendar estimate**
 
-1. With land selected → **History** → November 2026.
-2. Days with heat show satellite reading counts; estimate gaps stay gaps (never drawn as zero).
+1. With the Maguindanao polygon selected → **History** → year **2019** → week **2019-03-04/2019-03-10**.
+2. Denominator diagnosis (`python -m scripts.diagnose_mindanao_denominator`): CMR catalog finds **66** granules (MYD14 12 · MYD03 24 · VNP14IMG 15 · VNP03IMG 15); **0** land-intersecting `paired_cells` rows; Aqua usable cell-days **0**; Suomi-NPP fallback inputs **0**; History contributions **unavailable**. First stage that drops to zero: **`2_land_intersecting_processed_rows`**.
+3. Serving does **not** require jointly eligible Aqua–Suomi pairs for an operational estimate (`select_one`: Aqua alone → observed; eligible Suomi-NPP alone → calibrated fallback). Joint pairs are only for Agreement-with-Aqua.
+4. Smallest viable archive download (not executed): **170 243 619 B** (~162.36 MB) for 2019-03-06 MYD14+MYD03+VNP14IMG+VNP03IMG. Blocked before ingest — no numerator/denominator/percentage to show on the calendar yet. See `data/metrics/mindanao_denominator_diagnosis.json`.
 
 ## Explore the Philippine Satellite Hotspot Map
 

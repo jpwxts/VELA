@@ -132,6 +132,70 @@ def test_philippine_date_crosses_utc_midnight():
     assert "2026-11-08" in utc_days
 
 
+def test_merge_preserves_cache_hits_across_utc_days():
+    from vela.firms_day import merge_hotspot_payloads
+
+    merged = merge_hotspot_payloads(
+        [
+            {
+                "configured": True,
+                "date": "2026-11-13",
+                "results": [
+                    {
+                        "platform": "Aqua",
+                        "status": "no_hotspots",
+                        "product": "MODIS_NRT",
+                        "processing": "near_real_time",
+                        "cached": True,
+                        "count": 0,
+                        "hotspots": [],
+                    }
+                ],
+            },
+            {
+                "configured": True,
+                "date": "2026-11-14",
+                "results": [
+                    {
+                        "platform": "Aqua",
+                        "status": "no_hotspots",
+                        "product": "MODIS_NRT",
+                        "processing": "near_real_time",
+                        "cached": True,
+                        "count": 0,
+                        "hotspots": [],
+                    }
+                ],
+            },
+        ],
+        observation_date="2026-11-14",
+    )
+    aqua = next(row for row in merged["results"] if row["platform"] == "Aqua")
+    assert aqua["cached"] is True
+    assert aqua["status"] == "no_hotspots"
+
+
+def test_select_one_allows_aqua_alone_without_suomi_pair():
+    from vela.contributions import select_one
+
+    chosen = select_one(
+        [
+            {
+                "platform": "Aqua",
+                "eligible": True,
+                "detected": False,
+                "visible_km2": 20,
+                "hours_from_aqua": 0,
+                "cell_id": "2393:174",
+                "local_date": "2019-03-06",
+            }
+        ]
+    )
+    assert chosen is not None
+    assert chosen["platform"] == "Aqua"
+    assert chosen["rule"] == "aqua_when_eligible"
+
+
 def test_land_and_weather_share_annotated_forecast_fields():
     annotated = annotate_forecast_days(_low_forecast())
     payload = build_land_check(
