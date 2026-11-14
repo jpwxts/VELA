@@ -1,0 +1,10 @@
+{
+  "status": "pending_coverage",
+  "state": "serving_blocked",
+  "chosen_model": null,
+  "approved_for_serving": false,
+  "study_id": "mindanao_island_v1",
+  "reason": "Island-wide clear-pass negatives and holdout evaluation are not yet complete. Maguindanao v2.1 percentages remain the only claimable percentage zone.",
+  "control_selection": "/Users/florlyn/Desktop/MODISVIIRS/data/models/philippines_hotspot_selection.json",
+  "recorded_at_utc": "2026-11-14T15:37:10.269467+00:00"
+}

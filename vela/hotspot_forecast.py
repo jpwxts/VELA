@@ -22,12 +22,22 @@ from vela.settings import DATA_DIR, ROOT
 MANILA = ZoneInfo("Asia/Manila")
 PRODUCT = "philippines_hotspot_24h"
 FEATURE_SCHEMA_VERSION = "hotspot_features_v1"
+# Serving geography: all Mindanao land. Maguindanao compact remains the evaluated
+# percentage region until island-wide clear-pass negatives finish batch training.
 STUDY = {
+    "id": "mindanao_island_v1",
+    "label": "All Mindanao (island group)",
+    "bbox": {"west": 117.9666667, "south": 4.4523355, "east": 126.7409926, "north": 10.6061357},
+    "clip_preset": "mindanao",
+}
+MAGUINDANAO_EVALUATED = {
     "id": "mindanao_maguindanao_compact_v1",
-    "label": "Compact Maguindanao / western Mindanao study box",
+    "label": "Compact Maguindanao / western Mindanao (v2.1 evaluated)",
     "bbox": {"west": 123.6, "south": 6.3, "east": 124.7, "north": 7.4},
     "clip_preset": "mindanao",
 }
+MODELS_DIR = DATA_DIR / "models" / "philippines_hotspot_models"
+FIRMS_REFRESH_STATUS_PATH = DATA_DIR / "metrics" / "mindanao_firms_refresh_status.json"
 # Frozen after 11f1861 audit: empty FIRMS searches are NOT clear-sky coverage.
 COVERAGE_RULE = {
     "version": "hotspot_coverage_v2",

@@ -55,12 +55,12 @@ Activity (%) = 100 × (sum of Aqua activity indicators + sum of eligible calibra
 
 **Philippine evaluation (“Agreement with Aqua in the Philippines”):** run `python -m scripts.evaluate_philippines_agreement`. Current result: **0 Philippine paired cell-days** in `paired_cells.parquet`, so weekly MAE and Brier score are **undefined**. Smallest archive candidate set remains the a-priori 2019-03-06 Mindanao quartet (**170 243 619 B**, not downloaded). See `data/metrics/philippines_agreement_with_aqua.json`. Wildfire confirmation is a separate evaluation.
 
-### Philippine satellite-hotspot forecast (MODIS/VIIRS, Mindanao-first)
+### Philippine satellite-hotspot forecast (MODIS/VIIRS, Mindanao-wide)
 
 Public question: *For this 5 km square, what is the estimated chance that MODIS or VIIRS will detect heat in the next 24 hours?*  
 Label shown in the UI: **Chance satellites record a hotspot in this square.**
 
-This product is **separate** from Aqua–Suomi harmonization and from the Philippine wildfire-onset research pipeline. It uses **NASA MODIS/VIIRS only** (no BFP, no weather APIs).
+This product is **separate** from Aqua–Suomi harmonization and from the Philippine wildfire-onset research pipeline. It uses **NASA MODIS/VIIRS only** (no BFP, no weather APIs). It is **not** a wildfire-onset probability.
 
 | Piece | Location |
 | --- | --- |
@@ -78,12 +78,16 @@ This product is **separate** from Aqua–Suomi harmonization and from the Philip
 | Sealed v2.2 reserve | `data/manifests/philippines_hotspot_holdout_v2_2_reserve.json` |
 | Multi-region registry | `data/manifests/mindanao_hotspot_regions_v1.json` |
 | Supported-area map | `data/metrics/mindanao_hotspot_supported_areas.json` |
+| Model board (6 + baselines) | `data/models/philippines_hotspot_models/` |
+| Mindanao FIRMS 4h status | `data/metrics/mindanao_firms_refresh_status.json` |
 | Flawed v1 archive | `data/metrics/philippines_hotspot_model_comparison_v1_flawed_negatives.json` |
 | API | `GET /api/hotspot-forecast`, `/replay`, `/metrics`, `/month` |
 
-**Eligibility (square, month, map, replay).** One check: in Maguindanao study box; Philippine issue date ≤ today (else **Upcoming**, no percent); model/inputs available. Outside the box → unsupported (readings + weather only). Percentages are never capped; scores ≥90% or OOD months are labeled **experimental** (see high-% audit). History never puts a forecast percent under “Month's activity.”
+**Eligibility (square, month, map, replay).** Study geography = all Mindanao land. **Percentages** only inside Maguindanao v2.1 evaluated box; other Mindanao cells → coverage/readings only; outside Mindanao → unsupported. Philippine issue date ≤ today (else **Upcoming**, no percent). Past/today responses include `model_board` (all classifiers + baselines) plus claimable holdout Acc/Brier as evaluation context — never as that day’s accuracy. Scores ≥90% or OOD months are labeled **experimental**. History never puts a forecast percent under “Month's activity.”
 
-**Study region.** Compact Maguindanao box `123.6–124.7°E, 6.3–7.4°N`. FIRMS windows 2023–2026; fire-mask recovery prioritized on **2023–2024** dry-season Aqua MYD14/MYD03 pairs. March 2019 is **reader smoke-test only**.
+**4-hour Mindanao FIRMS.** `python -m scripts.refresh_mindanao_firms --once` or `--loop --interval-minutes 240`. Install: `scripts/install_mindanao_firms_refresh.sh`. Status stamp appears on metrics + square UI.
+
+**Study / percentage zone.** Island study `117.97–126.74°E, 4.45–10.61°N` (clip `mindanao`). Percentage zone remains Maguindanao `123.6–124.7°E, 6.3–7.4°N` until island selection is promoted. FIRMS windows 2023–2026; fire-mask recovery prioritized on **2023–2024** dry-season Aqua MYD14/MYD03 pairs. March 2019 is **reader smoke-test only**.
 
 **Daily coverage rule (v2.1).** Daytime fire+geo pass; visible land = clear or fire (≥50% of 25 km² = 12.5 km²). Cloud/water/unknown/glint/bow-tie/missing do not count. A no-detection pass with enough visible land supports “no heat at that observation time.” Daily **negative** = ≥1 such pass and zero FIRMS/fire-mask detections that Philippine day. Empty FIRMS search alone = **unknown**. The public percentage is the chance of ≥1 qualifying detection in the next 24 h (Manila midnight issue), scored on adequately observed square-days.
 
@@ -105,15 +109,19 @@ This product is **separate** from Aqua–Suomi harmonization and from the Philip
 
 ```bash
 conda activate vela
+python -m scripts.refresh_mindanao_firms --once
+python -m scripts.export_hotspot_model_board
 python -m scripts.inventory_mindanao_hotspot_granules
 python -m scripts.process_mindanao_hotspot_coverage --pilot
 python -m scripts.build_hotspot_forecast_dataset
 python -m scripts.train_hotspot_forecast
+python -m scripts.backfill_mindanao_activity_from_coverage
+python -m scripts.publish_mindanao_supported_areas
 ```
 
-**Demo clicks (UI fix).** Live → Maguindanao / Tamatalon → cell `2399:175` (Nov calendar: Upcoming after today) · `2396:181` (2024-02-25) · `2393:174` · one outside-box place → History legend “Days with forecasts” · Research → Model performance.
+**Demo clicks.** Live → Maguindanao / Tamatalon → cell `2399:175` (past date shows multi-model board; Nov after today = Upcoming) · Bukidnon `2412:193` (coverage only) · place outside Mindanao (unsupported) · History forecast legend · Research → FIRMS refresh stamp + island selection pending.
 
-**Geographic expansion (separate).** See `mindanao_hotspot_regions_v1.json` / `mindanao_hotspot_supported_areas.json` — Bukidnon + Davao del Norte boxes frozen before outcomes; Maguindanao v2.1 selection is not overwritten.
+**Geographic expansion.** See `mindanao_hotspot_regions_v1.json` / `mindanao_hotspot_supported_areas.json` — Bukidnon, Davao, Zamboanga, Caraga, Cotabato tiles; Maguindanao v2.1 selection is not overwritten; `mindanao_island_selection.json` stays blocked until promotion.
 
 ### Philippine 24-hour wildfire-onset forecast (Mindanao-first)
 

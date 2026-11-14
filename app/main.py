@@ -397,6 +397,9 @@ def hotspot_forecast_metrics():
     multi = DATA_DIR / "metrics" / "mindanao_hotspot_multi_region_comparison.json"
     multi_inv = DATA_DIR / "metrics" / "mindanao_hotspot_multi_region_inventory.json"
     regions = DATA_DIR / "manifests" / "mindanao_hotspot_regions_v1.json"
+    firms_refresh = DATA_DIR / "metrics" / "mindanao_firms_refresh_status.json"
+    board_manifest = DATA_DIR / "models" / "philippines_hotspot_models" / "board_manifest.json"
+    island_sel = DATA_DIR / "models" / "philippines_hotspot_models" / "mindanao_island_selection.json"
     return {
         "comparison": comparison,
         "rules": rules,
@@ -415,6 +418,9 @@ def hotspot_forecast_metrics():
         "multi_region_comparison": _json.loads(multi.read_text()) if multi.is_file() else None,
         "multi_region_inventory": _json.loads(multi_inv.read_text()) if multi_inv.is_file() else None,
         "region_registry": _json.loads(regions.read_text()) if regions.is_file() else None,
+        "mindanao_firms_refresh": _json.loads(firms_refresh.read_text()) if firms_refresh.is_file() else None,
+        "model_board_manifest": _json.loads(board_manifest.read_text()) if board_manifest.is_file() else None,
+        "mindanao_island_selection": _json.loads(island_sel.read_text()) if island_sel.is_file() else None,
     }
 
 

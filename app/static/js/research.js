@@ -160,6 +160,15 @@ async function loadHotspotAnalytics() {
       payload?.supported_areas?.regions
         ? `<p class="quiet">Supported-area map: ${(payload.supported_areas.regions || []).map((r) => escapeHtml(r.id || r.label || "")).filter(Boolean).join(" · ") || "Maguindanao compact only"}.</p>`
         : "",
+      payload?.mindanao_firms_refresh?.checked_at
+        ? `<p class="quiet">Mindanao FIRMS refresh: ${escapeHtml(payload.mindanao_firms_refresh.checked_at)} · `
+          + `${payload.mindanao_firms_refresh.detection_count ?? "—"} detections`
+          + `${payload.mindanao_firms_refresh.ok === false ? " · error" : ""}.</p>`
+        : "",
+      payload?.mindanao_island_selection
+        ? `<p class="quiet">Island selection: ${escapeHtml(payload.mindanao_island_selection.state || "pending")} — `
+          + `${escapeHtml(payload.mindanao_island_selection.reason || "not promoted")}.</p>`
+        : "",
     ].join("");
     const v1board = (archived.leaderboard || [])
       .map((row) => `${row.name}: Brier ${Number(row.brier).toFixed(4)}`)

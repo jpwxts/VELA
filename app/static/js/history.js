@@ -413,8 +413,9 @@ async function loadHotspotMonthForSquare(cellId, yearMonth) {
 
 // Stored daily estimates drive both the month calendar and the chart. A gap
 // always stays missing; it is never inferred from an empty live FIRMS result.
-// When a Maguindanao square is selected, forecast percentages overlay day cells
+// When an evaluated Mindanao square is selected, heat-chance % overlay day cells
 // for issued/reconstructed dates only — never for Upcoming future days.
+// Burning activity stays a separate calendar mode (not the hotspot %).
 function renderObservationCalendar() {
   const grid = document.querySelector("#cal-grid");
   const title = document.querySelector("#cal-title");
@@ -486,9 +487,13 @@ function renderObservationCalendar() {
         classes.push("forecast-insufficient");
         rateText = "—";
         notes.push(hotspot.reason || "hotspot forecast insufficient inputs");
+      } else if (hotspot.calendar_state === "coverage_status_only") {
+        classes.push("forecast-insufficient");
+        rateText = "Cov";
+        notes.push(hotspot.reason || "Mindanao coverage/readings only — percentage not evaluated here yet");
       } else if (hotspot.calendar_state === "unsupported_location") {
         rateText = "—";
-        notes.push(hotspot.reason || "outside evaluated study area");
+        notes.push(hotspot.reason || "outside Mindanao study area");
       }
     }
     if (iso === today) {
@@ -637,6 +642,8 @@ function renderDaySummary() {
   if (!dateNode || !countNode || !noteNode || !button) return;
   const iso = state.historyDay || dayInput.value;
   const record = (currentMonthHistory()?.days || []).find((entry) => entry.date === iso);
+  const hotspot = (state.hotspotMonth?.days || []).find((entry) => entry.date === iso);
+  const forecastMode = Boolean(state.hotspotMonthCellId && state.hotspotMonth?.days?.length);
   dateNode.textContent = iso ? formatObservationDay(iso) : "";
   button.hidden = true;
   if (state.checkingDay && state.checkingDay === iso) {
@@ -648,6 +655,23 @@ function renderDaySummary() {
   } else if (state.historyError) {
     countNode.textContent = "History unavailable";
     noteNode.textContent = "The request failed. Use Retry history to try again.";
+  } else if (forecastMode && hotspot?.probability_percent != null) {
+    countNode.textContent = `${hotspot.probability_percent}%`;
+    const board = hotspot.model_board?.models || [];
+    const boardLine = board.length
+      ? ` Models: ${board.map((row) => `${row.name} ${row.probability_percent}%`).join(" · ")}.`
+      : "";
+    const claim = hotspot.evaluation?.claimable_holdout || hotspot.model_board?.evaluation?.claimable_holdout || {};
+    const evalLine = claim.accuracy != null
+      ? ` Claimable holdout Acc ${(Number(claim.accuracy) * 100).toFixed(0)}% · Brier ${Number(claim.brier_score).toFixed(3)} (not this day’s accuracy).`
+      : "";
+    noteNode.textContent = `Chance satellites record a hotspot (${hotspot.issuance_kind || "forecast"}).${boardLine}${evalLine} Burning activity is separate.`;
+  } else if (forecastMode && hotspot?.calendar_state === "coverage_status_only") {
+    countNode.textContent = "Coverage only";
+    noteNode.textContent = hotspot.reason || "Readings and weather available; percentage not evaluated for this Mindanao tile yet.";
+  } else if (forecastMode && hotspot?.calendar_state === "upcoming") {
+    countNode.textContent = "Upcoming";
+    noteNode.textContent = "No heat-chance percentage until that Philippine date.";
   } else if (record?.activity_rate != null) {
     countNode.textContent = historyPercent(record.activity_rate);
     noteNode.textContent = `${historyStatusWords(record.activity_status, record)}. ${record.estimated_cell_days} of ${record.eligible_cell_days} observed grid squares have a usable estimate for this day.`;

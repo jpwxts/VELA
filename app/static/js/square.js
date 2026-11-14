@@ -298,6 +298,51 @@ function issuanceKindLabel(kind, payload) {
   return kind || "";
 }
 
+function renderFirmsRefreshStamp(payload) {
+  const node = document.querySelector("#hotspot-firms-refresh");
+  if (!node) return;
+  const stamp = payload?.firms_refresh || payload?.support?.firms_refresh;
+  if (!stamp?.checked_at) {
+    node.textContent = "";
+    return;
+  }
+  const count = stamp.detection_count ?? stamp.written;
+  node.textContent = [
+    "Mindanao FIRMS refresh",
+    stamp.checked_at,
+    count != null ? `${count} detections` : "",
+    stamp.ok === false ? (stamp.error || "error") : "",
+  ].filter(Boolean).join(" · ");
+}
+
+function renderLiveModelBoard(payload) {
+  const node = document.querySelector("#hotspot-model-board-live");
+  if (!node) return;
+  const board = payload?.model_board;
+  const models = board?.models || [];
+  if (!models.length) {
+    node.hidden = true;
+    node.innerHTML = "";
+    return;
+  }
+  const evalCtx = board.evaluation || payload?.evaluation || {};
+  const claim = evalCtx.claimable_holdout || {};
+  const rows = models.map((row) => {
+    const mark = row.is_selected ? " (selected)" : "";
+    const val = [
+      row.validation_accuracy != null ? `val Acc ${(Number(row.validation_accuracy) * 100).toFixed(0)}%` : "",
+      row.validation_brier != null ? `Brier ${Number(row.validation_brier).toFixed(3)}` : "",
+    ].filter(Boolean).join(" · ");
+    return `<li><strong>${row.probability_percent}%${mark}</strong> ${row.name}${row.kind === "baseline" ? " · baseline" : ""}${val ? ` · ${val}` : ""}</li>`;
+  }).join("");
+  node.hidden = false;
+  node.innerHTML = `<p class="quiet">All models for this past/today square-day</p><ul>${rows}</ul>`
+    + `<p class="quiet">${board.note || ""} Claimable holdout Acc `
+    + `${claim.accuracy != null ? `${(Number(claim.accuracy) * 100).toFixed(0)}%` : "—"}`
+    + ` · Brier ${claim.brier_score != null ? Number(claim.brier_score).toFixed(3) : "—"}`
+    + ` (evaluation context, not this day’s accuracy).</p>`;
+}
+
 function renderHotspotForecast(payload) {
   const value = document.querySelector("#hotspot-forecast-value");
   const meta = document.querySelector("#hotspot-forecast-meta");
@@ -336,7 +381,12 @@ function renderHotspotForecast(payload) {
     value.textContent = "Not evaluated here";
     value.classList.add("is-words");
     meta.textContent = payload?.reason
-      || "Outside Maguindanao study box — satellite readings and weather remain available.";
+      || "Outside Mindanao — satellite readings and weather remain available.";
+  } else if (payload?.calendar_state === "coverage_status_only" || payload?.status === "coverage_status_only") {
+    value.textContent = "Coverage only";
+    value.classList.add("is-words");
+    meta.textContent = payload?.reason
+      || "Inside Mindanao; percentages wait for island-wide evaluation. Readings and weather remain available.";
   } else {
     value.textContent = payload?.calendar_state === "insufficient_inputs" ? "Insufficient inputs" : "Not available";
     value.classList.add("is-words");
@@ -360,7 +410,9 @@ function renderHotspotForecast(payload) {
   note.textContent = payload?.experimental_limitation
     || payload?.reason
     || payload?.label_note
-    || "MODIS/VIIRS heat chance only — separate from fire weather, harmonization, and wildfire-onset research.";
+    || "MODIS/VIIRS heat chance only — not a wildfire probability. Onset stays separate.";
+  renderFirmsRefreshStamp(payload);
+  renderLiveModelBoard(payload);
   if (replay) {
     replay.hidden = !payload?.cell_id || payload?.status === "unsupported";
     replay.dataset.cellId = payload?.cell_id || "";

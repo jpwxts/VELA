@@ -1,0 +1,264 @@
+{
+  "updated_at_utc": "2026-11-14T15:37:10.268940+00:00",
+  "scope": "maguindanao_v2_1_control",
+  "models": [
+    {
+      "name": "logistic_regression",
+      "kind": "classifier",
+      "artifact": "/Users/florlyn/Desktop/MODISVIIRS/data/models/philippines_hotspot_models/classifier_logistic_regression.joblib",
+      "validation_metrics": {
+        "threshold": 0.5,
+        "positive_event_count": 415,
+        "brier_score": 0.2955572680471839,
+        "baseline_brier_score": null,
+        "brier_skill_vs_baseline": null,
+        "precision": 0.533678756476684,
+        "recall": 0.24819277108433735,
+        "f1": 0.33881578947368424,
+        "accuracy": 0.5984015984015985,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            496,
+            90
+          ],
+          [
+            312,
+            103
+          ]
+        ],
+        "pr_curve_points": 887,
+        "pr_auc": 0.47474346812293516
+      }
+    },
+    {
+      "name": "decision_tree",
+      "kind": "classifier",
+      "artifact": "/Users/florlyn/Desktop/MODISVIIRS/data/models/philippines_hotspot_models/classifier_decision_tree.joblib",
+      "validation_metrics": {
+        "threshold": 0.5,
+        "positive_event_count": 415,
+        "brier_score": 0.4248391045755215,
+        "baseline_brier_score": null,
+        "brier_skill_vs_baseline": null,
+        "precision": 0.36,
+        "recall": 0.2385542168674699,
+        "f1": 0.28695652173913044,
+        "accuracy": 0.5084915084915085,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            410,
+            176
+          ],
+          [
+            316,
+            99
+          ]
+        ],
+        "pr_curve_points": 5,
+        "pr_auc": 0.3823748130406845
+      }
+    },
+    {
+      "name": "random_forest",
+      "kind": "classifier",
+      "artifact": "/Users/florlyn/Desktop/MODISVIIRS/data/models/philippines_hotspot_models/classifier_random_forest.joblib",
+      "validation_metrics": {
+        "threshold": 0.5,
+        "positive_event_count": 415,
+        "brier_score": 0.3011444452811702,
+        "baseline_brier_score": null,
+        "brier_skill_vs_baseline": null,
+        "precision": 0.4050632911392405,
+        "recall": 0.30843373493975906,
+        "f1": 0.35020519835841313,
+        "accuracy": 0.5254745254745254,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            398,
+            188
+          ],
+          [
+            287,
+            128
+          ]
+        ],
+        "pr_curve_points": 799,
+        "pr_auc": 0.4402037556183027
+      }
+    },
+    {
+      "name": "extra_trees",
+      "kind": "classifier",
+      "artifact": "/Users/florlyn/Desktop/MODISVIIRS/data/models/philippines_hotspot_models/classifier_extra_trees.joblib",
+      "validation_metrics": {
+        "threshold": 0.5,
+        "positive_event_count": 415,
+        "brier_score": 0.264176297399064,
+        "baseline_brier_score": null,
+        "brier_skill_vs_baseline": null,
+        "precision": 0.543859649122807,
+        "recall": 0.22409638554216868,
+        "f1": 0.3174061433447099,
+        "accuracy": 0.6003996003996004,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            508,
+            78
+          ],
+          [
+            322,
+            93
+          ]
+        ],
+        "pr_curve_points": 771,
+        "pr_auc": 0.47508339843821035
+      }
+    },
+    {
+      "name": "hist_gradient_boosting",
+      "kind": "classifier",
+      "artifact": "/Users/florlyn/Desktop/MODISVIIRS/data/models/philippines_hotspot_models/classifier_hist_gradient_boosting.joblib",
+      "validation_metrics": {
+        "threshold": 0.5,
+        "positive_event_count": 415,
+        "brier_score": 0.26000781495259734,
+        "baseline_brier_score": null,
+        "brier_skill_vs_baseline": null,
+        "precision": 0.5459183673469388,
+        "recall": 0.25783132530120484,
+        "f1": 0.3502454991816694,
+        "accuracy": 0.6033966033966034,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            497,
+            89
+          ],
+          [
+            308,
+            107
+          ]
+        ],
+        "pr_curve_points": 482,
+        "pr_auc": 0.5355235469808998
+      }
+    },
+    {
+      "name": "calibrated_svm",
+      "kind": "classifier",
+      "artifact": "/Users/florlyn/Desktop/MODISVIIRS/data/models/philippines_hotspot_models/classifier_calibrated_svm.joblib",
+      "validation_metrics": {
+        "threshold": 0.5,
+        "positive_event_count": 415,
+        "brier_score": 0.2834491319942914,
+        "baseline_brier_score": null,
+        "brier_skill_vs_baseline": null,
+        "precision": 0.34545454545454546,
+        "recall": 0.13734939759036144,
+        "f1": 0.19655172413793104,
+        "accuracy": 0.5344655344655345,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            478,
+            108
+          ],
+          [
+            358,
+            57
+          ]
+        ],
+        "pr_curve_points": 887,
+        "pr_auc": 0.40059500106913093
+      }
+    },
+    {
+      "name": "regional_seasonal_detection_rate",
+      "kind": "baseline",
+      "artifact": "/Users/florlyn/Desktop/MODISVIIRS/data/models/philippines_hotspot_models/baseline_regional_seasonal_detection_rate.joblib",
+      "validation_metrics": {
+        "threshold": 0.5,
+        "positive_event_count": 415,
+        "brier_score": 0.3298706028214422,
+        "baseline_brier_score": 0.3298706028214422,
+        "brier_skill_vs_baseline": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "accuracy": 0.5854145854145855,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            586,
+            0
+          ],
+          [
+            415,
+            0
+          ]
+        ],
+        "pr_curve_points": 3,
+        "pr_auc": 0.37224395923191106
+      }
+    },
+    {
+      "name": "persistence_recent_heat",
+      "kind": "baseline",
+      "artifact": "/Users/florlyn/Desktop/MODISVIIRS/data/models/philippines_hotspot_models/baseline_persistence_recent_heat.joblib",
+      "validation_metrics": {
+        "threshold": 0.5,
+        "positive_event_count": 415,
+        "brier_score": 0.3826173826173826,
+        "baseline_brier_score": 0.3298706028214422,
+        "brier_skill_vs_baseline": -0.15990142602822965,
+        "precision": 0.6126760563380281,
+        "recall": 0.20963855421686747,
+        "f1": 0.3123877917414722,
+        "accuracy": 0.6173826173826173,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            531,
+            55
+          ],
+          [
+            328,
+            87
+          ]
+        ],
+        "pr_curve_points": 3,
+        "pr_auc": 0.4561128503263239
+      }
+    }
+  ],
+  "comparison_path": "/Users/florlyn/Desktop/MODISVIIRS/data/metrics/philippines_hotspot_model_comparison.json",
+  "note": "Board artifacts for past/today multi-model UI. Maguindanao selection unchanged; island-wide selection is separate until promotion criteria are met."
+}

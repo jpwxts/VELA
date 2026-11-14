@@ -80,10 +80,13 @@ def test_splits_reserve_odd_cells_and_late_dates():
 
 
 def test_study_cells_are_land_clipped():
+    from vela.hotspot_forecast_dataset import evaluated_cells
+
     cells = study_cells()
-    assert 100 < len(cells) < 2000
+    assert 5000 < len(cells) < 20000
+    assert 100 < len(evaluated_cells()) < 2000
     assert len(neighbor_ids(cells[0])) == 8
-    assert STUDY["id"].startswith("mindanao_")
+    assert STUDY["id"] == "mindanao_island_v1"
     freeze_rules()
 
 
@@ -95,6 +98,31 @@ def test_month_future_days_are_upcoming_not_percent():
     assert len(future) == 16
     assert all(row["calendar_state"] == "upcoming" for row in future)
     assert all(row.get("probability_percent") is None for row in future)
+
+
+def test_past_day_includes_model_board():
+    from vela.hotspot_forecast_serve import forecast_for_cell
+
+    payload = forecast_for_cell(
+        cell_id="2399:175",
+        issue_date_ph="2024-03-05",
+        historical_simulation=True,
+        ph_today="2026-11-14",
+    )
+    assert payload.get("probability_percent") is not None
+    board = payload.get("model_board") or {}
+    assert len(board.get("models") or []) >= 6
+    assert "evaluation" in (board or payload)
+    claim = (board.get("evaluation") or payload.get("evaluation") or {}).get("claimable_holdout") or {}
+    assert "accuracy" in claim or claim == {}
+
+
+def test_firms_refresh_status_file_exists():
+    path = ROOT / "data" / "metrics" / "mindanao_firms_refresh_status.json"
+    assert path.is_file()
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert payload.get("scope") == "mindanao"
+    assert payload.get("interval_minutes_default") == 240.0
 
 
 def test_future_square_forecast_refuses_archive_write():
@@ -110,7 +138,7 @@ def test_future_square_forecast_refuses_archive_write():
     assert HotspotForecastStore().get("2399:175", "2026-11-20") is None
 
 
-def test_outside_study_is_unsupported():
+def test_outside_mindanao_is_unsupported():
     from vela.hotspot_forecast_serve import forecast_for_cell
 
     payload = forecast_for_cell(
@@ -120,7 +148,21 @@ def test_outside_study_is_unsupported():
     )
     assert payload["status"] == "unsupported"
     assert payload.get("probability_percent") is None
-    assert "Outside Maguindanao" in (payload.get("reason") or "")
+    assert "Outside Mindanao" in (payload.get("reason") or "")
+
+
+def test_mindanao_outside_maguindanao_is_coverage_only():
+    from vela.hotspot_forecast_serve import forecast_for_cell
+
+    # Bukidnon demo cell from supported-areas map
+    payload = forecast_for_cell(
+        cell_id="2412:193",
+        issue_date_ph="2026-11-14",
+        ph_today="2026-11-14",
+    )
+    assert payload["status"] == "coverage_status_only"
+    assert payload.get("probability_percent") is None
+    assert payload.get("support", {}).get("geographic_support", {}).get("in_study_region") is True
 
 
 def test_high_probability_audit_and_diagnosis_exist():
@@ -154,8 +196,16 @@ def test_multi_region_registry_frozen_before_outcomes():
     assert "maguindanao_compact_v1" in ids
     assert "bukidnon_compact_v1" in ids
     assert "davao_norte_compact_v1" in ids
+    assert payload.get("study", {}).get("id") == "mindanao_island_v1"
     supported = ROOT / "data" / "metrics" / "mindanao_hotspot_supported_areas.json"
     assert supported.is_file()
     areas = json.loads(supported.read_text(encoding="utf-8"))
     mag = next(row for row in areas["regions"] if row["id"] == "maguindanao_compact_v1")
     assert mag["evaluated"] is True
+    island = next(row for row in areas["regions"] if row["id"] == "mindanao_island_v1")
+    assert island["evaluated"] is False
+    board = ROOT / "data" / "models" / "philippines_hotspot_models" / "board_manifest.json"
+    assert board.is_file()
+    island_sel = ROOT / "data" / "models" / "philippines_hotspot_models" / "mindanao_island_selection.json"
+    assert island_sel.is_file()
+    assert json.loads(island_sel.read_text())["approved_for_serving"] is False

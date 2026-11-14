@@ -50,9 +50,12 @@ def _parse_acq_utc(spot: dict) -> datetime | None:
             return None
 
 
-def study_cells() -> list[str]:
-    box = STUDY["bbox"]
-    geometry = geometry_from_preset(STUDY["clip_preset"])
+_STUDY_CELLS_CACHE: list[str] | None = None
+_EVALUATED_CELLS_CACHE: list[str] | None = None
+
+
+def _cells_for_bbox(box: dict, clip_preset: str) -> list[str]:
+    geometry = geometry_from_preset(clip_preset)
     x0, y0 = indices(box["west"], box["south"])
     x1, y1 = indices(box["east"], box["north"])
     cells = []
@@ -65,6 +68,28 @@ def study_cells() -> list[str]:
                 continue
             cells.append(cell_identifier(xi, yi))
     return cells
+
+
+def study_cells() -> list[str]:
+    """All Mindanao land cells in the island study bbox."""
+
+    global _STUDY_CELLS_CACHE
+    if _STUDY_CELLS_CACHE is None:
+        _STUDY_CELLS_CACHE = _cells_for_bbox(STUDY["bbox"], STUDY["clip_preset"])
+    return list(_STUDY_CELLS_CACHE)
+
+
+def evaluated_cells() -> list[str]:
+    """Cells where Maguindanao v2.1 percentage claims are supported."""
+
+    global _EVALUATED_CELLS_CACHE
+    if _EVALUATED_CELLS_CACHE is None:
+        from vela.hotspot_forecast import MAGUINDANAO_EVALUATED
+
+        _EVALUATED_CELLS_CACHE = _cells_for_bbox(
+            MAGUINDANAO_EVALUATED["bbox"], MAGUINDANAO_EVALUATED["clip_preset"]
+        )
+    return list(_EVALUATED_CELLS_CACHE)
 
 
 def neighbor_ids(cell_id: str) -> list[str]:

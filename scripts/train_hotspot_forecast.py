@@ -26,6 +26,7 @@ from vela.hotspot_forecast import (
     DATASET_PATH,
     FEATURE_NAMES,
     FEATURE_SCHEMA_VERSION,
+    MODELS_DIR,
     SELECTION_PATH,
     SPLIT_PATH,
     model_hash,
@@ -384,11 +385,91 @@ def run() -> dict:
     winner_name = winner["name"]
 
     artifact = DATA_DIR / "models" / "philippines_hotspot_winner.joblib"
-    if winner.get("kind") == "classifier":
-        positive_count = int(np.sum(y_train == 1))
-        cv_folds = max(2, min(3, positive_count)) if positive_count else 2
-        model = build_classifiers(random_state=SEED, cv_folds=cv_folds)[winner_name]
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    board_models: list[dict] = []
+    positive_count = int(np.sum(y_train == 1))
+    cv_folds = max(2, min(3, positive_count)) if positive_count else 2
+    fitted = build_classifiers(random_state=SEED, cv_folds=cv_folds)
+    metrics_by_name = {
+        row["name"]: row.get("metrics") for row in enriched_classifiers if row.get("name")
+    }
+    for name, model in fitted.items():
         model.fit(x_train, y_train)
+        path = MODELS_DIR / f"classifier_{name}.joblib"
+        thr = next(
+            (float(row["threshold"]) for row in enriched_classifiers if row.get("name") == name),
+            0.5,
+        )
+        bundle_row = {
+            "kind": "classifier",
+            "model": model,
+            "feature_names": FEATURE_NAMES,
+            "imputer_means": means,
+            "threshold": thr,
+            "winner_name": name,
+            "feature_schema_version": FEATURE_SCHEMA_VERSION,
+            "coverage_rule_version": "hotspot_coverage_v2_1",
+            "seed": SEED,
+        }
+        joblib.dump(bundle_row, path)
+        board_models.append(
+            {
+                "name": name,
+                "kind": "classifier",
+                "artifact": str(path),
+                "validation_metrics": metrics_by_name.get(name),
+            }
+        )
+    rate = float(y_train.mean()) if len(y_train) else 0.0
+    for base_name, kind_note in (
+        ("regional_seasonal_detection_rate", "seasonal"),
+        ("persistence_recent_heat", "persistence"),
+    ):
+        path = MODELS_DIR / f"baseline_{base_name}.joblib"
+        base_bundle = {
+            "kind": "baseline",
+            "winner_name": base_name,
+            "feature_names": FEATURE_NAMES,
+            "imputer_means": means,
+            "threshold": 0.5,
+            "global_rate": rate,
+            "feature_schema_version": FEATURE_SCHEMA_VERSION,
+            "coverage_rule_version": "hotspot_coverage_v2_1",
+            "seed": SEED,
+            "baseline_family": kind_note,
+        }
+        joblib.dump(base_bundle, path)
+        board_models.append(
+            {
+                "name": base_name,
+                "kind": "baseline",
+                "artifact": str(path),
+                "validation_metrics": next(
+                    (row.get("metrics") for row in baseline_rows if row.get("name") == base_name),
+                    None,
+                ),
+            }
+        )
+    (MODELS_DIR / "board_manifest.json").write_text(
+        json.dumps(
+            {
+                "updated_at_utc": datetime.now(timezone.utc).isoformat(),
+                "scope": "maguindanao_v2_1_control",
+                "models": board_models,
+                "note": (
+                    "All six classifiers + two baselines for past/today multi-model board. "
+                    "Island-wide promotion uses a separate selection artifact."
+                ),
+            },
+            indent=2,
+            default=_json_default,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    if winner.get("kind") == "classifier":
+        model = fitted[winner_name]
         threshold = float(winner["threshold"])
         bundle = {
             "kind": "classifier",
@@ -414,6 +495,7 @@ def run() -> dict:
             "feature_schema_version": FEATURE_SCHEMA_VERSION,
             "coverage_rule_version": "hotspot_coverage_v2_1",
             "seed": SEED,
+            "global_rate": rate,
         }
         joblib.dump(bundle, artifact)
         if winner_name == "persistence_recent_heat":

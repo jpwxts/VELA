@@ -1,0 +1,31 @@
+{
+  "scope": "mindanao",
+  "ph_date": "2026-11-14",
+  "written": 21,
+  "detection_count": 21,
+  "checked_at": "2026-11-14T15:32:10.436516+00:00",
+  "platforms": [
+    "Aqua",
+    "Terra",
+    "Suomi-NPP",
+    "NOAA-20",
+    "NOAA-21"
+  ],
+  "platform_counts": {
+    "Aqua": 1,
+    "NOAA-20": 14,
+    "NOAA-21": 6,
+    "Suomi-NPP": 0,
+    "Terra": 0
+  },
+  "bbox": {
+    "west": 117.9666667,
+    "south": 4.4582005,
+    "east": 126.7398821,
+    "north": 10.6061357
+  },
+  "interval_minutes_default": 240.0,
+  "store": "/Users/florlyn/Desktop/MODISVIIRS/data/observations/philippines.sqlite",
+  "ok": true,
+  "error": null
+}

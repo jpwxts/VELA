@@ -12,7 +12,11 @@ import joblib
 import numpy as np
 
 from vela.hotspot_forecast import (
+    COMPARISON_PATH,
     FEATURE_NAMES,
+    FIRMS_REFRESH_STATUS_PATH,
+    MAGUINDANAO_EVALUATED,
+    MODELS_DIR,
     PRODUCT,
     STUDY,
     forecast_unavailable_reason,
@@ -22,6 +26,7 @@ from vela.hotspot_forecast import (
 )
 from vela.hotspot_forecast_dataset import (
     build_feature_row,
+    evaluated_cells,
     fire_mask_coverage_keys,
     firms_regional_query_ok,
     load_study_detections,
@@ -36,6 +41,147 @@ PUBLIC_LABEL = "Chance satellites record a hotspot in this square."
 TRAIN_DISTRIBUTION_MONTHS = {2, 3, 8}
 HIGH_PROB_EXPERIMENTAL_THRESHOLD = 0.9
 HIGH_PROB_AUDIT_PATH = DATA_DIR / "metrics" / "philippines_hotspot_high_probability_audit.json"
+BOARD_MANIFEST_PATH = MODELS_DIR / "board_manifest.json"
+_STUDY_SET: set[str] | None = None
+_EVAL_SET: set[str] | None = None
+_BOARD_CACHE: list[dict] | None = None
+_COVERAGE_DAYS_CACHE: set[str] | None = None
+
+
+def _study_set() -> set[str]:
+    global _STUDY_SET
+    if _STUDY_SET is None:
+        _STUDY_SET = set(study_cells())
+    return _STUDY_SET
+
+
+def _eval_set() -> set[str]:
+    global _EVAL_SET
+    if _EVAL_SET is None:
+        _EVAL_SET = set(evaluated_cells())
+    return _EVAL_SET
+
+
+def load_firms_refresh_status() -> dict | None:
+    if not FIRMS_REFRESH_STATUS_PATH.is_file():
+        return None
+    try:
+        return json.loads(FIRMS_REFRESH_STATUS_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+
+
+def evaluation_context(selection: dict | None = None) -> dict[str, Any]:
+    """Holdout accuracy/Brier context — never the day's percentage as accuracy."""
+
+    sel = selection if selection is not None else load_selection()
+    comparison = None
+    if COMPARISON_PATH.is_file():
+        try:
+            comparison = json.loads(COMPARISON_PATH.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            comparison = None
+    holdout = (comparison or {}).get("holdout") or {}
+    claimable = holdout.get("claimable_ex_v22_reserve") or holdout.get("metrics") or {}
+    winner = (comparison or {}).get("winner") or {}
+    return {
+        "note": (
+            "Evaluation metrics are claimable holdout scores for the selected Maguindanao v2.1 "
+            "model. They are not the accuracy of today's percentage for this square."
+        ),
+        "selected_model": (sel or {}).get("chosen_model") or winner.get("name"),
+        "coverage_rule_version": (sel or {}).get("coverage_rule_version")
+        or (comparison or {}).get("coverage_rule_version"),
+        "claimable_holdout": {
+            "n": claimable.get("n"),
+            "positives": claimable.get("positives") or claimable.get("positive_event_count"),
+            "accuracy": claimable.get("accuracy"),
+            "brier_score": claimable.get("brier_score"),
+            "precision": claimable.get("precision"),
+            "recall": claimable.get("recall"),
+            "f1": claimable.get("f1"),
+        },
+        "validation_brier": (winner.get("validation_metrics") or {}).get("brier_score"),
+        "percentage_zone": MAGUINDANAO_EVALUATED,
+        "study": STUDY,
+    }
+
+
+def _load_board_entries() -> list[dict]:
+    """Load all persisted classifier/baseline board artifacts (six + baselines)."""
+
+    global _BOARD_CACHE
+    if _BOARD_CACHE is not None:
+        return _BOARD_CACHE
+    entries: list[dict] = []
+    if BOARD_MANIFEST_PATH.is_file():
+        try:
+            manifest = json.loads(BOARD_MANIFEST_PATH.read_text(encoding="utf-8"))
+            for row in manifest.get("models") or []:
+                path = Path(row.get("artifact") or "")
+                if not path.is_file():
+                    continue
+                bundle = joblib.load(path)
+                entries.append(
+                    {
+                        "name": row.get("name") or bundle.get("winner_name"),
+                        "kind": row.get("kind") or bundle.get("kind") or "classifier",
+                        "artifact": str(path),
+                        "bundle": bundle,
+                        "validation_metrics": row.get("validation_metrics"),
+                    }
+                )
+        except (json.JSONDecodeError, OSError):
+            entries = []
+    if not entries:
+        # Fallback: winner-only until board export is run.
+        selection = load_selection() or {}
+        bundle = _load_model_bundle(selection)
+        if bundle is not None:
+            entries.append(
+                {
+                    "name": selection.get("chosen_model") or bundle.get("winner_name"),
+                    "kind": bundle.get("kind") or "classifier",
+                    "artifact": selection.get("model_artifact"),
+                    "bundle": bundle,
+                    "validation_metrics": None,
+                }
+            )
+    _BOARD_CACHE = entries
+    return entries
+
+
+def build_model_board(features: dict, *, selection: dict | None = None) -> dict[str, Any]:
+    """Probabilities from each saved classifier/baseline for past/today panels."""
+
+    selected = (selection or load_selection() or {}).get("chosen_model")
+    rows = []
+    for entry in _load_board_entries():
+        probability = _predict_probability(entry["bundle"], features)
+        percent = int(round(max(0.0, min(1.0, probability)) * 100))
+        metrics = entry.get("validation_metrics") or {}
+        rows.append(
+            {
+                "name": entry["name"],
+                "kind": entry["kind"],
+                "probability": probability,
+                "probability_percent": percent,
+                "is_selected": entry["name"] == selected,
+                "validation_accuracy": metrics.get("accuracy"),
+                "validation_brier": metrics.get("brier_score"),
+            }
+        )
+    rows.sort(key=lambda row: (0 if row.get("is_selected") else 1, row.get("name") or ""))
+    return {
+        "models": rows,
+        "evaluation": evaluation_context(selection),
+        "headline": selected,
+        "note": (
+            "Board lists each saved classifier/baseline probability for this square-day. "
+            "The selected model remains the calendar headline. Validation accuracy/Brier are "
+            "evaluation context, not this day's correctness."
+        ),
+    }
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS hotspot_issues (
@@ -176,19 +322,24 @@ def forecast_eligibility(
     today = str(ph_today or philippine_today())[:10]
     sel = selection if selection is not None else load_selection()
     model_reason = forecast_unavailable_reason(sel)
-    in_study = bool((support or {}).get("geographic_support", {}).get("in_study_region"))
+    geo = (support or {}).get("geographic_support") or {}
+    in_study = bool(geo.get("in_study_region"))
+    percentage_ok = bool(geo.get("percentage_supported"))
     if support is None:
-        in_study = cell_id in set(study_cells())
+        in_study = cell_id in _study_set()
+        percentage_ok = cell_id in _eval_set()
 
     if not in_study:
         return {
             "eligible": False,
             "calendar_state": "unsupported_location",
             "reason": (
-                "Outside Maguindanao study box — hotspot-forecast percentages are not evaluated here. "
+                "Outside Mindanao — hotspot-forecast percentages are not evaluated here. "
                 "Satellite readings and weather remain available."
             ),
             "ph_today": today,
+            "in_study_region": False,
+            "percentage_supported": False,
         }
     if day > today:
         return {
@@ -196,6 +347,21 @@ def forecast_eligibility(
             "calendar_state": "upcoming",
             "reason": "Upcoming — no issued percentage until that Philippine date.",
             "ph_today": today,
+            "in_study_region": True,
+            "percentage_supported": percentage_ok,
+        }
+    if not percentage_ok:
+        return {
+            "eligible": False,
+            "calendar_state": "coverage_status_only",
+            "reason": (
+                "Inside Mindanao, but outside the Maguindanao v2.1 evaluated box. "
+                "Satellite readings, weather, and coverage status are available; "
+                "percentages wait for island-wide clear-pass evaluation."
+            ),
+            "ph_today": today,
+            "in_study_region": True,
+            "percentage_supported": False,
         }
     if model_reason:
         return {
@@ -203,6 +369,8 @@ def forecast_eligibility(
             "calendar_state": "insufficient_inputs",
             "reason": model_reason,
             "ph_today": today,
+            "in_study_region": True,
+            "percentage_supported": True,
         }
 
     obs = observation_store or ObservationStore()
@@ -218,6 +386,8 @@ def forecast_eligibility(
                 "(empty FIRMS is not treated as clear coverage)."
             ),
             "ph_today": today,
+            "in_study_region": True,
+            "percentage_supported": True,
         }
     if day < today and not firms_ok and not allow_historical_reconstruction:
         # Still allow reconstruction when historical_simulation / month past path sets the flag,
@@ -230,6 +400,8 @@ def forecast_eligibility(
         "reason": None,
         "ph_today": today,
         "firms_regional_query_ok": firms_ok,
+        "in_study_region": True,
+        "percentage_supported": True,
     }
 
 
@@ -303,12 +475,16 @@ def _support_metadata(
     cell_prior = [spot for spot in prior if spot.get("_cell_id") == cell_id]
     newest_cell = max((spot["_acq_utc"] for spot in cell_prior), default=None)
     mask = fire_mask_coverage_keys([cell_id])
-    in_study = cell_id in set(study_cells())
+    in_study = cell_id in _study_set()
+    percentage_ok = cell_id in _eval_set()
     firms_ok = firms_regional_query_ok(observation_store, issue_date_ph)
+    firms_refresh = load_firms_refresh_status()
     return {
         "geographic_support": {
             "in_study_region": in_study,
+            "percentage_supported": percentage_ok,
             "study": STUDY,
+            "percentage_zone": MAGUINDANAO_EVALUATED,
             "cell_id": cell_id,
         },
         "input_cutoff_utc": issue_utc.isoformat(),
@@ -322,6 +498,7 @@ def _support_metadata(
         "fire_mask_coverage_for_cell": mask["count"] > 0,
         "fire_mask_coverage_square_days_study": mask["count"],
         "availability_assumption": "acquisition≈availability unless a publication delay is applied",
+        "firms_refresh": firms_refresh,
     }
 
 
@@ -343,10 +520,31 @@ def _load_model_bundle(selection: dict) -> dict | None:
     return bundle
 
 
-def _decorate_score(payload: dict, probability: float, features: dict, issue_date_ph: str) -> dict:
+def _decorate_score(
+    payload: dict,
+    probability: float,
+    features: dict,
+    issue_date_ph: str,
+    *,
+    selection: dict | None = None,
+    include_board: bool = False,
+) -> dict:
     payload.update(experimental_score_meta(probability, issue_date_ph, features))
     payload["public_label"] = PUBLIC_LABEL
+    payload["evaluation"] = evaluation_context(selection)
+    if include_board and features:
+        payload["model_board"] = build_model_board(features, selection=selection)
     return payload
+
+
+def _coverage_days_cached() -> set[str]:
+    """Coverage days for Maguindanao evaluated cells (feature builders)."""
+
+    global _COVERAGE_DAYS_CACHE
+    if _COVERAGE_DAYS_CACHE is None:
+        mask_info = fire_mask_coverage_keys(evaluated_cells())
+        _COVERAGE_DAYS_CACHE = {d for (_, d) in mask_info["square_days"]}
+    return _COVERAGE_DAYS_CACHE
 
 
 def forecast_for_cell(
@@ -421,6 +619,19 @@ def forecast_for_cell(
             "reason": eligibility["reason"],
             "calendar_state": "unsupported_location",
             "issuance_kind": None,
+            "firms_refresh": load_firms_refresh_status(),
+        }
+    if eligibility["calendar_state"] == "coverage_status_only":
+        return {
+            **base,
+            "status": "coverage_status_only",
+            "probability": None,
+            "probability_percent": None,
+            "reason": eligibility["reason"],
+            "calendar_state": "coverage_status_only",
+            "issuance_kind": None,
+            "evaluation": evaluation_context(selection),
+            "firms_refresh": load_firms_refresh_status(),
         }
 
     existing = archive.get(cell_id, day)
@@ -438,10 +649,18 @@ def forecast_for_cell(
         existing["feature_cutoff_manila"] = support.get("input_cutoff_manila")
         existing["feature_cutoff_utc"] = support.get("input_cutoff_utc")
         existing["calendar_state"] = "forecast_available"
+        existing["firms_refresh"] = load_firms_refresh_status()
         feats = existing.get("features") or {}
         prob = existing.get("probability")
         if prob is not None:
-            _decorate_score(existing, float(prob), feats if isinstance(feats, dict) else {}, day)
+            _decorate_score(
+                existing,
+                float(prob),
+                feats if isinstance(feats, dict) else {},
+                day,
+                selection=selection,
+                include_board=True,
+            )
         if historical_simulation:
             existing["historical_simulation"] = False
             existing["label_note"] = (
@@ -458,10 +677,10 @@ def forecast_for_cell(
             "reason": eligibility["reason"],
             "calendar_state": eligibility["calendar_state"],
             "issuance_kind": None,
+            "firms_refresh": load_firms_refresh_status(),
         }
 
-    mask_info = fire_mask_coverage_keys(study_cells())
-    coverage_days = {d for (_, d) in mask_info["square_days"]}
+    coverage_days = _coverage_days_cached()
     features = build_feature_row(
         cell_id=cell_id,
         issue_date_ph=day,
@@ -493,8 +712,11 @@ def forecast_for_cell(
         "reason": None,
         "feature_cutoff_manila": support.get("input_cutoff_manila"),
         "feature_cutoff_utc": support.get("input_cutoff_utc"),
+        "firms_refresh": load_firms_refresh_status(),
     }
-    _decorate_score(payload, probability, features, day)
+    _decorate_score(
+        payload, probability, features, day, selection=selection, include_board=True
+    )
     if historical_simulation:
         payload["historical_simulation"] = True
         payload["issuance_kind"] = "historical_reconstruction"
@@ -510,6 +732,7 @@ def forecast_for_cell(
         payload["probability_percent"] = None
         payload["calendar_state"] = "upcoming"
         payload["issuance_kind"] = None
+        payload.pop("model_board", None)
         return payload
     already = archive.get(cell_id, day)
     stored = archive.put_if_absent(payload)
@@ -524,7 +747,15 @@ def forecast_for_cell(
     stored["feature_cutoff_manila"] = support.get("input_cutoff_manila")
     stored["feature_cutoff_utc"] = support.get("input_cutoff_utc")
     stored["issuance_kind"] = "preserved_archive" if already is not None else "newly_issued"
-    _decorate_score(stored, float(stored.get("probability") or probability), features, day)
+    stored["firms_refresh"] = load_firms_refresh_status()
+    _decorate_score(
+        stored,
+        float(stored.get("probability") or probability),
+        features,
+        day,
+        selection=selection,
+        include_board=True,
+    )
     if already is None:
         stored["issued_at_utc"] = stored.get("issued_at_utc") or datetime.now(timezone.utc).isoformat()
     return stored
@@ -549,16 +780,23 @@ def month_forecasts_for_cell(
     selection = load_selection()
     obs = ObservationStore()
     detections = load_study_detections(obs)
-    mask_info = fire_mask_coverage_keys(study_cells())
-    coverage_days = {d for (_, d) in mask_info["square_days"]}
+    coverage_days = _coverage_days_cached()
     bundle = _load_model_bundle(selection or {}) if selection else None
-    in_study = cell_id in set(study_cells())
+    in_study = cell_id in _study_set()
+    percentage_ok = cell_id in _eval_set()
+    eval_ctx = evaluation_context(selection)
 
     rows = []
     for day_num in range(1, days + 1):
         day = f"{year:04d}-{month:02d}-{day_num:02d}"
         support = {
-            "geographic_support": {"in_study_region": in_study, "study": STUDY, "cell_id": cell_id}
+            "geographic_support": {
+                "in_study_region": in_study,
+                "percentage_supported": percentage_ok,
+                "study": STUDY,
+                "percentage_zone": MAGUINDANAO_EVALUATED,
+                "cell_id": cell_id,
+            }
         }
         eligibility = forecast_eligibility(
             cell_id=cell_id,
@@ -598,13 +836,33 @@ def month_forecasts_for_cell(
                 }
             )
             continue
+        if eligibility["calendar_state"] == "coverage_status_only":
+            rows.append(
+                {
+                    "date": day,
+                    "probability_percent": None,
+                    "model_version": None,
+                    "calendar_state": "coverage_status_only",
+                    "issuance_kind": None,
+                    "issue_time_manila": issue_datetime_manila(day).isoformat(),
+                    "reason": eligibility["reason"],
+                    "label": "Coverage only",
+                }
+            )
+            continue
 
         existing = archive.get(cell_id, day) if day <= today else None
         if existing is not None:
+            feats = existing.get("features") or {}
             exp = experimental_score_meta(
                 float(existing.get("probability") or 0.0),
                 day,
-                existing.get("features") or {},
+                feats if isinstance(feats, dict) else {},
+            )
+            board = (
+                build_model_board(feats, selection=selection)
+                if isinstance(feats, dict) and feats
+                else None
             )
             rows.append(
                 {
@@ -619,6 +877,8 @@ def month_forecasts_for_cell(
                     "feature_cutoff_manila": existing.get("feature_cutoff_manila")
                     or existing.get("issue_time_manila"),
                     "historical_simulation": False,
+                    "model_board": board,
+                    "evaluation": eval_ctx,
                     **exp,
                 }
             )
@@ -648,6 +908,7 @@ def month_forecasts_for_cell(
         probability = _predict_probability(bundle, features)
         percent = int(round(max(0.0, min(1.0, probability)) * 100))
         exp = experimental_score_meta(probability, day, features)
+        board = build_model_board(features, selection=selection)
         rows.append(
             {
                 "date": day,
@@ -659,6 +920,8 @@ def month_forecasts_for_cell(
                 "issue_time_manila": issue_datetime_manila(day).isoformat(),
                 "feature_cutoff_manila": issue_datetime_manila(day).isoformat(),
                 "historical_simulation": True,
+                "model_board": board,
+                "evaluation": eval_ctx,
                 **exp,
             }
         )
@@ -667,10 +930,15 @@ def month_forecasts_for_cell(
         "year_month": year_month,
         "ph_today": today,
         "public_label": PUBLIC_LABEL,
+        "study": STUDY,
+        "percentage_supported": percentage_ok,
+        "evaluation": eval_ctx,
+        "firms_refresh": load_firms_refresh_status(),
         "days": rows,
         "note": (
             "Issued archive rows for past/today Manila dates; labeled historical reconstructions "
-            "for eligible past days without an archive; Upcoming for dates after Philippine today."
+            "for eligible past days without an archive; Upcoming for dates after Philippine today. "
+            "Past/today days include model_board (all classifiers + baselines) with evaluation context."
         ),
     }
 

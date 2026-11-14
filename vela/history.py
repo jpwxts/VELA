@@ -101,6 +101,49 @@ def attach_heat_overlay(
     return {**payload, "days": days}
 
 
+def _fill_mindanao_store_activity(month_days: list[dict], ring: list[list[float]]) -> None:
+    """Fill missing day activity from coverage/FIRMS store backfill inside the ring."""
+
+    try:
+        from vela.grid import center as cell_center
+        from vela.land_check import point_in_ring
+        from vela.observation_store import ObservationStore, _connect
+
+        store = ObservationStore()
+        for entry in month_days:
+            if entry.get("activity_rate") is not None:
+                continue
+            day = entry["date"]
+            with _connect(store.path) as connection:
+                cell_rows = connection.execute(
+                    "SELECT cell_id, activity_value FROM activity_cell_days WHERE ph_date = ?",
+                    (day,),
+                ).fetchall()
+            inside = []
+            for crow in cell_rows:
+                try:
+                    x_text, y_text = str(crow["cell_id"]).split(":", 1)
+                    lon, lat = cell_center(int(x_text), int(y_text))
+                except Exception:
+                    continue
+                if point_in_ring(lon, lat, ring):
+                    inside.append(crow)
+            if not inside:
+                continue
+            vals = [float(r["activity_value"]) for r in inside if r["activity_value"] is not None]
+            if not vals:
+                continue
+            entry["activity_rate"] = sum(vals) / len(vals)
+            entry["activity_status"] = "partial"
+            entry["eligible_cell_days"] = len(inside)
+            entry["estimated_cell_days"] = len(vals)
+            entry["activity_denominator"] = float(len(vals))
+            entry["clear_zero"] = entry["activity_rate"] == 0
+            entry["activity_source"] = "mindanao_coverage_firms_store"
+    except Exception:
+        return
+
+
 def build_monthly_history(ring: list[list[float]], year: int, month: int, *, today: date | None = None) -> dict:
     """Keep gaps, clear zeros, insufficient coverage and held-out dates distinct.
 
@@ -203,6 +246,20 @@ def build_monthly_history(ring: list[list[float]], year: int, month: int, *, tod
             "activity_denominator": denominator or None,
         })
     selected = months[month - 1]
+    month_days = [entry for entry in all_days if entry["date"].startswith(f"{year}-{month:02d}")]
+    _fill_mindanao_store_activity(month_days, ring)
+    published = [entry for entry in month_days if entry["activity_rate"] is not None]
+    if published and selected.get("activity_rate") is None:
+        denominator = sum(entry.get("activity_denominator") or 0 for entry in published)
+        if denominator:
+            selected = dict(selected)
+            selected["activity_rate"] = (
+                sum((entry["activity_rate"] * (entry.get("activity_denominator") or 0)) for entry in published)
+                / denominator
+            )
+            selected["activity_status"] = "partial"
+            selected["days_with_estimates"] = len(published)
+            selected["activity_denominator"] = denominator
     return {
         "year": year,
         "month": month,
@@ -211,7 +268,7 @@ def build_monthly_history(ring: list[list[float]], year: int, month: int, *, tod
         "date_basis": "local observation date",
         "region": label,
         "summary": selected,
-        "days": [entry for entry in all_days if entry["date"].startswith(f"{year}-{month:02d}")],
+        "days": month_days,
         "months": months,
         "available_months": sorted({stamp[:7] for stamp in stored_dates if stamp >= "1990-01-01"}),
         "first_observation": stored_dates[0] if stored_dates else None,
