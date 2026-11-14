@@ -1,0 +1,45 @@
+{
+  "window": "2019-03-04/2019-03-10",
+  "selection_rule": "A priori first full week of March 2019 after 2026 week lacked same-day Aqua+VIIRS pairs",
+  "smallest_day": "2019-03-06",
+  "files": [
+    {
+      "short": "MYD14",
+      "native_id": "MYD14.A2019065.0555.061.2020288164355",
+      "start": "2019-03-06T05:55:00.000Z",
+      "collection_version": "061",
+      "provider": "LPCLOUD",
+      "size_bytes": 399322
+    },
+    {
+      "short": "MYD03",
+      "native_id": "LAADS:4512480494",
+      "start": "2019-03-06T05:55:00.000Z",
+      "collection_version": "6.1",
+      "provider": "LAADS",
+      "size_bytes": 29818698
+    },
+    {
+      "short": "VNP14IMG",
+      "native_id": "VNP14IMG.A2019065.0412.002.2024087125918",
+      "start": "2019-03-06T04:12:00.000Z",
+      "collection_version": "002",
+      "provider": "LPCLOUD",
+      "size_bytes": 1080711
+    },
+    {
+      "short": "VNP03IMG",
+      "native_id": "LAADS:6019938514",
+      "start": "2019-03-06T04:12:00.000Z",
+      "collection_version": "2",
+      "provider": "LAADS",
+      "size_bytes": 138944888
+    }
+  ],
+  "total_bytes": 170243619,
+  "total_mb": 162.36,
+  "cache_hits": [],
+  "additional_bytes_needed": 170243619,
+  "download_executed": false,
+  "note": "Catalog overlap alone cannot establish clear land. No download performed."
+}

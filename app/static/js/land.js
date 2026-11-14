@@ -331,6 +331,10 @@ function resetLandResult() {
   document.querySelector("#weather-explanation").textContent =
     "Loading the fire-danger outlook and recent satellite heat.";
   document.querySelector("#weather-status").textContent = "Loading…";
+  state.publicSnapshot = null;
+  if (typeof syncPhilippinesRegionFilters === "function") {
+    syncPhilippinesRegionFilters(null);
+  }
 }
 
 async function checkLand(options = {}) {

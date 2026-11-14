@@ -17,6 +17,90 @@ HISTORY_METRIC = (
 )
 
 
+def _display_for_day(entry: dict) -> dict:
+    """Plain-language chart/calendar state from estimate + FIRMS heat overlays."""
+
+    heat_status = entry.get("heat_status") or "not_checked"
+    heat_count = int(entry.get("heat_count") or 0)
+    status = entry.get("activity_status")
+    rate = entry.get("activity_rate")
+    has_estimate = isinstance(rate, (int, float))
+
+    if has_estimate:
+        kind = "estimate"
+        if status == "partial":
+            label = "Estimated burning activity · partial"
+        else:
+            label = "Estimated burning activity"
+        detail = None
+    elif heat_status == "readings" and heat_count > 0:
+        kind = "heat"
+        label = "Satellite heat readings"
+        if status == "not_processed":
+            detail = "Heat readings available · activity estimate not processed"
+        elif status == "insufficient":
+            detail = "Heat readings available · insufficient usable coverage for an estimate"
+        else:
+            detail = "Heat readings available · activity estimate unavailable"
+    elif heat_status == "checked_empty":
+        kind = "checked_empty"
+        label = "Checked · no heat readings returned"
+        detail = None if status != "not_processed" else (
+            "No heat readings returned · activity estimate not processed"
+        )
+    elif status == "future":
+        kind = "future"
+        label = "Not yet observed"
+        detail = None
+    else:
+        kind = "not_checked"
+        label = "Not checked"
+        detail = None
+
+    return {
+        **entry,
+        "display_kind": kind,
+        "display_label": label,
+        "display_detail": detail,
+    }
+
+
+def attach_heat_overlay(
+    payload: dict,
+    *,
+    heat_days: list[dict] | None = None,
+    checked_days: list[str] | None = None,
+) -> dict:
+    """Merge FIRMS/session heat into monthly history without inventing estimates."""
+
+    heat_map = {
+        str(row.get("date") or "")[:10]: row
+        for row in (heat_days or [])
+        if row.get("date")
+    }
+    checked = {str(day)[:10] for day in (checked_days or [])}
+    days = []
+    for entry in payload.get("days") or []:
+        day = dict(entry)
+        iso = day["date"]
+        heat = heat_map.get(iso) or {}
+        count = int(heat.get("count") or heat.get("detection_count") or 0)
+        queried = bool(heat.get("queried") or iso in checked or iso in heat_map)
+        if count > 0:
+            day["heat_status"] = "readings"
+            day["heat_count"] = count
+            day["heat_source"] = heat.get("source")
+        elif queried:
+            day["heat_status"] = "checked_empty"
+            day["heat_count"] = 0
+            day["heat_source"] = heat.get("source")
+        else:
+            day["heat_status"] = "not_checked"
+            day["heat_count"] = 0
+        days.append(_display_for_day(day))
+    return {**payload, "days": days}
+
+
 def build_monthly_history(ring: list[list[float]], year: int, month: int, *, today: date | None = None) -> dict:
     """Keep gaps, clear zeros, insufficient coverage and held-out dates distinct.
 

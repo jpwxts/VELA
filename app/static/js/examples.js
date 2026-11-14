@@ -1,5 +1,17 @@
 // Saved examples and fixtures.
 
+function syncPhilippinesRegionFilters(region) {
+  const host = document.querySelector("#philippines-region-filters");
+  if (!host) return;
+  const active = Boolean(state.publicSnapshot && region);
+  host.hidden = !active;
+  host.querySelectorAll("[data-public-region]").forEach((button) => {
+    const on = active && button.dataset.publicRegion === region;
+    button.classList.toggle("on", on);
+    button.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+}
+
 async function loadClickFixture(name = "click_regression") {
   const response = await fetch(`/api/hotspots/fixture?name=${encodeURIComponent(name)}`);
   const payload = await response.json();
@@ -51,13 +63,19 @@ async function loadCompetitionDemo() {
 
 async function loadPhilippinesPublicExample(options = {}) {
   const day = options.day || "2026-11-07";
+  const region = options.region || "philippines";
   const requestId = ++state.landRequestId;
+  state.publicSnapshot = { day, region };
   state.savedExample = true;
   openLandPanel({ tab: "where", focus: false });
-  document.querySelector("#area-label").textContent = "Loading Philippine satellite snapshot…";
+  syncPhilippinesRegionFilters(region);
+  document.querySelector("#area-label").textContent =
+    region === "mindanao"
+      ? "Loading Mindanao filter of the Philippine snapshot…"
+      : "Loading Philippine satellite snapshot…";
   try {
     const response = await fetch(
-      `/api/public/philippines/${encodeURIComponent(day)}?region=philippines`
+      `/api/public/philippines/${encodeURIComponent(day)}?region=${encodeURIComponent(region)}`
     );
     const payload = await response.json();
     if (requestId !== state.landRequestId) return;
@@ -70,10 +88,24 @@ async function loadPhilippinesPublicExample(options = {}) {
       const box = payload.bbox;
       setPolygonFromBox([box.west, box.south, box.east, box.north], payload.label || "Philippines snapshot");
     }
+    // Camera follows the active region bbox so Mindanao is not left at national extent.
+    const box = payload.bbox || state.box;
+    if (box) {
+      flyToBounds(
+        {
+          west: box.west ?? box[0],
+          south: box.south ?? box[1],
+          east: box.east ?? box[2],
+          north: box.north ?? box[3],
+        },
+        { minSpan: region === "mindanao" ? 2.5 : 8 }
+      );
+    }
     state.showIndividuals = true;
     const individuals = document.querySelector("#show-individuals");
     if (individuals) individuals.checked = true;
     renderLandCheck(payload);
+    syncPhilippinesRegionFilters(region);
     const counts = payload.counts || {};
     document.querySelector("#area-label").textContent =
       `Saved snapshot · ${payload.region_label || payload.label || "Philippines"} · ${formatObservationDay(day)} · `
@@ -84,7 +116,9 @@ async function loadPhilippinesPublicExample(options = {}) {
     if (banner) {
       banner.hidden = false;
       banner.textContent = payload.fixture?.label
-        || "Philippines · 7 Nov 2026 · NASA FIRMS snapshot (no map key required)";
+        || (region === "mindanao"
+          ? "Mindanao · 7 Nov 2026 · NASA FIRMS snapshot filter (no map key required)"
+          : "Philippines · 7 Nov 2026 · NASA FIRMS snapshot (no map key required)");
     }
   } catch (error) {
     if (requestId !== state.landRequestId) return;
@@ -174,6 +208,18 @@ async function restoreSavedLandSelection() {
 
 document.querySelector("#try-example").addEventListener("click", loadCompetitionDemo);
 document.querySelector("#try-philippines")?.addEventListener("click", () => loadPhilippinesPublicExample());
+document.querySelectorAll("[data-public-region]").forEach((button) => {
+  button.addEventListener("click", () => {
+    if (!state.publicSnapshot?.day) {
+      loadPhilippinesPublicExample({ region: button.dataset.publicRegion });
+      return;
+    }
+    loadPhilippinesPublicExample({
+      day: state.publicSnapshot.day,
+      region: button.dataset.publicRegion,
+    });
+  });
+});
 document.querySelector("#try-zambia")?.addEventListener("click", loadZambiaWeeklyExample);
 document.querySelector("#return-selection")?.addEventListener("click", restoreSavedLandSelection);
 if (document.querySelector("#try-zambia")) document.querySelector("#try-zambia").hidden = false;

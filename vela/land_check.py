@@ -257,7 +257,19 @@ def annotate_forecast_days(forecast: dict) -> dict:
     values_ok = any(_forecast_day_has_values(day) for day in days)
     annotated["weather_available"] = weather_ok
     annotated["values_available"] = values_ok
-    if peak and peak.get("danger_level"):
+    if peak and peak.get("danger_level") == "Low" and peak.get("danger_rank", 0) <= 1:
+        # All available classes are Low — do not highlight an arbitrary peak day.
+        annotated["headline"] = "Low throughout the available forecast"
+        annotated["attention_day"] = None
+        annotated["headline_explanation"] = (
+            "Every day with a usable Fire Weather Index in this outlook falls in the Low class."
+        )
+        if missing:
+            annotated["headline_explanation"] = (
+                annotated["headline_explanation"]
+                + f" Fire-danger values are missing for {', '.join(format_weekday_safe(day) for day in missing)}."
+            )
+    elif peak and peak.get("danger_level"):
         weekday = format_weekday_safe(peak["valid_date"])
         annotated["headline"] = (
             f"{weekday} has the highest forecast fire danger in this outlook: "
@@ -486,14 +498,27 @@ def _detection_inside_or_on_boundary(lon: float, lat: float, ring: list[list[flo
     return point_in_ring(lon, lat, ring) or distance_to_ring_km(lon, lat, ring) == 0.0
 
 
-def filter_payload_to_polygon(hotspot_payload: dict, ring: list[list[float]]) -> dict:
+def _detection_inside_geometry(lon: float, lat: float, geometry: dict) -> bool:
+    from vela.boundaries import distance_to_geometry_km, point_in_geometry
+
+    return point_in_geometry(lon, lat, geometry) or distance_to_geometry_km(lon, lat, geometry) == 0.0
+
+
+def filter_payload_to_polygon(
+    hotspot_payload: dict,
+    ring: list[list[float]] | None = None,
+    *,
+    geometry: dict | None = None,
+) -> dict:
     """Keep FIRMS detections whose coordinates fall inside the visitor polygon.
 
     The outbound query still uses the padded bounding box; this clip happens before
     5 km area grouping so map markers match the drawn land, not the search box.
+    Multipolygon island-group presets pass ``geometry=`` so bbox rings cannot
+    pull in Masbate when filtering Mindanao.
     """
 
-    closed = normalize_ring(ring)
+    closed = normalize_ring(ring) if ring is not None and geometry is None else None
     filtered_results = []
     total = 0
     for result in hotspot_payload.get("results") or []:
@@ -504,7 +529,11 @@ def filter_payload_to_polygon(hotspot_payload: dict, ring: list[list[float]]) ->
                 lat = float(spot["lat"])
             except (KeyError, TypeError, ValueError):
                 continue
-            if _detection_inside_or_on_boundary(lon, lat, closed):
+            if geometry is not None:
+                inside = _detection_inside_geometry(lon, lat, geometry)
+            else:
+                inside = _detection_inside_or_on_boundary(lon, lat, closed or [])
+            if inside:
                 kept.append(spot)
         total += len(kept)
         filtered_results.append({**result, "hotspots": kept, "count": len(kept)})
@@ -570,10 +599,32 @@ def feed_breakdown(hotspot_payload: dict, inside_rows: list[dict]) -> list[dict]
 
 def classify_detections(
     hotspot_payload: dict,
-    ring: list[list[float]],
+    ring: list[list[float]] | None = None,
     nearby_km: float = NEARBY_BUFFER_KM,
+    *,
+    geometry: dict | None = None,
 ) -> dict:
-    closed = normalize_ring(ring)
+    if geometry is None and ring is None:
+        raise TypeError("classify_detections requires ring or geometry")
+    closed = normalize_ring(ring) if ring is not None and geometry is None else None
+    if geometry is not None:
+        from vela.boundaries import distance_to_geometry_km
+
+        def _inside(lon: float, lat: float) -> bool:
+            return _detection_inside_geometry(lon, lat, geometry)
+
+        def _distance(lon: float, lat: float) -> float:
+            return distance_to_geometry_km(lon, lat, geometry)
+
+    else:
+        assert closed is not None
+
+        def _inside(lon: float, lat: float) -> bool:
+            return _detection_inside_or_on_boundary(lon, lat, closed)
+
+        def _distance(lon: float, lat: float) -> float:
+            return distance_to_ring_km(lon, lat, closed)
+
     # Prefer raw records so a 5 km square that straddles the fence does not mis-label.
     records = []
     for result in hotspot_payload.get("results") or []:
@@ -588,7 +639,7 @@ def classify_detections(
     for spot in records:
         lon = float(spot["lon"])
         lat = float(spot["lat"])
-        distance = distance_to_ring_km(lon, lat, closed)
+        distance = _distance(lon, lat)
         row = {
             "lat": lat,
             "lon": lon,
@@ -601,7 +652,7 @@ def classify_detections(
             "source": spot.get("source"),
             "distance_km": round(distance, 2),
         }
-        if _detection_inside_or_on_boundary(lon, lat, closed):
+        if _inside(lon, lat):
             row["relation"] = "inside"
             inside.append(row)
         elif distance <= nearby_km:
@@ -612,7 +663,7 @@ def classify_detections(
     nearby.sort(key=lambda item: (item["distance_km"], item.get("acq_date") or "", item.get("acq_time") or ""))
 
     # Map markers / area grouping use only detections retained inside the polygon.
-    filtered_payload = filter_payload_to_polygon(hotspot_payload, closed)
+    filtered_payload = filter_payload_to_polygon(hotspot_payload, closed, geometry=geometry)
     areas = group_hotspot_areas(filtered_payload)
 
     results = hotspot_payload.get("results") or []

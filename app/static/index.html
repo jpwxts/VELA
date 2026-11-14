@@ -112,10 +112,11 @@
             <h3 class="pane-title visually-hidden">Burn activity</h3>
             <section id="land-summary" class="land-summary" aria-label="Summary of the selected land" hidden>
               <button type="button" id="cell-back" class="link-button back-link" hidden>Back to land</button>
+              <p id="land-scope-banner" class="stamp">Drawn boundary summary</p>
               <canvas id="land-cutout" class="cutout" width="672" height="340" role="img" aria-label="The selected land, cut out of the map"></canvas>
 
               <div class="activity" aria-live="polite">
-                <p id="activity-label" class="activity-label">Burning activity</p>
+                <p id="activity-label" class="activity-label">Burning activity for this boundary</p>
                 <p id="activity-value" class="activity-value"></p>
                 <p id="square-heat" class="square-heat" hidden></p>
                 <p id="activity-note" class="quiet"></p>
@@ -157,6 +158,10 @@
                 <p id="result-lead" class="result-lead"></p>
                 <p id="result-multi" class="result-multi"></p>
                 <p id="result-support" class="quiet result-support"></p>
+                <div id="philippines-region-filters" class="result-filter" hidden>
+                  <button type="button" class="filter-button" data-public-region="philippines" aria-pressed="true">All Philippines</button>
+                  <button type="button" class="filter-button" data-public-region="mindanao" aria-pressed="false">All Mindanao</button>
+                </div>
                 <div id="result-filter" class="result-filter" hidden></div>
                 <p id="result-status" class="quiet" hidden></p>
               </div>
@@ -211,7 +216,8 @@
             </details>
 
             <section id="cell-detail" class="pane-block cell-detail" hidden>
-              <h4>Selected square</h4>
+              <h4 id="cell-detail-title">Selected 5 km square</h4>
+              <p id="scope-banner" class="stamp">Square scope · not the full drawn boundary</p>
               <section id="where-block" class="where-block" aria-live="polite">
                 <p id="area-place" class="place-name" hidden></p>
                 <p id="area-place-meta" class="quiet" hidden></p>
@@ -221,11 +227,19 @@
                 </div>
                 <p id="place-attribution" class="place-attribution quiet" hidden></p>
               </section>
+              <p id="date-mismatch" class="notice" hidden></p>
+              <div id="date-mismatch-actions" class="result-filter" hidden>
+                <button type="button" id="use-marker-date" class="filter-button">Use marker date</button>
+                <button type="button" id="query-panel-date" class="filter-button">Query selected date</button>
+              </div>
               <p id="area-sentence" class="area-sentence"></p>
               <p id="area-when" class="quiet"></p>
               <p id="area-latest" class="quiet"></p>
               <p id="area-square-note" class="secondary-note">5 km × 5 km observation area</p>
+              <p id="area-cell-id" class="quiet"></p>
               <p id="area-readings" class="quiet"></p>
+              <ul id="area-pass-list" class="week-pass-list"></ul>
+              <p id="area-model-note" class="quiet"></p>
 
               <section id="replay-block" class="sub-block">
                 <div class="section-head">
@@ -305,9 +319,9 @@
               </div>
               <div id="cal-grid" class="cal-grid" role="group" aria-labelledby="cal-title"></div>
               <ul class="history-key" aria-label="Burning activity calendar legend">
-                <li><span class="history-swatch active" aria-hidden="true"></span>Burning activity</li>
+                <li><span class="history-swatch active" aria-hidden="true"></span>Estimated burning activity</li>
                 <li><span class="history-swatch zero" aria-hidden="true"></span>Measured 0%</li>
-                <li><span class="history-swatch missing" aria-hidden="true"></span>No estimate</li>
+                <li><span class="history-swatch missing" aria-hidden="true"></span>Satellite heat / not checked</li>
               </ul>
               <p id="history-status" class="quiet" aria-live="polite"></p>
               <button id="history-retry" type="button" class="filter-button" hidden>Retry history</button>

@@ -41,7 +41,14 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .action-row .primary { flex: 1; }
 
 .result-filter { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.filter-button.on, .filter-button[aria-pressed="true"] {
+  border-color: var(--teal);
+  background: var(--teal-wash);
+  color: var(--ink);
+}
 .filter-status { width: 100%; font-size: 0.875rem; color: var(--ink-soft); }
+.week-pass-list { display: grid; gap: 6px; margin: 8px 0 0; padding: 0; list-style: none; }
+.week-pass-list li { font-size: 0.8125rem; color: var(--ink-soft); }
 
 .check {
   display: flex;

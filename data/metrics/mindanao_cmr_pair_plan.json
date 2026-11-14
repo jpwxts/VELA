@@ -1,0 +1,29 @@
+{
+  "week": "2026-11-02/2026-11-08",
+  "cell": "2393:174",
+  "search_status": "ok_matches",
+  "aqua_pair_count": 34,
+  "viirs_pair_count": 1,
+  "shared_utc_days": [],
+  "candidate_files": [
+    {
+      "role": "aqua",
+      "native_id": "MYD14.A2026309.0650.061.2026309142654",
+      "geo_id": "LAADS:10114734636",
+      "fire_start": "2026-11-05T06:50:00.000Z",
+      "bytes": 26472221
+    },
+    {
+      "role": "viirs",
+      "native_id": "VNP14IMG.A2026306.0500.002.2026306201756",
+      "geo_id": "LAADS:10108240416",
+      "fire_start": "2026-11-02T05:00:00.000Z",
+      "bytes": 158492108
+    }
+  ],
+  "total_bytes_uncached": 184964329,
+  "total_mb_uncached": 176.4,
+  "cache_hits": [],
+  "download_executed": false,
+  "coverage_caveat": "Catalog overlap alone cannot establish clear land."
+}

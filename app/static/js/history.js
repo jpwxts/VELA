@@ -346,9 +346,22 @@ async function loadMonthlyHistory(options = {}) {
   renderDaySummary();
   try {
     const [year, number] = month.split("-").map(Number);
+    const heatDays = [...state.checkedDays.entries()]
+      .filter(([, row]) => row && (row.detection_count > 0 || row.status === "heat"))
+      .map(([day, row]) => ({
+        date: day,
+        detection_count: row.detection_count || 0,
+        platforms: row.platforms || [],
+      }));
     const response = await fetch("/api/history/month", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ coordinates: state.polygon, year, month: number }),
+      body: JSON.stringify({
+        coordinates: state.polygon,
+        year,
+        month: number,
+        heat_days: heatDays,
+        checked_days: [...state.checkedDays.keys()],
+      }),
     });
     if (!response.ok) throw new Error("history failed");
     const payload = await response.json();

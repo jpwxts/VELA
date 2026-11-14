@@ -1,0 +1,70 @@
+{
+  "bbox": [
+    123.95727,
+    6.78538,
+    124.10909,
+    6.92485
+  ],
+  "temporal": [
+    "2026-11-02T00:00:00Z",
+    "2026-11-08T23:59:59Z"
+  ],
+  "products": {
+    "MYD14": {
+      "status": "ok_matches",
+      "count": 13,
+      "sample_ids": [
+        "Collection: {'ShortName': 'MYD14', 'Version': '6.1NRT'}\nSpatial coverage: {'Hori",
+        "Collection: {'ShortName': 'MYD14', 'Version': '6.1NRT'}\nSpatial coverage: {'Hori",
+        "Collection: {'ShortName': 'MYD14', 'Version': '061'}\nSpatial coverage: {'Horizon"
+      ]
+    },
+    "MYD03": {
+      "status": "ok_matches",
+      "count": 24,
+      "sample_ids": [
+        "Collection: {'ShortName': 'MYD03', 'Version': '6.1'}\nSpatial coverage: {'Horizon",
+        "Collection: {'ShortName': 'MYD03', 'Version': '7'}\nSpatial coverage: {'Horizonta",
+        "Collection: {'ShortName': 'MYD03', 'Version': '7'}\nSpatial coverage: {'Horizonta"
+      ]
+    },
+    "VNP14IMG": {
+      "status": "ok_matches",
+      "count": 1,
+      "sample_ids": [
+        "Collection: {'ShortName': 'VNP14IMG', 'Version': '002'}\nSpatial coverage: {'Hori"
+      ]
+    },
+    "VNP03IMG": {
+      "status": "ok_matches",
+      "count": 1,
+      "sample_ids": [
+        "Collection: {'ShortName': 'VNP03IMG', 'Version': '2'}\nSpatial coverage: {'Horizo"
+      ]
+    }
+  },
+  "historical": {
+    "temporal": [
+      "2019-03-04T00:00:00Z",
+      "2019-03-10T23:59:59Z"
+    ],
+    "products": {
+      "MYD14": {
+        "status": "ok_matches",
+        "count": 12
+      },
+      "MYD03": {
+        "status": "ok_matches",
+        "count": 24
+      },
+      "VNP14IMG": {
+        "status": "ok_matches",
+        "count": 15
+      },
+      "VNP03IMG": {
+        "status": "ok_matches",
+        "count": 15
+      }
+    }
+  }
+}
