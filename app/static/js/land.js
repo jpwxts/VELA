@@ -36,7 +36,7 @@ async function trackHotspotSearch(scope, load) {
 }
 
 function clearHotspotDetailSearches() {
-  for (const scope of ["square", "activity", "outlook", "findings", "context"]) {
+  for (const scope of ["square", "activity", "outlook", "findings", "context", "probability"]) {
     hotspotSearches.delete(scope);
   }
   syncHotspotSearchProgress();
@@ -257,6 +257,7 @@ function setPolygon(coordinates, label) {
   clearPolygonLayers();
   clearRectangle();
   clearMapLayers();
+  resetProbabilityOverlay();
   clearForecastMarker();
   state.polygonLayer = globe.addArea(ring, {
     stroke: LAND_STROKE,
@@ -338,6 +339,7 @@ function clearLand() {
   clearPolygonLayers();
   clearForecastMarker();
   clearMapLayers();
+  resetProbabilityOverlay();
   state.lastPayload = null;
   state.selectedArea = null;
   state.lastPlace = null;
@@ -449,6 +451,7 @@ function setDefaultPlatforms() {
 
 function resetLandResult() {
   clearHotspotSearches();
+  resetProbabilityOverlay();
   document.querySelector("#fixture-banner").hidden = true;
   document.querySelector("#separation-note").hidden = true;
   document.querySelector("#heat-block").hidden = true;
@@ -656,6 +659,7 @@ function renderLandCheck(payload) {
   openLandPanel({ tab: state.panelTab || "where", focus: false });
   updateSelectionBanner();
   drawLandCutout(synthetic.hotspot_areas.areas || []);
+  loadProbabilityOverlay(payload.observation_date || dayInput.value);
 }
 
 function renderFeedBreakdown(feeds) {
