@@ -454,6 +454,104 @@ def _client(tmp_path, getter, key="SECRET-KEY-99"):
     return FirmsClient(key, ResponseCache(tmp_path / "firms.sqlite"), getter)
 
 
+def _plant_cache(tmp_path, cache_key, kind, payload, hours_old):
+    import sqlite3
+    from datetime import datetime, timedelta, timezone
+
+    ResponseCache(tmp_path / "firms.sqlite")  # creates the table
+    stamp = (datetime.now(timezone.utc) - timedelta(hours=hours_old)).isoformat()
+    with sqlite3.connect(tmp_path / "firms.sqlite") as connection:
+        connection.execute(
+            "INSERT OR REPLACE INTO response_cache VALUES (?, ?, ?, ?)",
+            (cache_key, kind, payload, stamp),
+        )
+
+
+def _availability_key(key="SECRET-KEY-99"):
+    import hashlib
+
+    from app.firms import _cache_key
+
+    return _cache_key("availability", hashlib.sha256(key.encode("utf-8")).hexdigest()[:12], "all", (0, 0, 0, 0))
+
+
+def _modis_nrt_list(last_day):
+    return f"data_id,min_date,max_date\nMODIS_NRT,2025-01-01,{last_day}\n"
+
+
+def _aqua_row(day):
+    return f"{HEADER}-15.0,-50.0,320,1,1,{day},0540,Aqua,MODIS,80,6.1NRT,300,12.5,D\n"
+
+
+def test_a_day_newer_than_the_cached_list_rechecks_the_list(tmp_path):
+    from datetime import datetime, timedelta, timezone
+
+    today = datetime.now(timezone.utc).date()
+    yesterday = (today - timedelta(days=1)).isoformat()
+    # Cached two hours ago, before NASA published yesterday's file.
+    _plant_cache(tmp_path, _availability_key(), "availability",
+                 _modis_nrt_list((today - timedelta(days=2)).isoformat()), hours_old=2)
+    calls = []
+
+    def getter(url: str):
+        calls.append(url)
+        if "data_availability" in url:
+            return 200, _modis_nrt_list(today.isoformat())
+        if "/MODIS_NRT/" in url:
+            return 200, _aqua_row(yesterday)
+        raise AssertionError(url)
+
+    result = _client(tmp_path, getter).hotspots(-50.5, -15.5, -49.5, -14.5, yesterday, ["Aqua"])
+
+    assert sum("data_availability" in url for url in calls) == 1
+    assert result["results"][0]["processing"] == "near_real_time"
+    assert result["total_count"] == 1
+
+
+def test_the_list_is_not_rechecked_too_often_or_for_future_days(tmp_path):
+    from datetime import datetime, timedelta, timezone
+
+    today = datetime.now(timezone.utc).date()
+    two_days_ago = (today - timedelta(days=2)).isoformat()
+
+    def getter(url: str):
+        raise AssertionError(f"unexpected request {url}")
+
+    # Rechecked five minutes ago: wait before asking again.
+    _plant_cache(tmp_path, _availability_key(), "availability", _modis_nrt_list(two_days_ago), hours_old=5 / 60)
+    recent = _client(tmp_path, getter).hotspots(-50.5, -15.5, -49.5, -14.5, (today - timedelta(days=1)).isoformat(), ["Aqua"])
+    assert recent["results"][0]["status"] == "product_unavailable"
+
+    # A future day cannot be published yet, however old the list is.
+    _plant_cache(tmp_path, _availability_key(), "availability", _modis_nrt_list(today.isoformat()), hours_old=2)
+    future = _client(tmp_path, getter).hotspots(-50.5, -15.5, -49.5, -14.5, (today + timedelta(days=1)).isoformat(), ["Aqua"])
+    assert future["results"][0]["status"] == "product_unavailable"
+
+
+def test_a_recent_days_empty_answer_is_not_reused_for_hours(tmp_path):
+    from datetime import datetime, timedelta, timezone
+
+    from app.firms import _cache_key
+    from vela.geo import firms_boxes, round_box
+
+    today = datetime.now(timezone.utc).date()
+    yesterday = (today - timedelta(days=1)).isoformat()
+    _plant_cache(tmp_path, _availability_key(), "availability", _modis_nrt_list(today.isoformat()), hours_old=0.1)
+    # Asked 45 minutes ago, before the afternoon pass was published: nothing yet.
+    (piece,) = list(firms_boxes(*round_box(-50.5, -15.5, -49.5, -14.5)))
+    _plant_cache(tmp_path, _cache_key("area", "MODIS_NRT", yesterday, piece), "area", HEADER, hours_old=0.75)
+
+    def getter(url: str):
+        if "/MODIS_NRT/" in url:
+            return 200, _aqua_row(yesterday)
+        raise AssertionError(url)
+
+    result = _client(tmp_path, getter).hotspots(-50.5, -15.5, -49.5, -14.5, yesterday, ["Aqua"])
+
+    assert result["total_count"] == 1
+    assert result["results"][0]["cached"] is False
+
+
 def test_aqua_filter_uses_standard_processing_and_hides_the_key(tmp_path):
     calls = []
 
