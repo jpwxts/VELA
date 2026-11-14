@@ -3,13 +3,13 @@
   "question": "For this 5 km square, what is the estimated chance that MODIS or VIIRS will detect heat in the next 24 hours?",
   "public_label": "Chance of satellite-detected heat",
   "study": {
-    "id": "mindanao_maguindanao_compact_v1",
-    "label": "Compact Maguindanao / western Mindanao study box",
+    "id": "mindanao_island_v1",
+    "label": "All Mindanao (island group)",
     "bbox": {
-      "west": 123.6,
-      "south": 6.3,
-      "east": 124.7,
-      "north": 7.4
+      "west": 117.9666667,
+      "south": 4.4523355,
+      "east": 126.7409926,
+      "north": 10.6061357
     },
     "clip_preset": "mindanao"
   },
@@ -46,7 +46,7 @@
     "month_sin",
     "month_cos"
   ],
-  "frozen_at_utc": "2026-11-14T15:08:28.921479+00:00",
+  "frozen_at_utc": "2026-11-14T15:39:33.787828+00:00",
   "harmonization_untouched": true,
   "onset_pipeline_untouched": true,
   "excludes": [

@@ -1,9 +1,9 @@
 {
   "title": "Mindanao multi-region hotspot expansion",
-  "updated_at_utc": "2026-11-14T15:08:10.593872+00:00",
+  "updated_at_utc": "2026-11-14T15:38:31.635143+00:00",
   "control": "maguindanao_compact_v1 keeps philippines_hotspot_selection.json (v2.1); not overwritten",
   "inventory_ref": "data/metrics/mindanao_hotspot_multi_region_inventory.json",
-  "coverage_status": "CMR daytime Aqua pairs inventoried for Bukidnon and Davao del Norte. First disk-bounded downloads overlapped Maguindanao latitudes more than Bukidnon cell centers; clear-pass negatives for new boxes are not yet batch-complete. Serving stays Maguindanao-only.",
+  "coverage_status": "Serving geography widened to mindanao_island_v1. Maguindanao v2.1 percentages remain the only claimable zone. Bukidnon/Davao/Zamboanga/Caraga/Cotabato tiles are inventory or batch targets; island-wide selection stays serving_blocked until clear-pass negatives and holdout exist. All six Maguindanao classifiers + baselines exported under philippines_hotspot_models/ for past-date board.",
   "firms_in_store": {
     "maguindanao_compact_v1": {
       "n_detections": 1923,
@@ -378,5 +378,7 @@
     }
   },
   "six_classifier_board_source": "philippines_hotspot_model_comparison.json (control region)",
-  "expansion_holdout_ready": false
+  "expansion_holdout_ready": false,
+  "island_selection": "data/models/philippines_hotspot_models/mindanao_island_selection.json",
+  "board_manifest": "data/models/philippines_hotspot_models/board_manifest.json"
 }

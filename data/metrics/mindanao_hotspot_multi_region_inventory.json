@@ -1,5 +1,5 @@
 {
-  "updated_at_utc": "2026-11-14T15:04:38.667882+00:00",
+  "updated_at_utc": "2026-11-14T15:38:31.635840+00:00",
   "windows": [
     [
       "2024-02-01",
@@ -246,11 +246,33 @@
           }
         ]
       }
+    ],
+    "zamboanga_compact_v1": [
+      {
+        "status": "registered_inventory_pending_cmr",
+        "label": "Zamboanga Peninsula compact",
+        "note": "Tile registered for disk-bounded Aqua dry-season batches; CMR inventory not yet pulled for this tile."
+      }
+    ],
+    "caraga_compact_v1": [
+      {
+        "status": "registered_inventory_pending_cmr",
+        "label": "Caraga / Surigao compact",
+        "note": "Tile registered for disk-bounded Aqua dry-season batches; CMR inventory not yet pulled for this tile."
+      }
+    ],
+    "cotabato_east_compact_v1": [
+      {
+        "status": "registered_inventory_pending_cmr",
+        "label": "Eastern Cotabato / Sultan Kudarat compact",
+        "note": "Tile registered for disk-bounded Aqua dry-season batches; CMR inventory not yet pulled for this tile."
+      }
     ]
   },
   "disk_policy": {
     "aqua_dry_season_only": true,
     "max_batch_bytes": 1500000000,
     "quarantine_raw_after_extract": true
-  }
+  },
+  "study_id": "mindanao_island_v1"
 }

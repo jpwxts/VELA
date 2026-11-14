@@ -1,0 +1,9 @@
+{
+  "updated_at_utc": "2026-11-14T15:38:19.622249+00:00",
+  "study_cells": 7556,
+  "coverage_rows_considered": 11437,
+  "upserts": 2458,
+  "written": 2458,
+  "heat_cell_days_in_store": 1240,
+  "note": "Store activity_cell_days from measured coverage + FIRMS heat only. Not a wildfire probability and not a hotspot-forecast percentage."
+}

@@ -1,11 +1,83 @@
 {
   "title": "Mindanao hotspot forecast supported areas",
-  "updated_at_utc": "2026-11-14T15:02:17.097087+00:00",
+  "updated_at_utc": "2026-11-14T15:38:17.772298+00:00",
   "ph_clock_reference": "2026-11-14",
+  "study": {
+    "id": "mindanao_island_v1",
+    "label": "All Mindanao (island group)",
+    "bbox": {
+      "west": 117.9666667,
+      "south": 4.4523355,
+      "east": 126.7409926,
+      "north": 10.6061357
+    },
+    "clip_preset": "mindanao"
+  },
+  "percentage_zone": {
+    "id": "mindanao_maguindanao_compact_v1",
+    "label": "Compact Maguindanao / western Mindanao (v2.1 evaluated)",
+    "bbox": {
+      "west": 123.6,
+      "south": 6.3,
+      "east": 124.7,
+      "north": 7.4
+    },
+    "clip_preset": "mindanao"
+  },
   "regions": [
     {
+      "id": "mindanao_island_v1",
+      "label": "All Mindanao (island group)",
+      "bbox": {
+        "west": 117.9666667,
+        "south": 4.4523355,
+        "east": 126.7409926,
+        "north": 10.6061357
+      },
+      "role": "serving_geography",
+      "n_land_cells": 7556,
+      "evaluated": false,
+      "metrics_ref": null,
+      "serving": "readings_weather_coverage_status",
+      "geojson": {
+        "type": "Feature",
+        "properties": {
+          "id": "mindanao_island_v1",
+          "label": "All Mindanao (island group)",
+          "evaluated": false
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                117.9666667,
+                4.4523355
+              ],
+              [
+                126.7409926,
+                4.4523355
+              ],
+              [
+                126.7409926,
+                10.6061357
+              ],
+              [
+                117.9666667,
+                10.6061357
+              ],
+              [
+                117.9666667,
+                4.4523355
+              ]
+            ]
+          ]
+        }
+      }
+    },
+    {
       "id": "maguindanao_compact_v1",
-      "label": "Compact Maguindanao / western Mindanao",
+      "label": "Compact Maguindanao / western Mindanao (v2.1 evaluated)",
       "bbox": {
         "west": 123.6,
         "south": 6.3,
@@ -18,11 +90,12 @@
       "evaluated": true,
       "metrics_ref": "data/metrics/philippines_hotspot_model_comparison.json",
       "demo_cell": "2398:168",
+      "serving": "active_v2_1_percentages",
       "geojson": {
         "type": "Feature",
         "properties": {
           "id": "maguindanao_compact_v1",
-          "label": "Compact Maguindanao / western Mindanao",
+          "label": "Compact Maguindanao / western Mindanao (v2.1 evaluated)",
           "evaluated": true
         },
         "geometry": {
@@ -64,10 +137,9 @@
         "north": 8.4
       },
       "role": "train_candidate",
-      "n_land_cells": 336,
       "evaluated": false,
       "metrics_ref": null,
-      "demo_cell": "2412:193",
+      "serving": "inventory_or_coverage_batch",
       "geojson": {
         "type": "Feature",
         "properties": {
@@ -102,13 +174,7 @@
             ]
           ]
         }
-      },
-      "firms_in_store": {
-        "n_detections": 7,
-        "n_cell_days": 4,
-        "n_cells": 4
-      },
-      "serving": "readings_and_weather_only"
+      }
     },
     {
       "id": "davao_norte_compact_v1",
@@ -120,10 +186,9 @@
         "north": 7.9
       },
       "role": "geographic_holdout",
-      "n_land_cells": 270,
       "evaluated": false,
       "metrics_ref": null,
-      "demo_cell": "2427:192",
+      "serving": "inventory_or_coverage_batch",
       "geojson": {
         "type": "Feature",
         "properties": {
@@ -158,16 +223,158 @@
             ]
           ]
         }
+      }
+    },
+    {
+      "id": "zamboanga_compact_v1",
+      "label": "Zamboanga Peninsula compact",
+      "bbox": {
+        "west": 121.8,
+        "south": 6.8,
+        "east": 122.6,
+        "north": 7.6
       },
-      "firms_in_store": {
-        "n_detections": 4,
-        "n_cell_days": 4,
-        "n_cells": 4
+      "role": "inventory_tile",
+      "evaluated": false,
+      "metrics_ref": null,
+      "serving": "inventory_or_coverage_batch",
+      "geojson": {
+        "type": "Feature",
+        "properties": {
+          "id": "zamboanga_compact_v1",
+          "label": "Zamboanga Peninsula compact",
+          "evaluated": false
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                121.8,
+                6.8
+              ],
+              [
+                122.6,
+                6.8
+              ],
+              [
+                122.6,
+                7.6
+              ],
+              [
+                121.8,
+                7.6
+              ],
+              [
+                121.8,
+                6.8
+              ]
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "caraga_compact_v1",
+      "label": "Caraga / Surigao compact",
+      "bbox": {
+        "west": 125.4,
+        "south": 8.4,
+        "east": 126.2,
+        "north": 9.2
       },
-      "serving": "readings_and_weather_only"
+      "role": "inventory_tile",
+      "evaluated": false,
+      "metrics_ref": null,
+      "serving": "inventory_or_coverage_batch",
+      "geojson": {
+        "type": "Feature",
+        "properties": {
+          "id": "caraga_compact_v1",
+          "label": "Caraga / Surigao compact",
+          "evaluated": false
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                125.4,
+                8.4
+              ],
+              [
+                126.2,
+                8.4
+              ],
+              [
+                126.2,
+                9.2
+              ],
+              [
+                125.4,
+                9.2
+              ],
+              [
+                125.4,
+                8.4
+              ]
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "cotabato_east_compact_v1",
+      "label": "Eastern Cotabato / Sultan Kudarat compact",
+      "bbox": {
+        "west": 124.4,
+        "south": 6.2,
+        "east": 125.2,
+        "north": 7.0
+      },
+      "role": "inventory_tile",
+      "evaluated": false,
+      "metrics_ref": null,
+      "serving": "inventory_or_coverage_batch",
+      "geojson": {
+        "type": "Feature",
+        "properties": {
+          "id": "cotabato_east_compact_v1",
+          "label": "Eastern Cotabato / Sultan Kudarat compact",
+          "evaluated": false
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                124.4,
+                6.2
+              ],
+              [
+                125.2,
+                6.2
+              ],
+              [
+                125.2,
+                7.0
+              ],
+              [
+                124.4,
+                7.0
+              ],
+              [
+                124.4,
+                6.2
+              ]
+            ]
+          ]
+        }
+      }
     }
   ],
-  "serving_rule": "Serve Maguindanao v2.1 model only inside maguindanao_compact_v1. New regions appear on the map when their holdout evaluation artifact exists. Elsewhere: satellite readings + weather + coverage status, no percentage.",
+  "serving_rule": "Study geography is all Mindanao land. Serve Maguindanao v2.1 percentages only inside maguindanao_compact_v1. Elsewhere in Mindanao: FIRMS readings + weather + coverage status. Outside Mindanao: unsupported for hotspot percentages.",
   "multi_region_comparison": "data/metrics/mindanao_hotspot_multi_region_comparison.json",
-  "inventory": "data/metrics/mindanao_hotspot_multi_region_inventory.json"
+  "inventory": "data/metrics/mindanao_hotspot_multi_region_inventory.json",
+  "island_selection": "data/models/philippines_hotspot_models/mindanao_island_selection.json"
 }

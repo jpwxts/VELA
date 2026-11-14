@@ -2,7 +2,14 @@
   "name": "mindanao_hotspot_regions_v1",
   "registered_before_looking_at_outcomes": true,
   "registered_at_utc": "2026-11-14T15:00:00+00:00",
-  "note": "Region boxes and train/holdout roles frozen before FIRMS/fire-mask outcomes for the new boxes are inspected.",
+  "updated_at_utc": "2026-11-14T16:00:00+00:00",
+  "note": "Region boxes and train/holdout roles frozen before FIRMS/fire-mask outcomes for the new boxes are inspected. Serving geography is mindanao_island_v1; percentage claims remain maguindanao_compact_v1 until island promotion.",
+  "study": {
+    "id": "mindanao_island_v1",
+    "label": "All Mindanao (island group)",
+    "bbox": {"west": 117.9666667, "south": 4.4523355, "east": 126.7409926, "north": 10.6061357},
+    "clip_preset": "mindanao"
+  },
   "regions": [
     {
       "id": "maguindanao_compact_v1",
@@ -22,13 +29,32 @@
       "label": "Davao del Norte compact",
       "bbox": {"west": 125.4, "south": 7.2, "east": 126.2, "north": 7.9},
       "role": "geographic_holdout"
+    },
+    {
+      "id": "zamboanga_compact_v1",
+      "label": "Zamboanga Peninsula compact",
+      "bbox": {"west": 121.8, "south": 6.8, "east": 122.6, "north": 7.6},
+      "role": "inventory_tile"
+    },
+    {
+      "id": "caraga_compact_v1",
+      "label": "Caraga / Surigao compact",
+      "bbox": {"west": 125.4, "south": 8.4, "east": 126.2, "north": 9.2},
+      "role": "inventory_tile"
+    },
+    {
+      "id": "cotabato_east_compact_v1",
+      "label": "Eastern Cotabato / Sultan Kudarat compact",
+      "bbox": {"west": 124.4, "south": 6.2, "east": 125.2, "north": 7.0},
+      "role": "inventory_tile"
     }
   ],
   "split_rule": {
     "geographic_holdout_region": "davao_norte_compact_v1",
     "train_regions": ["bukidnon_compact_v1"],
     "control_region": "maguindanao_compact_v1",
-    "union": "A cell belongs to at most one expansion region by bbox membership; Maguindanao continues to use philippines_hotspot_selection.json."
+    "inventory_tiles": ["zamboanga_compact_v1", "caraga_compact_v1", "cotabato_east_compact_v1"],
+    "union": "A cell belongs to at most one expansion region by bbox membership; Maguindanao continues to use philippines_hotspot_selection.json until island promotion."
   },
   "disk_policy": {
     "aqua_dry_season_only": true,
