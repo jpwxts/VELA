@@ -40,7 +40,7 @@ An earlier live Burn-activity screen (Terra unchecked) reported 45 detections an
 
 **Team feedback**
 
-- Pull request / review link: _added after the feature branch is pushed_
+- Pull request / review link: https://github.com/jpwxts/VELA/pull/1
 
 ---
 
