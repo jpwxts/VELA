@@ -370,12 +370,22 @@ def hotspot_polygon_summary(body: HotspotPolygonRequest):
 
 @app.get("/api/hotspot-forecast/metrics")
 def hotspot_forecast_metrics():
-    from vela.hotspot_forecast import COMPARISON_PATH, RULES_PATH
+    from vela.hotspot_forecast import COMPARISON_PATH, COMPARISON_V1_ARCHIVE, RULES_PATH
+    from vela.hotspot_coverage import INVENTORY_PATH, PILOT_TRACE_PATH
     import json as _json
 
     comparison = _json.loads(COMPARISON_PATH.read_text()) if COMPARISON_PATH.is_file() else None
     rules = _json.loads(RULES_PATH.read_text()) if RULES_PATH.is_file() else None
-    return {"comparison": comparison, "rules": rules}
+    v1 = _json.loads(COMPARISON_V1_ARCHIVE.read_text()) if COMPARISON_V1_ARCHIVE.is_file() else None
+    inventory = _json.loads(INVENTORY_PATH.read_text()) if INVENTORY_PATH.is_file() else None
+    pilot = _json.loads(PILOT_TRACE_PATH.read_text()) if PILOT_TRACE_PATH.is_file() else None
+    return {
+        "comparison": comparison,
+        "rules": rules,
+        "v1_archived": v1,
+        "granule_inventory": inventory,
+        "pilot_trace": pilot,
+    }
 
 
 @app.get("/api/onset/forecast")

@@ -398,7 +398,7 @@ def run() -> dict:
             "threshold": threshold,
             "winner_name": winner_name,
             "feature_schema_version": FEATURE_SCHEMA_VERSION,
-            "coverage_rule_version": "hotspot_coverage_v2",
+            "coverage_rule_version": "hotspot_coverage_v2_1",
             "seed": SEED,
         }
         joblib.dump(bundle, artifact)
@@ -412,7 +412,7 @@ def run() -> dict:
             "imputer_means": means,
             "threshold": threshold,
             "feature_schema_version": FEATURE_SCHEMA_VERSION,
-            "coverage_rule_version": "hotspot_coverage_v2",
+            "coverage_rule_version": "hotspot_coverage_v2_1",
             "seed": SEED,
         }
         joblib.dump(bundle, artifact)
@@ -461,7 +461,7 @@ def run() -> dict:
         "recorded_at_utc": recorded,
         "seed": SEED,
         "feature_schema_version": FEATURE_SCHEMA_VERSION,
-        "coverage_rule_version": "hotspot_coverage_v2",
+        "coverage_rule_version": "hotspot_coverage_v2_1",
         "dataset_path": str(DATASET_PATH),
         "split_manifest": str(SPLIT_PATH),
         "data_version": hashlib.sha256(DATASET_PATH.read_bytes()).hexdigest()[:16],
@@ -502,14 +502,49 @@ def run() -> dict:
             "scored_on": (
                 "adequately observed square-days only (positives + fire-mask-supported negatives)"
             ),
-            "holdout_inspected_in_audit": True,
-            "next_final_eval_requires_new_independent_data": True,
+            "independent_of_inspected_v1_holdout": True,
+            "split_policy": "odd x-index cells OR dates ≥ 2024-08-01",
         },
         "v1_audit": v1_brier_gap_explanation(),
         "model_artifact": str(artifact),
         "model_hash": model_hash(artifact),
         "approved_for_serving": True,
         "public_label": "Chance of satellite-detected heat",
+    }
+    # Attach Analytics blocks (v1 archive + v2.1 scores) for the Research tab.
+    v1_payload = {}
+    if COMPARISON_V1_ARCHIVE.is_file():
+        v1_payload = json.loads(COMPARISON_V1_ARCHIVE.read_text(encoding="utf-8"))
+    payload["analytics"] = {
+        "v1_archived_experiment": {
+            "title": "Archived experiment — coverage labels revised",
+            "note": (
+                "Six models trained under flawed empty-FIRMS negatives (commit 11f1861). "
+                "Not Philippine performance claims under coverage v2.1."
+            ),
+            "leaderboard": v1_payload.get("leaderboard"),
+            "winner": v1_payload.get("winner"),
+            "holdout_enrichment": v1_payload.get("holdout_audit_enrichment"),
+            "model_hash": v1_payload.get("model_hash"),
+        },
+        "v2_1": {
+            "title": "Coverage-backed evaluation (fire-mask/geolocation negatives)",
+            "winner": payload["winner"],
+            "leaderboard": payload["leaderboard"],
+            "holdout": payload["holdout"],
+            "row_counts": payload["row_counts"],
+            "model_hash": payload["model_hash"],
+        },
+        "preserved_replay_example": {
+            "cell_id": "2393:174",
+            "issue_date_ph": "2026-11-07",
+            "probability_percent": 1,
+            "v1_model_version": "extra_trees",
+            "note": (
+                "Preserved issued forecast from v1 serving; distinguish recorded creation "
+                "time from nominal Manila midnight issue slot."
+            ),
+        },
     }
     COMPARISON_PATH.parent.mkdir(parents=True, exist_ok=True)
     COMPARISON_PATH.write_text(json.dumps(payload, indent=2, default=_json_default) + "\n", encoding="utf-8")
@@ -526,7 +561,7 @@ def run() -> dict:
                 "approved_for_serving": True,
                 "public_label": "Chance of satellite-detected heat",
                 "comparison_path": str(COMPARISON_PATH),
-                "coverage_rule_version": "hotspot_coverage_v2",
+                "coverage_rule_version": "hotspot_coverage_v2_1",
                 "recorded_at_utc": recorded,
             },
             indent=2,

@@ -24,11 +24,14 @@ from vela.hotspot_forecast import (
     STUDY,
     issue_datetime_manila,
 )
+from vela.hotspot_coverage import COVERAGE_PATH, load_coverage_keys, load_negative_keys
 from vela.observation_store import ObservationStore, _connect as store_connect
 
 MANILA_OFFSET = timezone(timedelta(hours=8))
 # Vela METHOD: usable when visible land covers ≥ half of the 25 km² cell.
 MIN_VISIBLE_LAND_FRACTION = 0.5
+# Independent eval reserve: odd x-index cells + dates after the inspected v1 holdout start.
+INDEPENDENT_EVAL_DATE_START = date(2024, 8, 1)
 
 
 def _parse_acq_utc(spot: dict) -> datetime | None:
@@ -94,14 +97,48 @@ def firms_regional_query_ok(store: ObservationStore, ph_day: str) -> bool:
 def fire_mask_coverage_keys(cells: list[str] | None = None) -> dict[str, Any]:
     """Square-days with measured usable fire-mask/geolocation coverage in the study box.
 
-    Sources: activity_cell_days (if populated) and paired_cells.parquet (harmonization
-    ingest). Empty FIRMS searches are excluded by design.
+    Primary source: philippines_hotspot_coverage_cell_days.parquet from single-platform
+    MYD14/MYD03 or VNP14IMG/VNP03IMG processing. Empty FIRMS searches are excluded.
     """
 
     cell_set = set(cells or study_cells())
-    box = STUDY["bbox"]
     keys: set[tuple[str, str]] = set()
-    sources: dict[str, int] = {"activity_cell_days": 0, "paired_cells": 0}
+    negative_keys: set[tuple[str, str]] = set()
+    heat_keys: set[tuple[str, str]] = set()
+    sources: dict[str, int] = {
+        "hotspot_coverage_parquet": 0,
+        "activity_cell_days": 0,
+        "paired_cells": 0,
+    }
+
+    if COVERAGE_PATH.is_file():
+        frame = pd.read_parquet(COVERAGE_PATH)
+        if len(frame):
+            for row in frame.itertuples():
+                cid = str(row.cell_id)
+                day = str(row.ph_date)[:10]
+                if cid not in cell_set:
+                    continue
+                support = getattr(row, "label_support", None) or ""
+                status = getattr(row, "coverage_status", None) or ""
+                if support in {"negative_supported", "positive_candidate"} or status in {
+                    "ok_clear_zero",
+                    "ok_with_heat",
+                }:
+                    keys.add((cid, day))
+                    sources["hotspot_coverage_parquet"] += 1
+                if support == "negative_supported" or status == "ok_clear_zero":
+                    negative_keys.add((cid, day))
+                if support == "positive_candidate" or status == "ok_with_heat":
+                    heat_keys.add((cid, day))
+
+    # Also accept keys from the helper loaders (same parquet).
+    for key in load_coverage_keys():
+        if key[0] in cell_set:
+            keys.add(key)
+    for key in load_negative_keys():
+        if key[0] in cell_set:
+            negative_keys.add(key)
 
     store = ObservationStore()
     with store_connect(store.path) as connection:
@@ -120,46 +157,15 @@ def fire_mask_coverage_keys(cells: list[str] | None = None) -> dict[str, Any]:
             keys.add((row["cell_id"], str(row["ph_date"])[:10]))
             sources["activity_cell_days"] += 1
 
-    if PAIRED_CELLS_PATH.is_file():
-        frame = pd.read_parquet(
-            PAIRED_CELLS_PATH,
-            columns=[
-                "cell_id",
-                "center_lon",
-                "center_lat",
-                "local_date",
-                "shared_coverage_fraction",
-                "modis_visible_km2",
-                "viirs_visible_km2",
-                "eligible",
-            ],
-        )
-        in_box = (
-            (frame["center_lon"] >= box["west"])
-            & (frame["center_lon"] <= box["east"])
-            & (frame["center_lat"] >= box["south"])
-            & (frame["center_lat"] <= box["north"])
-        )
-        subset = frame.loc[in_box]
-        for row in subset.itertuples():
-            cid = str(row.cell_id)
-            if cid not in cell_set:
-                continue
-            modis_frac = float(row.modis_visible_km2 or 0.0) / 25.0
-            viirs_frac = float(row.viirs_visible_km2 or 0.0) / 25.0
-            shared = float(row.shared_coverage_fraction or 0.0)
-            usable = (
-                max(modis_frac, viirs_frac, shared) >= MIN_VISIBLE_LAND_FRACTION
-                or bool(row.eligible)
-            )
-            if usable:
-                keys.add((cid, str(row.local_date)[:10]))
-                sources["paired_cells"] += 1
-
     return {
         "square_days": keys,
+        "negative_square_days": negative_keys,
+        "fire_mask_heat_square_days": heat_keys,
         "count": len(keys),
+        "negative_count": len(negative_keys),
         "sources": sources,
+        "coverage_parquet": str(COVERAGE_PATH),
+        "coverage_parquet_exists": COVERAGE_PATH.is_file(),
         "paired_cells_path": str(PAIRED_CELLS_PATH),
         "paired_cells_exists": PAIRED_CELLS_PATH.is_file(),
         "min_visible_land_fraction": MIN_VISIBLE_LAND_FRACTION,
@@ -195,8 +201,24 @@ def load_study_detections(store: ObservationStore) -> list[dict]:
     return out
 
 
-def assign_split(issue_date_ph: str) -> str:
+def assign_split(issue_date_ph: str, cell_id: str | None = None) -> str:
+    """Chronological split with a geographic holdout for independent evaluation.
+
+    Previously inspected v1 holdout (dates ≥ 2024-08-01) stays archived only.
+    New independent eval = odd x-index cells OR dates ≥ 2024-08-01.
+    Even x-index cells on earlier dates → train / validation by calendar.
+    """
+
     day = date.fromisoformat(issue_date_ph[:10])
+    x_index = None
+    if cell_id and ":" in cell_id:
+        try:
+            x_index = int(cell_id.split(":", 1)[0])
+        except ValueError:
+            x_index = None
+    independent = (x_index is not None and x_index % 2 == 1) or day >= INDEPENDENT_EVAL_DATE_START
+    if independent:
+        return "test"
     if day <= date(2023, 12, 31):
         return "train"
     if day <= date(2024, 3, 31):
@@ -369,6 +391,8 @@ def build_dataset(store: ObservationStore | None = None) -> dict[str, Any]:
     detections = load_study_detections(store)
     mask_info = fire_mask_coverage_keys(cells)
     fire_mask_keys = mask_info["square_days"]
+    negative_keys = mask_info.get("negative_square_days") or set()
+    heat_mask_keys = mask_info.get("fire_mask_heat_square_days") or set()
     # coverage_days_7d feature uses fire-mask days only (not FIRMS empty searches).
     coverage_days = {day for (_, day) in fire_mask_keys}
 
@@ -388,6 +412,7 @@ def build_dataset(store: ObservationStore | None = None) -> dict[str, Any]:
         "firms_empty_search_insufficient": 0,
         "no_fire_mask_coverage": 0,
         "firms_query_incomplete": 0,
+        "fire_mask_insufficient_land": 0,
     }
     for issue_day in all_days:
         firms_ok = issue_day in firms_ok_days
@@ -400,12 +425,14 @@ def build_dataset(store: ObservationStore | None = None) -> dict[str, Any]:
                 for spot in by_cell.get(cell_id, [])
                 if start <= spot["_acq_utc"] < end
             ]
-            has_mask = (cell_id, issue_day) in fire_mask_keys
-            if positives:
+            key = (cell_id, issue_day)
+            fire_mask_heat = key in heat_mask_keys
+            supported_negative = key in negative_keys
+            if positives or fire_mask_heat:
                 label = 1
                 status = "positive"
                 counts["positive"] += 1
-            elif has_mask:
+            elif supported_negative:
                 label = 0
                 status = "negative"
                 counts["negative"] += 1
@@ -414,9 +441,11 @@ def build_dataset(store: ObservationStore | None = None) -> dict[str, Any]:
                 if not firms_ok:
                     unknown_reasons["firms_query_incomplete"] += 1
                 else:
-                    # Successful FIRMS search with zero detections is still unknown.
                     unknown_reasons["firms_empty_search_insufficient"] += 1
-                unknown_reasons["no_fire_mask_coverage"] += 1
+                if key in fire_mask_keys:
+                    unknown_reasons["fire_mask_insufficient_land"] += 1
+                else:
+                    unknown_reasons["no_fire_mask_coverage"] += 1
                 continue
 
             local = list(by_cell.get(cell_id, []))
@@ -434,10 +463,10 @@ def build_dataset(store: ObservationStore | None = None) -> dict[str, Any]:
                     "issue_date_ph": issue_day,
                     "label": label,
                     "label_status": status,
-                    "split": assign_split(issue_day),
+                    "split": assign_split(issue_day, cell_id),
                     "recent_heat": int(features["persistence_heat_yesterday"] or 0),
                     "feature_schema_version": FEATURE_SCHEMA_VERSION,
-                    "coverage_rule_version": "hotspot_coverage_v2",
+                    "coverage_rule_version": "hotspot_coverage_v2_1",
                     **features,
                 }
             )
@@ -508,23 +537,30 @@ def build_dataset(store: ObservationStore | None = None) -> dict[str, Any]:
     AUDIT_PATH.write_text(json.dumps(audit, indent=2, default=str) + "\n", encoding="utf-8")
 
     manifest = {
-        "name": "philippines_hotspot_split_v2",
+        "name": "philippines_hotspot_split_v2_1",
         "registered_before_fitting": True,
         "study": STUDY,
         "feature_schema_version": FEATURE_SCHEMA_VERSION,
-        "coverage_rule_version": "hotspot_coverage_v2",
+        "coverage_rule_version": "hotspot_coverage_v2_1",
         "row_counts": {k: int(split_counts.get(k, 0)) for k in ("train", "validation", "test")},
         "label_counts": counts,
         "unknown_reasons": unknown_reasons,
         "fire_mask_coverage_square_days": mask_info["count"],
+        "fire_mask_negative_square_days": mask_info.get("negative_count"),
         "firms_regional_ok_days": len(firms_ok_days),
         "cells": len(cells),
+        "split_policy": (
+            "Even x-index cells with issue date < 2024-08-01 → train (≤2023) / validation (2024-01…03). "
+            "Odd x-index cells OR dates ≥ 2024-08-01 → independent test (new geographic+temporal reserve). "
+            "Previously inspected v1 holdout remains archived and is not reused as the final claim."
+        ),
         "availability_assumption": (
             "Acquisition time treated as availability time by default; "
             "publication-delay sensitivity recorded in philippines_hotspot_coverage_audit.json."
         ),
         "harmonization_holdouts_untouched": True,
         "serving_blocked_until_negatives": counts["negative"] == 0,
+        "v1_holdout_archived": True,
     }
     try:
         from vela.settings import ROOT

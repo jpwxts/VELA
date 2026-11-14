@@ -1,11 +1,14 @@
 {
-  "status": "blocked",
-  "state": "serving_blocked",
-  "chosen_model": null,
-  "approved_for_serving": false,
-  "reason": "Coverage v2 requires measured fire-mask/geolocation negatives. Found positives=1187, negatives=0 (need \u226550 / \u226550). Empty FIRMS searches are unknown, not negative.",
+  "status": "selected",
+  "state": "holdout_evaluated",
+  "chosen_model": "hist_gradient_boosting",
+  "kind": "classifier",
+  "threshold": 0.1,
+  "model_artifact": "/Users/florlyn/Desktop/MODISVIIRS/data/models/philippines_hotspot_winner.joblib",
+  "model_hash": "3c1e4896964db152",
+  "approved_for_serving": true,
+  "public_label": "Chance of satellite-detected heat",
   "comparison_path": "/Users/florlyn/Desktop/MODISVIIRS/data/metrics/philippines_hotspot_model_comparison.json",
-  "coverage_rule_version": "hotspot_coverage_v2",
-  "recorded_at_utc": "2026-11-14T14:03:32.666911+00:00",
-  "public_label": "Chance of satellite-detected heat"
+  "coverage_rule_version": "hotspot_coverage_v2_1",
+  "recorded_at_utc": "2026-11-14T14:26:39.634536+00:00"
 }

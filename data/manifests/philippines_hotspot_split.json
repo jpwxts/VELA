@@ -1,5 +1,5 @@
 {
-  "name": "philippines_hotspot_split_v2",
+  "name": "philippines_hotspot_split_v2_1",
   "registered_before_fitting": true,
   "study": {
     "id": "mindanao_maguindanao_compact_v1",
@@ -13,27 +13,31 @@
     "clip_preset": "mindanao"
   },
   "feature_schema_version": "hotspot_features_v1",
-  "coverage_rule_version": "hotspot_coverage_v2",
+  "coverage_rule_version": "hotspot_coverage_v2_1",
   "row_counts": {
-    "train": 229,
-    "validation": 818,
-    "test": 140
+    "train": 589,
+    "validation": 1001,
+    "test": 1808
   },
   "label_counts": {
     "positive": 1187,
-    "negative": 0,
-    "unknown": 62749
+    "negative": 2211,
+    "unknown": 60970
   },
   "unknown_reasons": {
-    "firms_empty_search_insufficient": 62749,
-    "no_fire_mask_coverage": 62749,
-    "firms_query_incomplete": 0
+    "firms_empty_search_insufficient": 60970,
+    "no_fire_mask_coverage": 60970,
+    "firms_query_incomplete": 0,
+    "fire_mask_insufficient_land": 0
   },
-  "fire_mask_coverage_square_days": 0,
-  "firms_regional_ok_days": 148,
+  "fire_mask_coverage_square_days": 2458,
+  "fire_mask_negative_square_days": 2423,
+  "firms_regional_ok_days": 149,
   "cells": 432,
+  "split_policy": "Even x-index cells with issue date < 2024-08-01 \u2192 train (\u22642023) / validation (2024-01\u202603). Odd x-index cells OR dates \u2265 2024-08-01 \u2192 independent test (new geographic+temporal reserve). Previously inspected v1 holdout remains archived and is not reused as the final claim.",
   "availability_assumption": "Acquisition time treated as availability time by default; publication-delay sensitivity recorded in philippines_hotspot_coverage_audit.json.",
   "harmonization_holdouts_untouched": true,
-  "serving_blocked_until_negatives": true,
+  "serving_blocked_until_negatives": false,
+  "v1_holdout_archived": true,
   "dataset_path": "data/processed/philippines_hotspot_cell_days.parquet"
 }

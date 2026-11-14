@@ -1,70 +1,75 @@
 {
-  "status": "refused_insufficient_fire_mask_negatives",
-  "state": "serving_blocked",
-  "reason": "Coverage v2 requires measured fire-mask/geolocation negatives. Found positives=1187, negatives=0 (need \u226550 / \u226550). Empty FIRMS searches are unknown, not negative.",
-  "recorded_at_utc": "2026-11-14T14:03:32.666911+00:00",
+  "status": "research_trained",
+  "state": "holdout_evaluated",
+  "recorded_at_utc": "2026-11-14T14:26:39.634536+00:00",
   "seed": 0,
   "feature_schema_version": "hotspot_features_v1",
-  "coverage_rule_version": "hotspot_coverage_v2",
+  "coverage_rule_version": "hotspot_coverage_v2_1",
   "dataset_path": "/Users/florlyn/Desktop/MODISVIIRS/data/processed/philippines_hotspot_cell_days.parquet",
   "split_manifest": "/Users/florlyn/Desktop/MODISVIIRS/data/manifests/philippines_hotspot_split.json",
-  "data_version": "295c0c890afdd7c0",
-  "label_counts": {
-    "positive": 1187,
-    "negative": 0,
-    "scored_rows": 1187
+  "data_version": "84ea3804575e7d36",
+  "row_counts": {
+    "train": 589,
+    "validation": 1001,
+    "test": 1808,
+    "positive_train": 119,
+    "positive_valid": 415,
+    "positive_test": 653,
+    "negative_train": 470,
+    "negative_valid": 586,
+    "negative_test": 1155
   },
   "split_diagnostics": {
     "train": {
-      "n": 229,
-      "positives": 229,
-      "negatives": 0,
-      "positive_rate": 1.0,
+      "n": 589,
+      "positives": 119,
+      "negatives": 470,
+      "positive_rate": 0.20203735144312393,
       "date_min": "2023-02-19",
       "date_max": "2023-08-26",
-      "n_cells": 127,
-      "recent_heat_n": 23,
-      "cold_n": 206,
-      "recent_heat_positive_rate": 1.0,
-      "cold_positive_rate": 1.0
+      "n_cells": 153,
+      "recent_heat_n": 22,
+      "cold_n": 567,
+      "recent_heat_positive_rate": 0.4090909090909091,
+      "cold_positive_rate": 0.19400352733686066
     },
     "validation": {
-      "n": 818,
-      "positives": 818,
-      "negatives": 0,
-      "positive_rate": 1.0,
+      "n": 1001,
+      "positives": 415,
+      "negatives": 586,
+      "positive_rate": 0.4145854145854146,
       "date_min": "2024-02-15",
       "date_max": "2024-03-14",
-      "n_cells": 223,
-      "recent_heat_n": 175,
-      "cold_n": 643,
-      "recent_heat_positive_rate": 1.0,
-      "cold_positive_rate": 1.0
+      "n_cells": 159,
+      "recent_heat_n": 142,
+      "cold_n": 859,
+      "recent_heat_positive_rate": 0.6126760563380281,
+      "cold_positive_rate": 0.3818393480791618
     },
     "test": {
-      "n": 140,
-      "positives": 140,
-      "negatives": 0,
-      "positive_rate": 1.0,
-      "date_min": "2024-08-03",
+      "n": 1808,
+      "positives": 653,
+      "negatives": 1155,
+      "positive_rate": 0.36117256637168144,
+      "date_min": "2023-02-19",
       "date_max": "2026-11-14",
-      "n_cells": 79,
-      "recent_heat_n": 2,
-      "cold_n": 138,
-      "recent_heat_positive_rate": 1.0,
-      "cold_positive_rate": 1.0
+      "n_cells": 211,
+      "recent_heat_n": 160,
+      "cold_n": 1648,
+      "recent_heat_positive_rate": 0.65,
+      "cold_positive_rate": 0.33313106796116504
     },
     "geographic_overlap": {
-      "train_val": 100,
-      "train_test": 46,
-      "val_test": 65,
+      "train_val": 152,
+      "train_test": 37,
+      "val_test": 37,
       "note": "Chronological split by issue date; same Maguindanao cells appear in all splits. Episodes are prevented from spanning opposing splits."
     },
     "temporal_ordering": {
       "max_train": "2023-08-26",
       "min_validation": "2024-02-15",
       "max_validation": "2024-03-14",
-      "min_test": "2024-08-03",
+      "min_test": "2023-02-19",
       "ordered": true
     },
     "test_never_used_for": [
@@ -76,6 +81,480 @@
       "threshold_selection",
       "model_selection"
     ]
+  },
+  "classifiers": [
+    {
+      "name": "logistic_regression",
+      "threshold": 0.05,
+      "metrics": {
+        "threshold": 0.05,
+        "positive_event_count": 415,
+        "brier_score": 0.2955572680471839,
+        "baseline_brier_score": 0.3298706028214422,
+        "brier_skill_vs_baseline": 0.10402059013676945,
+        "precision": 0.3997760358342665,
+        "recall": 0.8602409638554217,
+        "f1": 0.5458715596330275,
+        "accuracy": 0.4065934065934066,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            50,
+            536
+          ],
+          [
+            58,
+            357
+          ]
+        ],
+        "pr_curve_points": 887,
+        "pr_auc": 0.47474346812293516
+      }
+    },
+    {
+      "name": "decision_tree",
+      "threshold": 0.05,
+      "metrics": {
+        "threshold": 0.05,
+        "positive_event_count": 415,
+        "brier_score": 0.4248391045755215,
+        "baseline_brier_score": 0.3298706028214422,
+        "brier_skill_vs_baseline": -0.2878962264045257,
+        "precision": 0.37203495630461925,
+        "recall": 0.7180722891566265,
+        "f1": 0.4901315789473684,
+        "accuracy": 0.3806193806193806,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            83,
+            503
+          ],
+          [
+            117,
+            298
+          ]
+        ],
+        "pr_curve_points": 5,
+        "pr_auc": 0.3823748130406845
+      }
+    },
+    {
+      "name": "random_forest",
+      "threshold": 0.15,
+      "metrics": {
+        "threshold": 0.15,
+        "positive_event_count": 415,
+        "brier_score": 0.3011444452811702,
+        "baseline_brier_score": 0.3298706028214422,
+        "brier_skill_vs_baseline": 0.08708310863281565,
+        "precision": 0.4369747899159664,
+        "recall": 0.8771084337349397,
+        "f1": 0.5833333333333334,
+        "accuracy": 0.4805194805194805,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            117,
+            469
+          ],
+          [
+            51,
+            364
+          ]
+        ],
+        "pr_curve_points": 799,
+        "pr_auc": 0.4402037556183027
+      }
+    },
+    {
+      "name": "extra_trees",
+      "threshold": 0.15,
+      "metrics": {
+        "threshold": 0.15,
+        "positive_event_count": 415,
+        "brier_score": 0.264176297399064,
+        "baseline_brier_score": 0.3298706028214422,
+        "brier_skill_vs_baseline": 0.19915174271512248,
+        "precision": 0.449438202247191,
+        "recall": 0.8674698795180723,
+        "f1": 0.5921052631578947,
+        "accuracy": 0.5044955044955045,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            145,
+            441
+          ],
+          [
+            55,
+            360
+          ]
+        ],
+        "pr_curve_points": 771,
+        "pr_auc": 0.47508339843821035
+      }
+    },
+    {
+      "name": "hist_gradient_boosting",
+      "threshold": 0.1,
+      "metrics": {
+        "threshold": 0.1,
+        "positive_event_count": 415,
+        "brier_score": 0.26000781495259734,
+        "baseline_brier_score": 0.3298706028214422,
+        "brier_skill_vs_baseline": 0.2117884627223401,
+        "precision": 0.4802816901408451,
+        "recall": 0.8216867469879519,
+        "f1": 0.6062222222222222,
+        "accuracy": 0.5574425574425574,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            217,
+            369
+          ],
+          [
+            74,
+            341
+          ]
+        ],
+        "pr_curve_points": 482,
+        "pr_auc": 0.5355235469808998
+      }
+    },
+    {
+      "name": "calibrated_svm",
+      "threshold": 0.05,
+      "metrics": {
+        "threshold": 0.05,
+        "positive_event_count": 415,
+        "brier_score": 0.2834491319942914,
+        "baseline_brier_score": 0.3298706028214422,
+        "brier_skill_vs_baseline": 0.14072630428446697,
+        "precision": 0.414,
+        "recall": 0.9975903614457832,
+        "f1": 0.5851590106007067,
+        "accuracy": 0.41358641358641357,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            0,
+            586
+          ],
+          [
+            1,
+            414
+          ]
+        ],
+        "pr_curve_points": 887,
+        "pr_auc": 0.40059500106913093
+      }
+    }
+  ],
+  "baselines": [
+    {
+      "name": "regional_seasonal_detection_rate",
+      "metrics": {
+        "threshold": 0.5,
+        "positive_event_count": 415,
+        "brier_score": 0.3298706028214422,
+        "baseline_brier_score": 0.3298706028214422,
+        "brier_skill_vs_baseline": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "accuracy": 0.5854145854145855,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            586,
+            0
+          ],
+          [
+            415,
+            0
+          ]
+        ],
+        "pr_curve_points": 3,
+        "pr_auc": 0.37224395923191106
+      }
+    },
+    {
+      "name": "persistence_recent_heat",
+      "metrics": {
+        "threshold": 0.5,
+        "positive_event_count": 415,
+        "brier_score": 0.3826173826173826,
+        "baseline_brier_score": 0.3298706028214422,
+        "brier_skill_vs_baseline": -0.15990142602822965,
+        "precision": 0.6126760563380281,
+        "recall": 0.20963855421686747,
+        "f1": 0.3123877917414722,
+        "accuracy": 0.6173826173826173,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            531,
+            55
+          ],
+          [
+            328,
+            87
+          ]
+        ],
+        "pr_curve_points": 3,
+        "pr_auc": 0.4561128503263239
+      }
+    }
+  ],
+  "leaderboard": [
+    {
+      "name": "hist_gradient_boosting",
+      "kind": "classifier",
+      "brier": 0.26000781495259734
+    },
+    {
+      "name": "extra_trees",
+      "kind": "classifier",
+      "brier": 0.264176297399064
+    },
+    {
+      "name": "calibrated_svm",
+      "kind": "classifier",
+      "brier": 0.2834491319942914
+    },
+    {
+      "name": "logistic_regression",
+      "kind": "classifier",
+      "brier": 0.2955572680471839
+    },
+    {
+      "name": "random_forest",
+      "kind": "classifier",
+      "brier": 0.3011444452811702
+    },
+    {
+      "name": "regional_seasonal_detection_rate",
+      "kind": "baseline",
+      "brier": 0.3298706028214422
+    },
+    {
+      "name": "persistence_recent_heat",
+      "kind": "baseline",
+      "brier": 0.3826173826173826
+    },
+    {
+      "name": "decision_tree",
+      "kind": "classifier",
+      "brier": 0.4248391045755215
+    }
+  ],
+  "winner": {
+    "name": "hist_gradient_boosting",
+    "kind": "classifier",
+    "threshold": 0.1,
+    "threshold_tuned_on": "validation_only",
+    "why": "Lowest validation Brier among six classifiers and two baselines (seasonal rate, persistence). Not chosen by accuracy\u2248F1.",
+    "validation_metrics": {
+      "threshold": 0.1,
+      "positive_event_count": 415,
+      "brier_score": 0.26000781495259734,
+      "baseline_brier_score": 0.3298706028214422,
+      "brier_skill_vs_baseline": 0.2117884627223401,
+      "precision": 0.4802816901408451,
+      "recall": 0.8216867469879519,
+      "f1": 0.6062222222222222,
+      "accuracy": 0.5574425574425574,
+      "confusion_matrix_labels": [
+        0,
+        1
+      ],
+      "confusion_matrix": [
+        [
+          217,
+          369
+        ],
+        [
+          74,
+          341
+        ]
+      ],
+      "pr_curve_points": 482,
+      "pr_auc": 0.5355235469808998
+    }
+  },
+  "holdout": {
+    "metrics": {
+      "threshold": 0.1,
+      "positive_event_count": 653,
+      "brier_score": 0.1987837004643966,
+      "baseline_brier_score": 0.2504319156484007,
+      "brier_skill_vs_baseline": 0.20623655355700243,
+      "precision": 0.4828599412340842,
+      "recall": 0.7549770290964778,
+      "f1": 0.5890083632019116,
+      "accuracy": 0.6194690265486725,
+      "confusion_matrix_labels": [
+        0,
+        1
+      ],
+      "confusion_matrix": [
+        [
+          627,
+          528
+        ],
+        [
+          160,
+          493
+        ]
+      ],
+      "pr_curve_points": 596,
+      "pr_auc": 0.6729309569385029
+    },
+    "reliability_table": [
+      {
+        "bin": "0.0-0.1",
+        "n": 787,
+        "mean_predicted": 0.04937310418911856,
+        "observed_rate": 0.20330368487928843
+      },
+      {
+        "bin": "0.1-0.2",
+        "n": 220,
+        "mean_predicted": 0.1559513235065438,
+        "observed_rate": 0.22727272727272727
+      },
+      {
+        "bin": "0.2-0.3",
+        "n": 187,
+        "mean_predicted": 0.24490160383529533,
+        "observed_rate": 0.37433155080213903
+      },
+      {
+        "bin": "0.3-0.4",
+        "n": 147,
+        "mean_predicted": 0.3509825197227464,
+        "observed_rate": 0.46258503401360546
+      },
+      {
+        "bin": "0.4-0.5",
+        "n": 112,
+        "mean_predicted": 0.44786457229682625,
+        "observed_rate": 0.44642857142857145
+      },
+      {
+        "bin": "0.5-0.6",
+        "n": 98,
+        "mean_predicted": 0.5600124852385913,
+        "observed_rate": 0.5510204081632653
+      },
+      {
+        "bin": "0.6-0.7",
+        "n": 67,
+        "mean_predicted": 0.6430038677989561,
+        "observed_rate": 0.5074626865671642
+      },
+      {
+        "bin": "0.7-0.8",
+        "n": 48,
+        "mean_predicted": 0.7396210942795681,
+        "observed_rate": 0.625
+      },
+      {
+        "bin": "0.8-0.9",
+        "n": 16,
+        "mean_predicted": 0.8442009421640342,
+        "observed_rate": 0.75
+      },
+      {
+        "bin": "0.9-1.0",
+        "n": 126,
+        "mean_predicted": 0.989154200368768,
+        "observed_rate": 0.9920634920634921
+      }
+    ],
+    "recent_heat_squares": {
+      "threshold": 0.1,
+      "positive_event_count": 104,
+      "brier_score": 0.28401959719654907,
+      "baseline_brier_score": 0.47246508404517584,
+      "brier_skill_vs_baseline": 0.3988559011285755,
+      "precision": 0.6474358974358975,
+      "recall": 0.9711538461538461,
+      "f1": 0.7769230769230769,
+      "accuracy": 0.6375,
+      "confusion_matrix_labels": [
+        0,
+        1
+      ],
+      "confusion_matrix": [
+        [
+          1,
+          55
+        ],
+        [
+          3,
+          101
+        ]
+      ],
+      "pr_curve_points": 76,
+      "pr_auc": 0.726212431316295
+    },
+    "no_recent_heat_squares": {
+      "threshold": 0.1,
+      "positive_event_count": 549,
+      "brier_score": 0.19050837068457596,
+      "baseline_brier_score": 0.22887529735745163,
+      "brier_skill_vs_baseline": 0.16763244926758158,
+      "precision": 0.4531791907514451,
+      "recall": 0.7140255009107468,
+      "f1": 0.5544554455445545,
+      "accuracy": 0.6177184466019418,
+      "confusion_matrix_labels": [
+        0,
+        1
+      ],
+      "confusion_matrix": [
+        [
+          626,
+          473
+        ],
+        [
+          157,
+          392
+        ]
+      ],
+      "pr_curve_points": 523,
+      "pr_auc": 0.6535224666139976
+    },
+    "scored_on": "adequately observed square-days only (positives + fire-mask-supported negatives)",
+    "independent_of_inspected_v1_holdout": true,
+    "split_policy": "odd x-index cells OR dates \u2265 2024-08-01"
   },
   "v1_audit": {
     "available": true,
@@ -99,138 +578,426 @@
       "test_influenced_calibration": false,
       "test_influenced_threshold": false,
       "imputation_fit_on": "train only"
-    },
-    "holdout_enrichment": {
-      "note": "Recomputed on archived v1 flawed-negative dataset + 11f1861 model for audit only. Not Philippine performance claims under coverage v2.",
-      "threshold_validation_only": 0.05,
-      "overall": {
-        "threshold": 0.05,
-        "positive_event_count": 140,
-        "brier_score": 0.0051229443627867095,
-        "baseline_brier_score": 0.00513574666495685,
-        "brier_skill_vs_baseline": 0.00249278303727396,
-        "precision": 0.02040816326530612,
-        "recall": 0.014285714285714285,
-        "f1": 0.01680672268907563,
-        "accuracy": 0.9914021164021164,
-        "confusion_matrix_labels": [
-          0,
-          1
-        ],
-        "confusion_matrix": [
-          [
-            26980,
-            96
-          ],
-          [
-            138,
-            2
-          ]
-        ],
-        "pr_curve_points": 979,
-        "pr_auc": 0.01410502757969112
-      },
-      "recent_heat_squares": {
-        "threshold": 0.05,
-        "positive_event_count": 2,
-        "brier_score": 0.017798414998655424,
-        "baseline_brier_score": 0.016147531939373114,
-        "brier_skill_vs_baseline": -0.10223748529996102,
-        "precision": 0.03773584905660377,
-        "recall": 1.0,
-        "f1": 0.07272727272727272,
-        "accuracy": 0.5785123966942148,
-        "confusion_matrix_labels": [
-          0,
-          1
-        ],
-        "confusion_matrix": [
-          [
-            68,
-            51
-          ],
-          [
-            0,
-            2
-          ]
-        ],
-        "pr_curve_points": 96,
-        "pr_auc": 0.16666666666666669,
-        "subset": "recent_heat",
-        "n": 121
-      },
-      "no_recent_heat_squares": {
-        "threshold": 0.05,
-        "positive_event_count": 138,
-        "brier_score": 0.0050663386441323404,
-        "baseline_brier_score": 0.00508657058013661,
-        "brier_skill_vs_baseline": 0.00397751995878648,
-        "precision": 0.0,
-        "recall": 0.0,
-        "f1": 0.0,
-        "accuracy": 0.993245986344344,
-        "confusion_matrix_labels": [
-          0,
-          1
-        ],
-        "confusion_matrix": [
-          [
-            26912,
-            45
-          ],
-          [
-            138,
-            0
-          ]
-        ],
-        "pr_curve_points": 884,
-        "pr_auc": 0.012069575190813222,
-        "subset": "cold",
-        "n": 27095
-      }
     }
   },
-  "coverage_audit_path": "/Users/florlyn/Desktop/MODISVIIRS/data/metrics/philippines_hotspot_coverage_audit.json",
-  "approved_for_serving": false,
+  "model_artifact": "/Users/florlyn/Desktop/MODISVIIRS/data/models/philippines_hotspot_winner.joblib",
+  "model_hash": "3c1e4896964db152",
+  "approved_for_serving": true,
   "public_label": "Chance of satellite-detected heat",
-  "next_runnable_step": "Ingest Maguindanao fire-mask + geolocation pairs into paired_cells/activity_cell_days, rebuild the dataset, then re-run this trainer.",
-  "publication_delay_sensitivity": {
-    "sample_n": 500,
-    "delays_hours": [
-      0.0,
-      6.0,
-      24.0
-    ],
-    "comparisons": [
-      {
-        "delay_hours": 6.0,
-        "fraction_rows_changed": 0.0,
-        "fraction_persistence_lost": 0.0,
-        "mean_heat_detections_1d_removed": 0.0,
-        "note": "Historical replay with this delay better reflects what Vela could have known at issue time when FIRMS publication lagged acquisition."
+  "analytics": {
+    "v1_archived_experiment": {
+      "title": "Archived experiment \u2014 coverage labels revised",
+      "note": "Six models trained under flawed empty-FIRMS negatives (commit 11f1861). Not Philippine performance claims under coverage v2.1.",
+      "leaderboard": [
+        {
+          "name": "extra_trees",
+          "kind": "classifier",
+          "brier": 0.05829823289905099
+        },
+        {
+          "name": "random_forest",
+          "kind": "classifier",
+          "brier": 0.05882710828532441
+        },
+        {
+          "name": "hist_gradient_boosting",
+          "kind": "classifier",
+          "brier": 0.06338195836238023
+        },
+        {
+          "name": "logistic_regression",
+          "kind": "classifier",
+          "brier": 0.06363192968866746
+        },
+        {
+          "name": "regional_seasonal_detection_rate",
+          "kind": "baseline",
+          "brier": 0.06363444297472076
+        },
+        {
+          "name": "calibrated_svm",
+          "kind": "classifier",
+          "brier": 0.0677733464933274
+        },
+        {
+          "name": "decision_tree",
+          "kind": "classifier",
+          "brier": 0.06915344419080818
+        },
+        {
+          "name": "persistence_recent_heat",
+          "kind": "baseline",
+          "brier": 0.09985632183908046
+        }
+      ],
+      "winner": {
+        "name": "extra_trees",
+        "kind": "classifier",
+        "threshold": 0.05,
+        "why": "Lowest validation Brier among six classifiers and two baselines (seasonal rate, persistence). Not chosen by accuracy\u2248F1.",
+        "validation_metrics": {
+          "threshold": 0.05,
+          "positive_event_count": 818,
+          "brier_score": 0.05829823289905099,
+          "baseline_brier_score": 0.06363444297472076,
+          "brier_skill_vs_baseline": 0.0838572607257616,
+          "precision": 0.17959183673469387,
+          "recall": 0.5378973105134475,
+          "f1": 0.2692778457772338,
+          "accuracy": 0.8093869731800766,
+          "confusion_matrix_labels": [
+            0,
+            1
+          ],
+          "confusion_matrix": [
+            [
+              9700,
+              2010
+            ],
+            [
+              378,
+              440
+            ]
+          ],
+          "pr_curve_points": 3618
+        }
       },
-      {
-        "delay_hours": 24.0,
-        "fraction_rows_changed": 0.09,
-        "fraction_persistence_lost": 0.016,
-        "mean_heat_detections_1d_removed": 0.022,
-        "note": "Historical replay with this delay better reflects what Vela could have known at issue time when FIRMS publication lagged acquisition."
-      }
-    ],
-    "assumption": "Default features use acq\u2248avail (delay=0). Delay>0 withholds detections whose acquisition is within the lag window before issue."
-  },
-  "coverage_evidence": {
-    "fire_mask_geolocation_square_days": 0,
-    "label_counts_v2": {
-      "positive": 1187,
-      "negative": 0,
-      "unknown": 62749
+      "holdout_enrichment": {
+        "note": "Recomputed on archived v1 flawed-negative dataset + 11f1861 model for audit only. Not Philippine performance claims under coverage v2.",
+        "threshold_validation_only": 0.05,
+        "overall": {
+          "threshold": 0.05,
+          "positive_event_count": 140,
+          "brier_score": 0.0051229443627867095,
+          "baseline_brier_score": 0.00513574666495685,
+          "brier_skill_vs_baseline": 0.00249278303727396,
+          "precision": 0.02040816326530612,
+          "recall": 0.014285714285714285,
+          "f1": 0.01680672268907563,
+          "accuracy": 0.9914021164021164,
+          "confusion_matrix_labels": [
+            0,
+            1
+          ],
+          "confusion_matrix": [
+            [
+              26980,
+              96
+            ],
+            [
+              138,
+              2
+            ]
+          ],
+          "pr_curve_points": 979,
+          "pr_auc": 0.01410502757969112
+        },
+        "recent_heat_squares": {
+          "threshold": 0.05,
+          "positive_event_count": 2,
+          "brier_score": 0.017798414998655424,
+          "baseline_brier_score": 0.016147531939373114,
+          "brier_skill_vs_baseline": -0.10223748529996102,
+          "precision": 0.03773584905660377,
+          "recall": 1.0,
+          "f1": 0.07272727272727272,
+          "accuracy": 0.5785123966942148,
+          "confusion_matrix_labels": [
+            0,
+            1
+          ],
+          "confusion_matrix": [
+            [
+              68,
+              51
+            ],
+            [
+              0,
+              2
+            ]
+          ],
+          "pr_curve_points": 96,
+          "pr_auc": 0.16666666666666669,
+          "subset": "recent_heat",
+          "n": 121
+        },
+        "no_recent_heat_squares": {
+          "threshold": 0.05,
+          "positive_event_count": 138,
+          "brier_score": 0.0050663386441323404,
+          "baseline_brier_score": 0.00508657058013661,
+          "brier_skill_vs_baseline": 0.00397751995878648,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "accuracy": 0.993245986344344,
+          "confusion_matrix_labels": [
+            0,
+            1
+          ],
+          "confusion_matrix": [
+            [
+              26912,
+              45
+            ],
+            [
+              138,
+              0
+            ]
+          ],
+          "pr_curve_points": 884,
+          "pr_auc": 0.012069575190813222,
+          "subset": "cold",
+          "n": 27095
+        }
+      },
+      "model_hash": "b299a230f29f8c39"
     },
-    "unknown_reasons": {
-      "firms_empty_search_insufficient": 62749,
-      "no_fire_mask_coverage": 62749,
-      "firms_query_incomplete": 0
+    "v2_1": {
+      "title": "Coverage-backed evaluation (fire-mask/geolocation negatives)",
+      "winner": {
+        "name": "hist_gradient_boosting",
+        "kind": "classifier",
+        "threshold": 0.1,
+        "threshold_tuned_on": "validation_only",
+        "why": "Lowest validation Brier among six classifiers and two baselines (seasonal rate, persistence). Not chosen by accuracy\u2248F1.",
+        "validation_metrics": {
+          "threshold": 0.1,
+          "positive_event_count": 415,
+          "brier_score": 0.26000781495259734,
+          "baseline_brier_score": 0.3298706028214422,
+          "brier_skill_vs_baseline": 0.2117884627223401,
+          "precision": 0.4802816901408451,
+          "recall": 0.8216867469879519,
+          "f1": 0.6062222222222222,
+          "accuracy": 0.5574425574425574,
+          "confusion_matrix_labels": [
+            0,
+            1
+          ],
+          "confusion_matrix": [
+            [
+              217,
+              369
+            ],
+            [
+              74,
+              341
+            ]
+          ],
+          "pr_curve_points": 482,
+          "pr_auc": 0.5355235469808998
+        }
+      },
+      "leaderboard": [
+        {
+          "name": "hist_gradient_boosting",
+          "kind": "classifier",
+          "brier": 0.26000781495259734
+        },
+        {
+          "name": "extra_trees",
+          "kind": "classifier",
+          "brier": 0.264176297399064
+        },
+        {
+          "name": "calibrated_svm",
+          "kind": "classifier",
+          "brier": 0.2834491319942914
+        },
+        {
+          "name": "logistic_regression",
+          "kind": "classifier",
+          "brier": 0.2955572680471839
+        },
+        {
+          "name": "random_forest",
+          "kind": "classifier",
+          "brier": 0.3011444452811702
+        },
+        {
+          "name": "regional_seasonal_detection_rate",
+          "kind": "baseline",
+          "brier": 0.3298706028214422
+        },
+        {
+          "name": "persistence_recent_heat",
+          "kind": "baseline",
+          "brier": 0.3826173826173826
+        },
+        {
+          "name": "decision_tree",
+          "kind": "classifier",
+          "brier": 0.4248391045755215
+        }
+      ],
+      "holdout": {
+        "metrics": {
+          "threshold": 0.1,
+          "positive_event_count": 653,
+          "brier_score": 0.1987837004643966,
+          "baseline_brier_score": 0.2504319156484007,
+          "brier_skill_vs_baseline": 0.20623655355700243,
+          "precision": 0.4828599412340842,
+          "recall": 0.7549770290964778,
+          "f1": 0.5890083632019116,
+          "accuracy": 0.6194690265486725,
+          "confusion_matrix_labels": [
+            0,
+            1
+          ],
+          "confusion_matrix": [
+            [
+              627,
+              528
+            ],
+            [
+              160,
+              493
+            ]
+          ],
+          "pr_curve_points": 596,
+          "pr_auc": 0.6729309569385029
+        },
+        "reliability_table": [
+          {
+            "bin": "0.0-0.1",
+            "n": 787,
+            "mean_predicted": 0.04937310418911856,
+            "observed_rate": 0.20330368487928843
+          },
+          {
+            "bin": "0.1-0.2",
+            "n": 220,
+            "mean_predicted": 0.1559513235065438,
+            "observed_rate": 0.22727272727272727
+          },
+          {
+            "bin": "0.2-0.3",
+            "n": 187,
+            "mean_predicted": 0.24490160383529533,
+            "observed_rate": 0.37433155080213903
+          },
+          {
+            "bin": "0.3-0.4",
+            "n": 147,
+            "mean_predicted": 0.3509825197227464,
+            "observed_rate": 0.46258503401360546
+          },
+          {
+            "bin": "0.4-0.5",
+            "n": 112,
+            "mean_predicted": 0.44786457229682625,
+            "observed_rate": 0.44642857142857145
+          },
+          {
+            "bin": "0.5-0.6",
+            "n": 98,
+            "mean_predicted": 0.5600124852385913,
+            "observed_rate": 0.5510204081632653
+          },
+          {
+            "bin": "0.6-0.7",
+            "n": 67,
+            "mean_predicted": 0.6430038677989561,
+            "observed_rate": 0.5074626865671642
+          },
+          {
+            "bin": "0.7-0.8",
+            "n": 48,
+            "mean_predicted": 0.7396210942795681,
+            "observed_rate": 0.625
+          },
+          {
+            "bin": "0.8-0.9",
+            "n": 16,
+            "mean_predicted": 0.8442009421640342,
+            "observed_rate": 0.75
+          },
+          {
+            "bin": "0.9-1.0",
+            "n": 126,
+            "mean_predicted": 0.989154200368768,
+            "observed_rate": 0.9920634920634921
+          }
+        ],
+        "recent_heat_squares": {
+          "threshold": 0.1,
+          "positive_event_count": 104,
+          "brier_score": 0.28401959719654907,
+          "baseline_brier_score": 0.47246508404517584,
+          "brier_skill_vs_baseline": 0.3988559011285755,
+          "precision": 0.6474358974358975,
+          "recall": 0.9711538461538461,
+          "f1": 0.7769230769230769,
+          "accuracy": 0.6375,
+          "confusion_matrix_labels": [
+            0,
+            1
+          ],
+          "confusion_matrix": [
+            [
+              1,
+              55
+            ],
+            [
+              3,
+              101
+            ]
+          ],
+          "pr_curve_points": 76,
+          "pr_auc": 0.726212431316295
+        },
+        "no_recent_heat_squares": {
+          "threshold": 0.1,
+          "positive_event_count": 549,
+          "brier_score": 0.19050837068457596,
+          "baseline_brier_score": 0.22887529735745163,
+          "brier_skill_vs_baseline": 0.16763244926758158,
+          "precision": 0.4531791907514451,
+          "recall": 0.7140255009107468,
+          "f1": 0.5544554455445545,
+          "accuracy": 0.6177184466019418,
+          "confusion_matrix_labels": [
+            0,
+            1
+          ],
+          "confusion_matrix": [
+            [
+              626,
+              473
+            ],
+            [
+              157,
+              392
+            ]
+          ],
+          "pr_curve_points": 523,
+          "pr_auc": 0.6535224666139976
+        },
+        "scored_on": "adequately observed square-days only (positives + fire-mask-supported negatives)",
+        "independent_of_inspected_v1_holdout": true,
+        "split_policy": "odd x-index cells OR dates \u2265 2024-08-01"
+      },
+      "row_counts": {
+        "train": 589,
+        "validation": 1001,
+        "test": 1808,
+        "positive_train": 119,
+        "positive_valid": 415,
+        "positive_test": 653,
+        "negative_train": 470,
+        "negative_valid": 586,
+        "negative_test": 1155
+      },
+      "model_hash": "3c1e4896964db152"
     },
-    "v1_defect": "Negatives were inferred from successful FIRMS searches including empty returns (ok/ok_zero), not from fire-mask/geolocation usable coverage."
+    "preserved_replay_example": {
+      "cell_id": "2393:174",
+      "issue_date_ph": "2026-11-07",
+      "probability_percent": 1,
+      "v1_model_version": "extra_trees",
+      "note": "Preserved issued forecast from v1 serving; distinguish recorded creation time from nominal Manila midnight issue slot."
+    }
   }
 }

@@ -293,11 +293,15 @@ function renderHotspotForecast(payload) {
   if (payload?.status === "issued" && payload.probability_percent != null) {
     value.textContent = `${payload.probability_percent}%`;
     value.classList.remove("is-words");
+    const created = payload.issued_at_utc || payload.recorded_at_utc;
     meta.textContent = [
-      payload.issue_time_manila ? `Issued ${payload.issue_time_manila}` : "",
+      payload.issue_time_manila ? `Issue slot ${payload.issue_time_manila}` : "",
+      created ? `Recorded ${created}` : "",
       support.input_cutoff_manila ? `Inputs cut off ${support.input_cutoff_manila}` : "",
       payload.model_version ? `Model ${payload.model_version}` : "",
-      payload.historical_simulation ? "Historical simulation" : "Issued forecast",
+      payload.model_hash ? `hash ${payload.model_hash}` : "",
+      payload.label_note
+        || (payload.historical_simulation ? "Historical simulation" : "Issued forecast"),
     ].filter(Boolean).join(" · ");
   } else {
     value.textContent = payload?.calendar_state === "insufficient_inputs" ? "Insufficient inputs" : "Not available";
