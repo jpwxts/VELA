@@ -8,7 +8,7 @@ import io
 import json
 import logging
 import re
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from app.db import ResponseCache
 from vela.geo import firms_boxes, format_hhmm, lon_span, round_box
@@ -134,6 +134,32 @@ def parse_availability(text: str) -> dict[str, tuple[date, date]]:
     return parsed
 
 
+# NASA's list of published dates is cached for half a day. A day newer than the cached
+# list may only be newer than the list, since NASA publishes each UTC day during that
+# day, so the list is checked again, though not more often than every 20 minutes.
+AVAILABILITY_MAX_AGE_HOURS = 12
+AVAILABILITY_RECHECK_HOURS = 1 / 3
+# Near-real-time files for the two latest UTC days keep gaining passes; older ones settle.
+RECENT_NRT_MAX_AGE_HOURS = 0.5
+NRT_MAX_AGE_HOURS = 3
+
+
+def maybe_newly_published(day: date, spans: dict[str, tuple[date, date]], platforms) -> bool:
+    """True when a requested satellite's near-real-time list stops one or two days short
+    of `day` and `day` is not in the future (UTC): NASA may have published it since."""
+
+    if day > datetime.now(timezone.utc).date():
+        return False
+    for platform in platforms:
+        products = PRODUCTS.get(platform)
+        if not products or choose_processing(day, spans, *products)[0]:
+            continue
+        near_span = spans.get(products[1])
+        if near_span and 0 < (day - near_span[1]).days <= 2:
+            return True
+    return False
+
+
 def choose_processing(day: date, spans: dict[str, tuple[date, date]], standard: str, near: str):
     standard_span = spans.get(standard)
     near_span = spans.get(near)
@@ -217,6 +243,10 @@ class FirmsClient:
                 "results": [_status("request_failed", "Use a date in YYYY-MM-DD form.")],
             })
         availability, availability_error = self._availability()
+        if not availability_error and maybe_newly_published(observed, availability, requested):
+            fresher, fresher_error = self._availability(max_age_hours=AVAILABILITY_RECHECK_HOURS)
+            if not fresher_error:
+                availability = fresher
         if availability_error:
             return _with_combined({
                 "configured": True,
@@ -325,10 +355,10 @@ class FirmsClient:
             return None
         return max(ends).isoformat()
 
-    def _availability(self) -> tuple[dict, str | None]:
+    def _availability(self, max_age_hours: float = AVAILABILITY_MAX_AGE_HOURS) -> tuple[dict, str | None]:
         fingerprint = hashlib.sha256(self.key.encode("utf-8")).hexdigest()[:12]
         key = _cache_key("availability", fingerprint, "all", (0, 0, 0, 0))
-        cached = self.cache.get(key, max_age_hours=12)
+        cached = self.cache.get(key, max_age_hours=max_age_hours)
         text = cached
         if text is None:
             url = f"{AVAILABILITY_ROOT}/{self.key}/all"
@@ -349,9 +379,12 @@ class FirmsClient:
     def _fetch_product(self, product: str, processing: str, box, day: str) -> dict:
         pieces = []
         cached_flags = []
+        max_age = None
+        if processing == "near_real_time":
+            recent = date.fromisoformat(day) >= datetime.now(timezone.utc).date() - timedelta(days=1)
+            max_age = RECENT_NRT_MAX_AGE_HOURS if recent else NRT_MAX_AGE_HOURS
         for piece in firms_boxes(*box):
             key = _cache_key("area", product, day, piece)
-            max_age = 3 if processing == "near_real_time" else None
             cached = self.cache.get(key, max_age_hours=max_age)
             if cached is not None:
                 body = cached

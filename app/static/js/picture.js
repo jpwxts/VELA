@@ -1,11 +1,5 @@
 // The card's picture of the land or square: map, satellite imagery or a 3D view.
 
-const PICTURE_CREDITS = {
-  map: "",
-  satellite: "Imagery: Esri, Maxar, Earthstar Geographics",
-  "3d": "Drag to turn it. Imagery: Esri, Maxar, Earthstar Geographics. Terrain: Esri.",
-};
-
 // The picture shows on every tab whenever there is drawn land or an open square.
 function syncLandPicture() {
   const shown = Boolean(state.summarySquare || (state.polygon && state.polygon.length >= 4));
@@ -30,7 +24,8 @@ function showPictureStyle(mode, noun) {
     "aria-label",
     mode === "satellite" ? `Satellite imagery of the selected ${noun}` : `The selected ${noun}, cut out of the map`
   );
-  setPictureCredit(PICTURE_CREDITS[mode]);
+  // Imagery and terrain credits are in the map legend; this line is kept for load errors.
+  setPictureCredit("");
 }
 
 function showTerrainView(ring, marks) {

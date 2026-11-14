@@ -290,89 +290,20 @@ function setPanelMode(mode) {
   }
 }
 
-function issuanceKindLabel(kind, payload) {
-  if (kind === "newly_issued") return "Issued";
-  if (kind === "preserved_archive") return "Issued (preserved archive)";
-  if (kind === "historical_reconstruction") return "Reconstructed";
-  if (payload?.historical_simulation) return "Reconstructed";
-  return kind || "";
-}
-
-function renderFirmsRefreshStamp(payload) {
-  const node = document.querySelector("#hotspot-firms-refresh");
-  if (!node) return;
-  const stamp = payload?.firms_refresh || payload?.support?.firms_refresh;
-  if (!stamp?.checked_at) {
-    node.textContent = "";
-    return;
-  }
-  const count = stamp.detection_count ?? stamp.written;
-  node.textContent = [
-    "Mindanao FIRMS refresh",
-    stamp.checked_at,
-    count != null ? `${count} detections` : "",
-    stamp.ok === false ? (stamp.error || "error") : "",
-  ].filter(Boolean).join(" · ");
-}
-
-function renderLiveModelBoard(payload) {
-  const node = document.querySelector("#hotspot-model-board-live");
-  if (!node) return;
-  const board = payload?.model_board;
-  const models = board?.models || [];
-  if (!models.length) {
-    node.hidden = true;
-    node.innerHTML = "";
-    return;
-  }
-  const evalCtx = board.evaluation || payload?.evaluation || {};
-  const claim = evalCtx.claimable_holdout || {};
-  const rows = models.map((row) => {
-    const mark = row.is_selected ? " (selected)" : "";
-    const val = [
-      row.validation_accuracy != null ? `val Acc ${(Number(row.validation_accuracy) * 100).toFixed(0)}%` : "",
-      row.validation_brier != null ? `Brier ${Number(row.validation_brier).toFixed(3)}` : "",
-    ].filter(Boolean).join(" · ");
-    return `<li><strong>${row.probability_percent}%${mark}</strong> ${row.name}${row.kind === "baseline" ? " · baseline" : ""}${val ? ` · ${val}` : ""}</li>`;
-  }).join("");
-  node.hidden = false;
-  node.innerHTML = `<p class="quiet">All models for this past/today square-day</p><ul>${rows}</ul>`
-    + `<p class="quiet">${board.note || ""} Claimable holdout Acc `
-    + `${claim.accuracy != null ? `${(Number(claim.accuracy) * 100).toFixed(0)}%` : "—"}`
-    + ` · Brier ${claim.brier_score != null ? Number(claim.brier_score).toFixed(3) : "—"}`
-    + ` (evaluation context, not this day’s accuracy).</p>`;
-}
-
 function renderHotspotForecast(payload) {
   const value = document.querySelector("#hotspot-forecast-value");
   const meta = document.querySelector("#hotspot-forecast-meta");
-  const issueLine = document.querySelector("#hotspot-forecast-issue");
-  const outcome = document.querySelector("#hotspot-forecast-outcome");
-  const note = document.querySelector("#hotspot-forecast-note");
   const label = document.querySelector("#hotspot-forecast-label");
-  const replay = document.querySelector("#replay-hotspot-forecast");
-  if (!value) return;
+  if (!value || !meta) return;
   if (label) {
     label.textContent = payload?.public_label
       || "Chance satellites record a hotspot in this square.";
   }
-  const support = payload?.support || {};
-  const kind = payload?.issuance_kind
-    || (payload?.historical_simulation ? "historical_reconstruction" : "newly_issued");
   if (payload?.status === "issued" && payload.probability_percent != null) {
     value.textContent = `${payload.probability_percent}%`;
     value.classList.remove("is-words");
-    const created = payload.issued_at_utc || payload.recorded_at_utc;
-    meta.textContent = [
-      payload.issue_date_ph ? `Philippine date ${payload.issue_date_ph}` : "",
-      issuanceKindLabel(kind, payload),
-      payload.experimental ? "Experimental score" : "",
-      payload.model_version ? `Model ${payload.model_version}` : "",
-      created ? `Recorded ${created}` : "",
-      (payload.feature_cutoff_manila || support.input_cutoff_manila)
-        ? `Feature cutoff ${payload.feature_cutoff_manila || support.input_cutoff_manila}`
-        : "",
-    ].filter(Boolean).join(" · ");
+    // A flagged score keeps one honest word; the technical record stays in the API.
+    meta.textContent = payload.experimental ? "Experimental score" : "";
   } else if (payload?.calendar_state === "upcoming" || payload?.status === "upcoming") {
     value.textContent = "Upcoming";
     value.classList.add("is-words");
@@ -390,33 +321,11 @@ function renderHotspotForecast(payload) {
   } else {
     value.textContent = payload?.calendar_state === "insufficient_inputs" ? "Insufficient inputs" : "Not available";
     value.classList.add("is-words");
-    meta.textContent = [
-      payload?.reason || "",
-      payload?.issue_date_ph ? `Philippine date ${payload.issue_date_ph}` : "",
-      support.newest_available_input_utc ? `Newest input ${support.newest_available_input_utc}` : "",
-    ].filter(Boolean).join(" · ");
+    meta.textContent = payload?.reason || "";
   }
-  if (issueLine) {
-    issueLine.textContent = [
-      payload?.issue_time_manila ? `Issue slot ${payload.issue_time_manila}` : "",
-      support.newest_cell_detection_utc ? `Latest cell detection ${support.newest_cell_detection_utc}` : "",
-    ].filter(Boolean).join(" · ");
-  }
+  meta.hidden = !meta.textContent;
   if (payload?.cell_id && typeof loadHotspotMonthForSquare === "function") {
     loadHotspotMonthForSquare(payload.cell_id, (payload.issue_date_ph || "").slice(0, 7));
-  }
-  const out = payload?.outcome || {};
-  outcome.textContent = out.label || "Outcome awaiting observation";
-  note.textContent = payload?.experimental_limitation
-    || payload?.reason
-    || payload?.label_note
-    || "MODIS/VIIRS heat chance only — not a wildfire probability. Onset stays separate.";
-  renderFirmsRefreshStamp(payload);
-  renderLiveModelBoard(payload);
-  if (replay) {
-    replay.hidden = !payload?.cell_id || payload?.status === "unsupported";
-    replay.dataset.cellId = payload?.cell_id || "";
-    replay.dataset.issueDate = payload?.issue_date_ph || "";
   }
 }
 
@@ -444,41 +353,6 @@ async function loadHotspotForecast(cellId, issueDate) {
     });
   }
 }
-
-document.querySelector("#replay-hotspot-forecast")?.addEventListener("click", async () => {
-  const button = document.querySelector("#replay-hotspot-forecast");
-  const cellId = button?.dataset.cellId;
-  let issueDate = button?.dataset.issueDate;
-  if (!cellId) return;
-  if (!issueDate && state.phToday) {
-    const parts = state.phToday.split("-").map(Number);
-    const stamp = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
-    stamp.setUTCDate(stamp.getUTCDate() - 1);
-    issueDate = stamp.toISOString().slice(0, 10);
-  }
-  if (!issueDate) return;
-  button.disabled = true;
-  try {
-    const params = new URLSearchParams({ cell_id: cellId, issue_date: issueDate });
-    const response = await fetch(`/api/hotspot-forecast/replay?${params}`);
-    const payload = await response.json();
-    renderHotspotForecast({
-      ...payload.forecast,
-      outcome: payload.outcome,
-      label_note: payload.note,
-    });
-    if (payload.followed_detections?.length && typeof renderIndividuals === "function") {
-      // Keep replay evidence visible in the note.
-      const note = document.querySelector("#hotspot-forecast-note");
-      if (note) {
-        note.textContent = `${payload.note} Later passes: `
-          + payload.followed_detections.map((row) => `${row.platform} ${row.acq_date} ${row.acq_time} UTC`).join(" · ");
-      }
-    }
-  } finally {
-    button.disabled = false;
-  }
-});
 
 function renderOnsetForecast(payload) {
   const value = document.querySelector("#onset-value");
@@ -703,28 +577,6 @@ async function showArea(area) {
     "Selected 5 km square · not the full drawn boundary";
   const cellIdNode = document.querySelector("#area-cell-id");
   if (cellIdNode) cellIdNode.textContent = matched.cell_id ? `Cell ${matched.cell_id}` : "";
-  const summaryBoundary = document.querySelector("#summary-boundary-label");
-  if (summaryBoundary) {
-    summaryBoundary.textContent = state.polygon
-      ? "Drawn boundary (land selection)"
-      : "No drawn boundary — square selected from the map";
-  }
-  const summarySquare = document.querySelector("#summary-square-label");
-  if (summarySquare) {
-    summarySquare.textContent = "Selected 5 km square";
-  }
-  const summaryCell = document.querySelector("#summary-cell-id");
-  if (summaryCell) summaryCell.textContent = matched.cell_id ? `Cell ${matched.cell_id}` : "";
-  const observed = document.querySelector("#summary-observed-heat");
-  if (observed) {
-    observed.textContent = readingSummary(matched);
-  }
-  const latestPass = document.querySelector("#summary-latest-pass");
-  if (latestPass) {
-    latestPass.textContent = latest
-      ? `Latest pass ${latest.time} UTC on ${formatObservationDay(latest.date)}`
-      : "Latest pass unavailable";
-  }
   document.querySelector("#area-readings").textContent = readingSummary(matched);
   renderImmediatePassList(matched, members);
   trackHotspotSearch("findings", () => loadFindingsForArea(matched)).then((findings) => {
@@ -751,10 +603,6 @@ async function showArea(area) {
   document.querySelector("#area-weather-headline").textContent = "Loading upcoming fire weather…";
   document.querySelector("#area-weather-driver").textContent = "";
   document.querySelector("#area-weather-scope").textContent = "";
-  const weatherStamp = document.querySelector("#summary-weather-stamp");
-  if (weatherStamp) {
-    weatherStamp.textContent = "Weather outlook timestamp loads with the fire-weather request.";
-  }
 
   const statuses = platformStatuses(matched, state.lastPayload);
   const otherSats = document.querySelector("#other-sats");

@@ -92,7 +92,7 @@
         <label class="check"><input type="checkbox" id="toggle-forecast-point" checked> Show forecast point</label>
         <label class="check"><input type="checkbox" id="show-individuals"> Show individual detections</label>
         <label class="check"><input type="checkbox" id="basemap-satellite"> Satellite imagery</label>
-        <p class="legend-credits">Map data: Esri, © OpenStreetMap contributors, Natural Earth. Globe: CesiumJS.</p>
+        <p class="legend-credits">Map data: Esri, © OpenStreetMap contributors, Natural Earth. Imagery: Esri, Maxar, Earthstar Geographics. Terrain: Esri. Globe: CesiumJS.</p>
       </section>
 
       <div id="globe-credits" hidden></div>
@@ -137,25 +137,13 @@
                 <p id="square-heat" class="square-heat" hidden></p>
                 <p id="activity-note" class="quiet"></p>
               </div>
-              <p id="summary-boundary-label" class="quiet">Drawn boundary</p>
-              <p id="summary-square-label" class="secondary-note">Selected 5 km square</p>
-              <p id="summary-cell-id" class="quiet"></p>
 
               <section id="hotspot-forecast-block" class="sub-block" aria-live="polite">
                 <h4 class="block-heading">Satellite heat forecast (next 24 hours)</h4>
                 <p id="hotspot-forecast-label" class="reading-label">Chance satellites record a hotspot in this square.</p>
                 <p id="hotspot-forecast-value" class="reading-value is-words">Checking…</p>
                 <p id="hotspot-forecast-meta" class="quiet"></p>
-                <p id="hotspot-forecast-issue" class="quiet"></p>
-                <p id="hotspot-forecast-outcome" class="quiet"></p>
-                <p id="hotspot-forecast-note" class="quiet"></p>
-                <p id="hotspot-firms-refresh" class="quiet"></p>
-                <div id="hotspot-model-board-live" class="quiet" hidden></div>
-                <button type="button" id="replay-hotspot-forecast" class="filter-button" hidden>Replay yesterday’s forecast</button>
               </section>
-              <p id="summary-observed-heat" class="quiet"></p>
-              <p id="summary-latest-pass" class="quiet"></p>
-              <p id="summary-weather-stamp" class="quiet"></p>
 
               <div class="hours">
                 <h4 id="hours-title">Today at this land</h4>
