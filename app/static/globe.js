@@ -824,6 +824,7 @@
           const finish = (drawn) => {
             removeCapture();
             window.clearTimeout(captureTimeout);
+            points.show = true;
             updateLabels(camera.positionCartographic.height);
             scene.requestRender();
             resolve(drawn);
@@ -840,6 +841,9 @@
           // Hide place labels for this frame only; finish() restores the live
           // globe's current label settings, including after a basemap change.
           atlasLabels.show = false;
+          // Globe dots (forecast point, readings) blow up into blobs when a small
+          // square is enlarged; heat marks are drawn onto the cutout instead.
+          points.show = false;
           captureTimeout = window.setTimeout(() => finish(false), 3000);
           scene.requestRender();
         };

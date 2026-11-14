@@ -65,6 +65,8 @@ const state = {
   traceOutline: null,
   // Land summary widget
   cutoutToken: 0,
+  // A clicked square shown in the summary card instead of the whole land.
+  summarySquare: null,
   activityRequestId: 0,
   outlookRequestId: 0,
   dayOutlook: null,
@@ -660,6 +662,7 @@ function clearLand() {
   state.cutoutToken += 1;
   state.activityRequestId += 1;
   state.outlookRequestId += 1;
+  state.summarySquare = null;
   document.querySelector("#area-label").textContent =
     "Search for a place or draw a boundary on the globe, then check it for satellite heat.";
   document.querySelector("#map-hint").textContent = "Turn the globe to your land, then search or draw its boundary.";
@@ -1888,7 +1891,7 @@ function outlineSquare(area, labelText) {
   state.selectedLabel = globe.addOverlay(
     bounds.south,
     bounds.west,
-    mapBadge(labelText || "5 km cell", "selected-cell-badge"),
+    mapBadge(labelText || "Selected square", "selected-cell-badge"),
     "below-right"
   );
 }
@@ -2026,12 +2029,54 @@ function panSelectionClearOfPanel(area) {
   flyToBounds(area.bounds, { minSpan: 0.45 });
 }
 
-// Selected-square details live in the Burn activity pane; bring them into view.
-function revealCellDetail() {
+// A clicked square gets the same summary card as the land: cutout, burning activity, today's hours.
+function revealCellDetail(bounds, marks = [], heat = null) {
   openLandPanel({ tab: "where", focus: false });
-  document.querySelector("#land-summary").hidden = true;
-  document.querySelector("#cell-detail").hidden = false;
+  const { west, south, east, north } = bounds;
+  state.summarySquare = {
+    ring: [[west, south], [east, south], [east, north], [west, north], [west, south]],
+    box: [west, south, east, north],
+    marks,
+  };
+  document.querySelector("#cell-detail").hidden = true;
+  document.querySelector("#land-secondary-content").hidden = true;
+  document.querySelector("#satellite-picker").hidden = true;
+  document.querySelector("#land-summary").hidden = false;
+  document.querySelector("#cell-back").hidden = false;
+  setSquareHeat(heat);
   document.querySelector(".card-body")?.scrollTo({ top: 0 });
+  drawLandCutout([]);
+  loadWeeklyActivity();
+  loadDayOutlook();
+}
+
+// "Heat seen" / "No heat reported"; satellites are named only when the visitor chose their own set.
+function setSquareHeat(heat) {
+  const line = document.querySelector("#square-heat");
+  if (!heat) {
+    line.hidden = true;
+    return;
+  }
+  const chosen = selectedPlatforms();
+  const custom = chosen.length !== DEFAULT_PLATFORMS.length
+    || chosen.some((name) => !DEFAULT_PLATFORMS.includes(name));
+  const names = [...new Set(heat.platforms || [])];
+  const words = { seen: "Heat seen", none: "No heat reported", failed: "Heat check failed" };
+  let text = words[heat.state] || "Checking for heat…";
+  if (heat.state === "seen" && custom && names.length) text += ` by ${joinPlatformNames(names)}`;
+  line.textContent = text;
+  line.classList.toggle("seen", heat.state === "seen");
+  line.hidden = false;
+}
+
+function squareAround(lat, lon) {
+  return { west: lon - 0.02, east: lon + 0.02, south: lat - 0.02, north: lat + 0.02 };
+}
+
+// The land, or the clicked square when one is open.
+function summaryTarget() {
+  if (state.summarySquare) return { ...state.summarySquare, noun: "square" };
+  return { ring: state.polygon, box: state.box, marks: null, noun: "land" };
 }
 
 // Leave a heat dot's details and return to the land summary.
@@ -2043,9 +2088,8 @@ function leaveCellDetail() {
   clearMemberPoints();
   refreshMarkerSelection();
   document.querySelector("#cell-detail").hidden = true;
-  document.querySelector("#land-summary").hidden = !(state.polygon && state.polygon.length >= 4);
   document.querySelector(".card-body")?.scrollTo({ top: 0 });
-  positionHours();
+  refreshLandSummary();
 }
 
 function setPanelMode(mode) {
@@ -2189,11 +2233,13 @@ async function showArea(area) {
   state.selectedArea = matched;
   const detailId = ++state.detailRequestId;
   stopReplayTimer();
-  outlineSquare(matched, "5 km cell");
+  outlineSquare(matched, "Selected square");
   refreshMarkerSelection();
 
   setPanelMode("detected");
-  revealCellDetail();
+  revealCellDetail(matched.bounds || squareAround(matched.center_lat, matched.center_lon), [
+    { lat: matched.center_lat, lon: matched.center_lon, multi: Boolean(matched.multiple_satellites) },
+  ], { state: "seen", platforms: matched.platforms || [] });
   // Defer pan until the panel is laid out so width/height are accurate.
   requestAnimationFrame(() => panSelectionClearOfPanel(matched));
   const members = matched.members || [];
@@ -2356,6 +2402,10 @@ function renderAreaWeather(forecast, observationDay) {
 }
 
 function closeAreaPanel() {
+  state.summarySquare = null;
+  document.querySelector("#cell-back").hidden = true;
+  document.querySelector("#satellite-picker").hidden = false;
+  setSquareHeat(null);
   document.querySelector("#area-panel").hidden = true;
   document.querySelector("#cell-detail").hidden = true;
   document.querySelector("#land-summary").hidden = !(state.polygon && state.polygon.length >= 4);
@@ -2381,7 +2431,7 @@ async function askAboutPoint(lat, lon) {
   const requestId = state.requestId;
   const date = dayInput.value;
   const panel = document.querySelector("#area-panel");
-  revealCellDetail();
+  revealCellDetail(squareAround(lat, lon), [], { state: "checking" });
   setPanelMode("empty");
   document.querySelector("#area-sentence").textContent =
     `No heat detection was reported in this square on ${formatObservationDay(date)}.`;
@@ -2423,6 +2473,7 @@ async function askAboutPoint(lat, lon) {
       showArea(match);
       return;
     }
+    setSquareHeat({ state: "none" });
     const verified = (payload.platform_statuses || []).filter((row) => row.state === "observed_no_heat");
     if (verified.length) {
       document.querySelector("#area-square-note").textContent = verified
@@ -2448,10 +2499,11 @@ async function askAboutPoint(lat, lon) {
           north: lat + 0.02,
         },
       },
-      "Empty square (approximate)"
+      "Selected square"
     );
   } catch (error) {
     if (detailId !== state.detailRequestId) return;
+    setSquareHeat({ state: "failed" });
     document.querySelector("#other-sats-list").innerHTML =
       "<li>Coverage lookup failed. Missing evidence is not treated as zero heat.</li>";
   }
@@ -2474,7 +2526,8 @@ function renderStatuses(results) {
 }
 
 function showDetection(spot) {
-  revealCellDetail();
+  revealCellDetail(squareAround(Number(spot.lat), Number(spot.lon)), [{ lat: Number(spot.lat), lon: Number(spot.lon) }],
+    { state: "seen", platforms: [spot.platform] });
   document.querySelector("#area-sentence").textContent =
     `${spot.platform} recorded an individual detection at ${spot.acq_time} UTC.`;
   beginPlaceLookup({ mode: "point", lat: spot.lat, lon: spot.lon });
@@ -2499,8 +2552,10 @@ function showDetection(spot) {
 }
 
 function showDetectionStack(spots) {
-  revealCellDetail();
   const first = spots[0];
+  revealCellDetail(squareAround(Number(first.lat), Number(first.lon)), [
+    { lat: Number(first.lat), lon: Number(first.lon), multi: spots.length > 1 },
+  ], { state: "seen", platforms: spots.map((spot) => spot.platform) });
   document.querySelector("#area-sentence").textContent =
     `${spots.length} satellite readings overlap at this location.`;
   beginPlaceLookup({ mode: "point", lat: first.lat, lon: first.lon });
@@ -3334,6 +3389,13 @@ function renderFutureDays() {
 function refreshLandSummary() {
   const section = document.querySelector("#land-summary");
   const hasLand = Boolean(state.polygon && state.polygon.length >= 4);
+  state.summarySquare = null;
+  document.querySelector("#cell-back").hidden = true;
+  document.querySelector("#satellite-picker").hidden = false;
+  setSquareHeat(null);
+  state.cutoutToken += 1;
+  state.activityRequestId += 1;
+  state.outlookRequestId += 1;
   section.hidden = !hasLand;
   document.querySelector("#land-secondary-content").hidden = hasLand;
   if (!hasLand) return;
@@ -3378,11 +3440,13 @@ function drawLandOutline(ring, canvas) {
 
 async function drawLandCutout(areas) {
   const canvas = document.querySelector("#land-cutout");
-  const ring = state.polygon;
+  const target = summaryTarget();
+  const ring = target.ring;
   if (!canvas || !ring || ring.length < 4) return;
   const token = ++state.cutoutToken;
+  if (target.marks) areas = [];
   if (!areas.length) drawLandOutline(ring, canvas);
-  const marks = areas.map((area) => ({
+  const marks = target.marks || areas.map((area) => ({
     lat: area.center_lat,
     lon: area.center_lon,
     multi: Boolean(area.multiple_satellites),
@@ -3411,7 +3475,8 @@ async function loadWeeklyActivity() {
   const label = document.querySelector("#activity-label");
   const value = document.querySelector("#activity-value");
   const note = document.querySelector("#activity-note");
-  if (!label || !state.box) return;
+  const target = summaryTarget();
+  if (!label || !target.box) return;
   const date = dayInput.value;
   const year = date.slice(0, 4);
   const requestId = ++state.activityRequestId;
@@ -3423,7 +3488,7 @@ async function loadWeeklyActivity() {
   words("Loading…");
   note.hidden = false;
   note.textContent = `Reading the weekly estimate for ${formatObservationDay(date)}.`;
-  const [west, south, east, north] = state.box;
+  const [west, south, east, north] = target.box;
   let payload;
   try {
     const response = await fetch(`/api/calendar?west=${west}&south=${south}&east=${east}&north=${north}&year=${year}`);
@@ -3441,12 +3506,12 @@ async function loadWeeklyActivity() {
     week.activity_rate != null && (week.activity_status === "complete" || week.activity_status === "partial");
   const week = weeks.find((item) => item.week_start <= date && date <= item.week_end);
   if (week && published(week)) {
-    label.textContent = `Burning activity · ${formatWeekRange(week.week_start, week.week_end)}`;
+    label.textContent = `Burning activity${target.noun === "square" ? " in this square" : ""} · ${formatWeekRange(week.week_start, week.week_end)}`;
     value.textContent = `${(week.activity_rate * 100).toFixed(1)}%`;
     value.classList.remove("is-words");
     note.textContent =
       (week.activity_status === "partial" ? "Partial estimate: some days that week lacked usable coverage. " : "")
-      + "How often this land’s grid squares showed burning activity that week. It is not a wildfire probability.";
+      + `How often this ${target.noun}’s grid squares showed burning activity that week. It is not a wildfire probability.`;
     return;
   }
   words("No estimate yet");
@@ -3481,18 +3546,19 @@ function weatherIcon(code, isDay) {
 }
 
 async function loadDayOutlook() {
-  if (!state.box) return;
-  const [west, south, east, north] = state.box;
+  const target = summaryTarget();
+  if (!target.box) return;
+  const [west, south, east, north] = target.box;
   const lat = (south + north) / 2;
   const lon = (west + east) / 2;
   const key = `${lat.toFixed(3)},${lon.toFixed(3)}`;
+  const requestId = ++state.outlookRequestId;
   if (state.dayOutlook && state.dayOutlookKey === key) {
     renderDayOutlook(state.dayOutlook);
     return;
   }
-  const requestId = ++state.outlookRequestId;
   document.querySelector("#hours-strip").innerHTML = "";
-  document.querySelector("#hours-title").textContent = "Today at this land";
+  document.querySelector("#hours-title").textContent = `Today at this ${target.noun}`;
   document.querySelector("#hours-note").hidden = false;
   document.querySelector("#hours-note").textContent = "Loading today’s temperature and wind…";
   let payload = null;
@@ -3514,9 +3580,10 @@ function renderDayOutlook(outlook) {
   const strip = document.querySelector("#hours-strip");
   const title = document.querySelector("#hours-title");
   const note = document.querySelector("#hours-note");
+  const noun = summaryTarget().noun;
   if (!outlook || !outlook.ok || !(outlook.slots || []).length) {
     strip.innerHTML = "";
-    title.textContent = "Today at this land";
+    title.textContent = `Today at this ${noun}`;
     note.hidden = false;
     note.textContent = "Today’s temperature and wind could not be loaded. Vela needs a connection to Open-Meteo for this.";
     updateHoursNav();
@@ -3524,7 +3591,7 @@ function renderDayOutlook(outlook) {
   }
   const step = outlook.step_hours || 3;
   const nowHour = outlook.now ? Number(String(outlook.now).slice(11, 13)) : null;
-  title.textContent = `Today at this land · ${formatShortForecastDay(outlook.date, "UTC")}`;
+  title.textContent = `Today at this ${noun} · ${formatShortForecastDay(outlook.date, "UTC")}`;
   strip.innerHTML = outlook.slots.map((slot) => {
     const current = nowHour != null && nowHour >= slot.hour && nowHour < slot.hour + step;
     const icon = weatherIcon(slot.weather_code, slot.is_day);

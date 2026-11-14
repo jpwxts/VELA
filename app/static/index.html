@@ -9,7 +9,7 @@
   <link rel="preload" href="/static/fonts/source-sans-3-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/static/fonts/source-serif-4-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cesium@1.147.0/Build/Cesium/Widgets/widgets.css">
-  <link rel="stylesheet" href="/static/styles.css?v=atlas-20">
+  <link rel="stylesheet" href="/static/styles.css?v=atlas-23">
 </head>
 <body>
   <header class="masthead">
@@ -100,11 +100,13 @@
           <section id="pane-where" class="panel-pane" role="tabpanel" aria-labelledby="tab-where">
             <h3 class="pane-title visually-hidden">Burn activity</h3>
             <section id="land-summary" class="land-summary" aria-label="Summary of the selected land" hidden>
+              <button type="button" id="cell-back" class="link-button back-link" hidden>Back to land</button>
               <canvas id="land-cutout" class="cutout" width="672" height="340" role="img" aria-label="The selected land, cut out of the map"></canvas>
 
               <div class="activity" aria-live="polite">
                 <p id="activity-label" class="activity-label">Burning activity</p>
                 <p id="activity-value" class="activity-value"></p>
+                <p id="square-heat" class="square-heat" hidden></p>
                 <p id="activity-note" class="quiet"></p>
               </div>
 
@@ -175,7 +177,10 @@
               </button>
             </section>
 
-            <details class="fold satellite-details">
+
+            </div>
+
+            <details id="satellite-picker" class="fold satellite-details">
               <summary>Satellites to include</summary>
               <fieldset>
                 <legend class="visually-hidden">Satellites</legend>
@@ -190,10 +195,7 @@
               </div>
             </details>
 
-            </div>
-
             <section id="cell-detail" class="pane-block cell-detail" hidden>
-              <button type="button" id="cell-back" class="link-button back-link">Back</button>
               <h4>Selected square</h4>
               <section id="where-block" class="where-block" aria-live="polite">
                 <p id="area-place" class="place-name" hidden></p>
@@ -448,7 +450,7 @@
 
   <script>window.CESIUM_BASE_URL = "https://cdn.jsdelivr.net/npm/cesium@1.147.0/Build/Cesium/";</script>
   <script src="https://cdn.jsdelivr.net/npm/cesium@1.147.0/Build/Cesium/Cesium.js"></script>
-  <script src="/static/globe.js?v=atlas-17"></script>
-  <script src="/static/app.js?v=atlas-20"></script>
+  <script src="/static/globe.js?v=atlas-18"></script>
+  <script src="/static/app.js?v=atlas-25"></script>
 </body>
 </html>
