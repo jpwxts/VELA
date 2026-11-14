@@ -13,6 +13,34 @@ You draw or search for a plot of land, pick a date, and explore four questions i
 
 Vela keeps **satellite heat**, **fire-danger weather**, **weekly activity estimates**, and **official wildfire reports** as separate answers. It never turns FWI, hotspot counts, MODIS confidence, or the harmonization model into a wildfire probability.
 
+## Current public behavior — 15 November 2026
+
+The selected-land panel leads with **Satellite heat observed**: returned reading count, 5 km square count, contributing satellites and latest Philippine-time pass. A completed empty search says no readings were returned and states whether clear-view coverage is known. Failed/unavailable feeds are listed separately. Missing coverage never means no fire.
+
+**Next-24-hour satellite heat percentages are currently suspended**, including archived 1%/99% examples. The selected HGB research candidate (`3c1e4896964db152`) has neither representative seasonal coverage nor validated public probability calibration. Its high holdout band consists of August positives without negatives. The old 1% example used a different, flawed-negative Extra Trees model. Candidate selection and calibration approval are separate gates. No validated wildfire-onset probability is published.
+
+**Fire-weather danger** remains a separate, dated GWIS FWI measure near the selection center, with Open-Meteo weather context. Low fire-weather danger can coexist with observed satellite heat. Historical heat selection does not turn the current weather outlook into historical weather.
+
+**Estimated burning activity** requires eligible Aqua fire-mask/geolocation observations or calibrated Suomi-NPP cell-day contributions. It uses the sum of contributions divided by contributing eligible square-days, with partial status and contribution counts. Land/square summaries and History use the same selected polygon/day calculation. NOAA-20/21 FIRMS points alone cannot create this estimate. There are no eligible operational contributions for the 7 November 2026 demonstration date.
+
+History has three explicit chart choices: **Satellite heat readings**, **Estimated burning activity**, and **Next-24-hour satellite heat forecast**. Counts use Philippine days. Missing activity coverage is a gap; a completed zero-reading search can show 0 readings without implying 0% burning activity. Forecasts are individual-square products only, and public GETs never generate retrospective or full-month predictions. An eventual approved issue must match the versioned candidate and have been created by the start of its forecast window. Square probabilities are never averaged into a land-wide wildfire chance.
+
+The saved **7 November UTC** Mindanao snapshot has **12 readings / 11 squares / 3 satellites**: **11 readings on 7 November PH and one on 8 November PH at 01:11**. It is an archive, not a live NASA pull or a complete Philippine-day search. Both disputed cells (`2393:174`, `2397:180`) have one NOAA-21 reading at **12:33 PH**; those later observations were not midnight model inputs.
+
+Heat and weather now use independent browser requests. Heat uses `POST /api/check-land` with `include_weather:false`; weather fills through `/api/preparedness`. Weather successes have a dated, request-keyed <=1h server cache and concurrent daily GWIS reads; failures are uncached. Superseded land requests are aborted, obsolete month/square responses are ignored, and duplicate pending square-month requests are suppressed. Source refresh, observation acquisition, weather valid dates and model issue times remain distinct.
+
+Verification: Python and Node tests cover evidence boundaries, scope/time guards, empty vs failed searches, and heat rendering while weather is pending. **Browser control failed, so the draw/click/month/chart/Live flow and visual layout remain unverified.** Network-enabled API samples gave heat-only land checks **6.63s first call**, **88.52ms warm median** (n=3 overall; existing caches retained). These are sample measurements, not production latency percentiles or a matched before/after live speedup. See the [full audit, timing tables and remaining blockers](docs/verification/README.md).
+
+Demo review: open the saved Philippines example → **All Mindanao** → inspect the UTC snapshot totals and PH pass dates → click each disputed square (percentages unavailable, observed readings retained) → History → select each chart measure and change month → Return to Live → draw `(123.95727,6.78538)` to `(124.10909,6.92485)` and check heat independently of weather. Also inspect a failed feed, completed empty search, unsupported square and future day. These are manual review steps, not a claim that the browser sequence was completed.
+
+```bash
+python -m pytest -q
+node --test tests/test_public_ui.cjs
+python -m scripts.measure_public_experience --output /tmp/vela-timings.json
+```
+
+The model-development notes and earlier dated demo reports below preserve historical experiments. Statements about displaying experimental percentages are superseded by the current publication suspension described above. No models were retrained or test labels used for tuning in this change. OmniRoute was inspected as an AI gateway and is not a satellite-data source.
+
 ### Live is the default (Philippines)
 
 The map opens in **Live**. Drawing land in Mindanao or elsewhere in the Philippines automatically uses today’s **Asia/Manila** calendar day (`GET /api/live/today`). Modes:

@@ -1,0 +1,46 @@
+{
+  "land": [
+    3248.8,
+    965.85,
+    909.22
+  ],
+  "firms_reported": {
+    "elapsed_ms": 778,
+    "utc_days": [
+      "2026-11-06",
+      "2026-11-07"
+    ],
+    "tiles": 1,
+    "jobs": 2,
+    "store_seeded": true,
+    "cache_hit_feeds": 0,
+    "points_before_ph_filter": 2,
+    "points_after_ph_filter": 2,
+    "query_box": {
+      "west": 123.90727,
+      "south": 6.73538,
+      "east": 124.15908999999999,
+      "north": 6.97485
+    }
+  },
+  "weather": [
+    771.73,
+    778.05,
+    781.01
+  ],
+  "forecast": [
+    1277.79,
+    139.39,
+    139.03
+  ],
+  "history": [
+    93.47,
+    60.28,
+    42.03
+  ],
+  "chart": [
+    51.22,
+    49.01,
+    62.28
+  ]
+}

@@ -216,6 +216,9 @@ function panSelectionClearOfPanel(area) {
 function revealCellDetail(bounds, marks = [], heat = null) {
   openLandPanel({ tab: "where", focus: false });
   const { west, south, east, north } = bounds;
+  state.historyRequestId += 1;
+  state.monthHistory = null;
+  state.historyKey = null;
   state.summarySquare = {
     ring: [[west, south], [east, south], [east, north], [west, north], [west, south]],
     box: [west, south, east, north],
@@ -223,7 +226,7 @@ function revealCellDetail(bounds, marks = [], heat = null) {
   };
   clearHotspotDetailSearches();
   document.querySelector("#cell-detail").hidden = true;
-  document.querySelector("#land-secondary-content").hidden = true;
+  document.querySelector("#land-secondary-content").hidden = false;
   document.querySelector("#satellite-picker").hidden = true;
   document.querySelector("#land-summary").hidden = false;
   syncLandPicture();
@@ -239,7 +242,9 @@ function revealCellDetail(bounds, marks = [], heat = null) {
 // "Heat seen" / "No heat reported"; satellites are named only when the visitor chose their own set.
 function setSquareHeat(heat) {
   const line = document.querySelector("#square-heat");
+  const summary = document.querySelector("#observed-heat-summary");
   if (!heat) {
+    if (summary) summary.textContent = state.lastLandCheck?.heat?.lead || "Select land to check satellite readings.";
     line.hidden = true;
     return;
   }
@@ -247,10 +252,15 @@ function setSquareHeat(heat) {
   const custom = chosen.length !== DEFAULT_PLATFORMS.length
     || chosen.some((name) => !DEFAULT_PLATFORMS.includes(name));
   const names = [...new Set(heat.platforms || [])];
-  const words = { seen: "Heat seen", none: "No heat reported", failed: "Heat check failed" };
+  const words = { seen: "Satellite heat observed in this square", none: "No satellite heat readings returned for this square; clear-view coverage unknown", failed: "Satellite feed failed or unavailable" };
   let text = words[heat.state] || "Checking for heat…";
   if (heat.state === "seen" && custom && names.length) text += ` by ${joinPlatformNames(names)}`;
+  if (heat.state === "seen" && heat.readings?.length) {
+    const readings = [...heat.readings].sort((a,b) => `${a.acq_date}T${a.acq_time}`.localeCompare(`${b.acq_date}T${b.acq_time}`));
+    text = `${readings.length} satellite heat readings in this square from ${names.length} satellites. Latest Philippine-time pass: ${formatDetectionLocalTime(readings[readings.length - 1])}.`;
+  }
   line.textContent = text;
+  if (summary) summary.textContent = text;
   line.classList.toggle("seen", heat.state === "seen");
   line.hidden = false;
 }
@@ -264,6 +274,7 @@ function leaveCellDetail() {
   state.detailRequestId += 1;
   clearHotspotSearches("square");
   state.selectedArea = null;
+  state.hotspotMonthPendingKey = null;
   state.hotspotMonthCellId = null;
   state.hotspotMonthKey = null;
   state.hotspotMonth = null;
@@ -307,6 +318,7 @@ function renderHotspotForecast(payload) {
   const stampBits = [
     payload?.issue_time_manila ? `Issued ${payload.issue_time_manila}` : "",
     payload?.model_version ? `Model ${payload.model_version}` : "",
+    payload?.valid_interval ? `Window ${payload.valid_interval.start_manila} to ${payload.valid_interval.end_manila}` : "",
     payload?.study?.label || payload?.study?.id || "",
   ].filter(Boolean);
   if (payload?.status === "issued" && payload.probability_percent != null) {
@@ -315,6 +327,7 @@ function renderHotspotForecast(payload) {
     meta.textContent = [
       payload.experimental ? "Experimental score" : "Next-24-hour satellite hotspot chance",
       ...stampBits,
+      payload.meaning || "The estimated fraction of comparable square-days with satellite-detected heat during this window; not a wildfire probability.",
     ].filter(Boolean).join(" · ");
   } else if (payload?.calendar_state === "upcoming" || payload?.status === "upcoming") {
     value.textContent = "Upcoming";
@@ -578,7 +591,7 @@ async function showArea(area) {
   setPanelMode("detected");
   revealCellDetail(matched.bounds || squareAround(matched.center_lat, matched.center_lon), [
     { lat: matched.center_lat, lon: matched.center_lon, multi: Boolean(matched.multiple_satellites) },
-  ], { state: "seen", platforms: matched.platforms || [] });
+  ], { state: "seen", platforms: matched.platforms || [], readings: matched.members || [] });
   // Defer pan until the panel is laid out so width/height are accurate.
   requestAnimationFrame(() => panSelectionClearOfPanel(matched));
   const members = matched.members || [];
@@ -815,7 +828,9 @@ async function askAboutPoint(lat, lon) {
       showArea(match);
       return;
     }
-    setSquareHeat({ state: "none" });
+    const feeds = payload.platform_statuses || [];
+    const completed = feeds.some(row => ["observed_no_heat", "no_detection_unknown"].includes(row.state));
+    setSquareHeat({ state: completed ? "none" : "failed" });
     const verified = (payload.platform_statuses || []).filter((row) => row.state === "observed_no_heat");
     if (verified.length) {
       document.querySelector("#area-square-note").textContent = verified
@@ -858,7 +873,7 @@ function showDetection(spot) {
   state.detailRequestId += 1;
   clearHotspotSearches("square");
   revealCellDetail(squareAround(Number(spot.lat), Number(spot.lon)), [{ lat: Number(spot.lat), lon: Number(spot.lon) }],
-    { state: "seen", platforms: [spot.platform] });
+    { state: "seen", platforms: [spot.platform], readings: [spot] });
   const place = spot.place_name || spot.place_or_coordinates
     || (spot.lat != null && spot.lon != null ? `${Number(spot.lat).toFixed(5)}, ${Number(spot.lon).toFixed(5)}` : "Location unavailable");
   const localStamp = spot.acq_date_ph && spot.acq_time_ph
@@ -908,7 +923,7 @@ function showDetectionStack(spots) {
   const first = spots[0];
   revealCellDetail(squareAround(Number(first.lat), Number(first.lon)), [
     { lat: Number(first.lat), lon: Number(first.lon), multi: spots.length > 1 },
-  ], { state: "seen", platforms: spots.map((spot) => spot.platform) });
+  ], { state: "seen", platforms: spots.map((spot) => spot.platform), readings: spots });
   document.querySelector("#area-sentence").textContent =
     `${spots.length} satellite readings overlap at this location.`;
   beginPlaceLookup({ mode: "point", lat: first.lat, lon: first.lon });

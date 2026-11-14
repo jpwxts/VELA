@@ -1,0 +1,71 @@
+{
+  "note": "Sample measurements through TestClient; first call process-cold, existing provider/store caches retained. Inspect feed statuses; failed external calls are not successful live benchmarks.",
+  "samples": {
+    "land": {
+      "ms": [
+        6625.56,
+        96.9,
+        80.14
+      ],
+      "first_ms": 6625.56,
+      "warm_median_ms": 88.52000000000001,
+      "p50_ms": 96.9,
+      "p95_ms": 5972.6939999999995
+    },
+    "weather": {
+      "ms": [
+        8320.45,
+        8426.62,
+        8354.84
+      ],
+      "first_ms": 8320.45,
+      "warm_median_ms": 8390.73,
+      "p50_ms": 8354.84,
+      "p95_ms": 8419.442000000001
+    },
+    "forecast": {
+      "ms": [
+        1135.51,
+        2.3,
+        1.77
+      ],
+      "first_ms": 1135.51,
+      "warm_median_ms": 2.035,
+      "p50_ms": 2.3,
+      "p95_ms": 1022.1889999999999
+    },
+    "history": {
+      "ms": [
+        195.37,
+        53.2,
+        46.91
+      ],
+      "first_ms": 195.37,
+      "warm_median_ms": 50.055,
+      "p50_ms": 53.2,
+      "p95_ms": 181.153
+    },
+    "chart": {
+      "ms": [
+        1802.83,
+        66.44,
+        56.14
+      ],
+      "first_ms": 1802.83,
+      "warm_median_ms": 61.29,
+      "p50_ms": 66.44,
+      "p95_ms": 1629.1909999999998
+    }
+  },
+  "feed_statuses": {
+    "Aqua": "zero",
+    "NOAA-20": "ok",
+    "NOAA-21": "ok",
+    "Suomi-NPP": "unavailable"
+  },
+  "firms_ms": [
+    6300,
+    5,
+    5
+  ]
+}

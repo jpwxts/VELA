@@ -10,6 +10,11 @@ function refreshLandSummary() {
   const section = document.querySelector("#land-summary");
   const hasLand = Boolean(state.polygon && state.polygon.length >= 4);
   state.summarySquare = null;
+  state.hotspotMonthCellId = null;
+  state.hotspotMonthKey = null;
+  state.hotspotMonthPendingKey = null;
+  state.hotspotMonth = null;
+  state.hotspotMonthRequestId = (state.hotspotMonthRequestId || 0) + 1;
   document.querySelector("#cell-back").hidden = true;
   document.querySelector("#satellite-picker").hidden = false;
   setSquareHeat(null);
@@ -18,7 +23,7 @@ function refreshLandSummary() {
   state.outlookRequestId += 1;
   clearHotspotDetailSearches();
   section.hidden = !hasLand;
-  document.querySelector("#land-secondary-content").hidden = hasLand;
+  document.querySelector("#land-secondary-content").hidden = false;
   syncLandPicture();
   if (!hasLand) return;
   drawLandCutout(state.lastLandCheck?.heat?.hotspot_areas?.areas || []);
@@ -113,7 +118,7 @@ async function drawLandCutout(areas) {
 // processed; everywhere else the widget says so instead of showing a number.
 // Keep the compact card while accepting activity from the current land check.
 function setLandSummaryLoading() {
-  document.querySelector("#activity-label").textContent = "Burning activity";
+  document.querySelector("#activity-label").textContent = "Estimated burning activity";
   const value = document.querySelector("#activity-value");
   value.textContent = "Loading…";
   value.classList.add("is-words");
@@ -127,7 +132,7 @@ function applyLandActivity(activity) {
   const note = document.querySelector("#activity-note");
   const published = activity?.activity_rate != null
     && (activity.activity_status === "complete" || activity.activity_status === "partial");
-  label.textContent = "Burning activity";
+  label.textContent = "Estimated burning activity";
   value.classList.toggle("is-words", !published);
   note.hidden = !published;
   note.textContent = "";
@@ -140,13 +145,17 @@ function applyLandActivity(activity) {
       (activity.activity_status === "partial" ? "Partial estimate: some observations lacked usable coverage. " : "")
       + `How often this ${target.noun}’s grid squares showed burning activity `
       + (weekly ? "that week" : `on ${formatObservationDay(dayInput.value)}`)
+      + `. Numerator / eligible square-days: ${(activity.activity_rate * activity.activity_denominator).toFixed(2)} / ${activity.activity_denominator}. `
+      + Object.entries(activity.method_counts || {}).map(([name, count]) => `${name}: ${count}`).join("; ")
       + ". It is not a wildfire probability.";
   } else if (activity?.status === "request_failed") {
     value.textContent = "Unavailable";
     note.hidden = false;
     note.textContent = activity.explanation;
   } else {
-    value.textContent = "No estimate yet";
+    value.textContent = "Coverage inputs missing";
+    note.hidden = false;
+    note.textContent = "Requires eligible Aqua fire-mask/geolocation cell-days or calibrated Suomi-NPP contributions for this boundary and date. FIRMS heat readings do not establish clear-view coverage.";
   }
 }
 
@@ -158,51 +167,25 @@ function applyLandSummaryFromCheck(payload) {
 }
 
 async function loadWeeklyActivity() {
-  const label = document.querySelector("#activity-label");
-  const value = document.querySelector("#activity-value");
-  const note = document.querySelector("#activity-note");
   const target = summaryTarget();
-  if (!label || !target.box) return;
+  if (!target.ring) return;
   const date = dayInput.value;
-  const year = date.slice(0, 4);
   const requestId = ++state.activityRequestId;
-  const words = (text) => {
-    value.textContent = text;
-    value.classList.add("is-words");
-  };
-  label.textContent = "Burning activity";
-  words("Loading…");
-  note.hidden = false;
-  note.textContent = `Reading the weekly estimate for ${formatObservationDay(date)}.`;
-  const [west, south, east, north] = target.box;
-  let payload;
+  setLandSummaryLoading();
   try {
-    const response = await fetch(`/api/calendar?west=${west}&south=${south}&east=${east}&north=${north}&year=${year}`);
-    if (!response.ok) throw new Error("calendar failed");
-    payload = await response.json();
+    const response = await fetch("/api/history/month", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      signal: AbortSignal.timeout(15000),
+      body: JSON.stringify({coordinates: target.ring, boundary_preset: state.summarySquare ? null : state.boundaryPreset || null, year: Number(date.slice(0,4)), month: Number(date.slice(5,7))}),
+    });
+    if (!response.ok) throw new Error("Coverage estimate unavailable");
+    const payload = await response.json();
+    if (requestId !== state.activityRequestId) return;
+    applyLandActivity((payload.days || []).find(day => day.date === date) || {});
   } catch (_error) {
     if (requestId !== state.activityRequestId) return;
-    words("Unavailable");
-    note.textContent = "The weekly history request failed. Check your connection, then change the date or redraw to try again.";
-    return;
+    applyLandActivity({status: "request_failed", explanation: "Coverage estimate request failed or timed out. Observed heat is checked independently."});
   }
-  if (requestId !== state.activityRequestId) return;
-  const weeks = payload.weeks || [];
-  const published = (week) =>
-    week.activity_rate != null && (week.activity_status === "complete" || week.activity_status === "partial");
-  const week = weeks.find((item) => item.week_start <= date && date <= item.week_end);
-  if (week && published(week)) {
-    label.textContent = `Burning activity${target.noun === "square" ? " in this square" : ""} · ${formatWeekRange(week.week_start, week.week_end)}`;
-    value.textContent = `${(week.activity_rate * 100).toFixed(1)}%`;
-    value.classList.remove("is-words");
-    note.textContent =
-      (week.activity_status === "partial" ? "Partial estimate: some days that week lacked usable coverage. " : "")
-      + `How often this ${target.noun}’s grid squares showed burning activity that week. It is not a wildfire probability.`;
-    return;
-  }
-  words("No estimate yet");
-  note.textContent = "";
-  note.hidden = true;
 }
 
 // Open-Meteo weather codes (WMO) reduced to seven drawn conditions.

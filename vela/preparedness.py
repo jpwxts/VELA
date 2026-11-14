@@ -5,6 +5,11 @@ from __future__ import annotations
 import json
 from datetime import date
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
+import hashlib
+import base64
+from datetime import datetime, timezone
 
 from vela.forecast_store import ForecastArchive
 from vela.geotiff import read_center_value
@@ -386,8 +391,12 @@ def build_forecast(west: float, south: float, east: float, north: float, getter,
         return _failed(latitude, longitude, performance, parsed.get("message") or "Weather details are missing.")
     point_lat = parsed.get("latitude") if isinstance(parsed.get("latitude"), (int, float)) else latitude
     point_lon = parsed.get("longitude") if isinstance(parsed.get("longitude"), (int, float)) else longitude
-    for day in parsed["days"]:
-        day["fire_danger"] = _fire_danger(getter, float(point_lat), float(point_lon), day["valid_date"])
+    def danger(day):
+        return _fire_danger(getter, float(point_lat), float(point_lon), day["valid_date"])
+    with ThreadPoolExecutor(max_workers=7) as pool:
+        dangers = list(pool.map(danger, parsed["days"]))
+    for day, result in zip(parsed["days"], dangers):
+        day["fire_danger"] = result
     window = f"{parsed['days'][0]['valid_date']}:{parsed['days'][-1]['valid_date']}"
     key = region_key(west, south, east, north)
     issue_id = f"gwis-ecmwf|{key}|{window}"
@@ -517,9 +526,26 @@ def regional_fwi_reference(west: float, south: float, east: float, north: float)
     return None
 
 
+# Fixed lock stripes bound memory while deduplicating concurrent identical provider reads.
+_WEATHER_LOCKS = [Lock() for _ in range(32)]
+
+
 def request_bytes(url: str, params: dict | None = None) -> tuple[int, bytes]:
-    response = retrying_get(url, params=params, timeout=40.0)
-    return response.status_code, response.content
+    from app.db import ResponseCache
+
+    key = hashlib.sha256(json.dumps([url, params, datetime.now(timezone.utc).date().isoformat()], sort_keys=True).encode()).hexdigest()
+    cache = ResponseCache(DATA_DIR / "cache" / "weather.sqlite")
+    with _WEATHER_LOCKS[int(key[:8], 16) % len(_WEATHER_LOCKS)]:
+        saved = cache.get(key, max_age_hours=1)
+        if saved is not None:
+            return 200, base64.b64decode(json.loads(saved)["body"])
+        response = retrying_get(url, params=params, timeout=8.0, attempts=1)
+        if response.status_code == 200:
+            cache.put(key, "weather", json.dumps({
+                "body": base64.b64encode(response.content).decode(),
+                "retrieved_at_utc": datetime.now(timezone.utc).isoformat(),
+            }))
+        return response.status_code, response.content
 
 
 def _measure(label: str, field: dict, unit: str, quiet_zero: bool = False) -> str:

@@ -166,7 +166,7 @@ def forecast_unavailable_reason(selection: dict | None = None) -> str:
             "No Philippine hotspot-forecast model is selected yet. "
             "Usable fire-mask/geolocation negatives are required after the coverage v2 audit."
         )
-    if sel.get("approved_for_serving") is not True or sel.get("status") != "selected":
+    if sel.get("approved_for_serving") is not True or sel.get("status") != "selected" or sel.get("calibration_verified") is not True:
         detail = sel.get("reason") or COVERAGE_RULE["v1_defect"]
         return (
             f"Chance of satellite-detected heat is not published "

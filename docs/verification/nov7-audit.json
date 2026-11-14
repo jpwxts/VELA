@@ -1,0 +1,236 @@
+{
+  "snapshot": {
+    "readings": 12,
+    "squares": 11,
+    "latest_pass_ph": "2026-11-08T01:11:00+08:00",
+    "platforms": [
+      "NOAA-20",
+      "NOAA-21",
+      "Terra"
+    ]
+  },
+  "cells": {
+    "2393:174": {
+      "archive": {
+        "probability": 0.010489014985782181,
+        "probability_percent": 1,
+        "model_version": "extra_trees",
+        "model_hash": "b299a230f29f8c39",
+        "issued_at_utc": "2026-11-14T13:43:56.482142+00:00",
+        "issue_time_manila": "2026-11-07T00:00:00+08:00",
+        "features": {
+          "heat_detections_1d": 0.0,
+          "heat_detections_3d": 0.0,
+          "heat_detections_7d": 0.0,
+          "neighbor_heat_1d": 0.0,
+          "neighbor_heat_3d": 0.0,
+          "hours_since_last_detection": 14746.5,
+          "hours_since_last_usable_pass": 11.116666666666667,
+          "coverage_days_7d": 6.0,
+          "distinct_satellites_7d": 0.0,
+          "persistence_heat_yesterday": 0.0,
+          "month_sin": -0.5000000000000004,
+          "month_cos": 0.8660254037844384
+        }
+      },
+      "current_candidate_score_using_archived_inputs": 0.9934357854707622,
+      "snapshot_readings": [
+        {
+          "lat": 6.85779,
+          "lon": 124.05852,
+          "acq_date": "2026-11-07",
+          "acq_time": "04:33",
+          "acq_time_raw": "0433",
+          "satellite_code": "N21",
+          "platform": "NOAA-21",
+          "instrument": "VIIRS",
+          "confidence": "n",
+          "frp": 13.89,
+          "brightness": 338.82,
+          "daynight": "D",
+          "source": "NASA FIRMS",
+          "place_name": "Maguindanao del Norte, Bangsamoro",
+          "place_or_coordinates": "Maguindanao del Norte, Bangsamoro",
+          "coordinates_text": "6.85779, 124.05852",
+          "acq_date_ph": "2026-11-07",
+          "acq_time_ph": "12:33",
+          "acq_datetime_utc": "2026-11-07T04:33:00Z",
+          "timezone": "Asia/Manila",
+          "feed_status": "ok"
+        }
+      ],
+      "v1_score_using_archived_inputs": 0.010489014985782181
+    },
+    "2397:180": {
+      "archive": {
+        "probability": 0.9948734278161007,
+        "probability_percent": 99,
+        "model_version": "hist_gradient_boosting",
+        "model_hash": "3c1e4896964db152",
+        "issued_at_utc": "2026-11-14T15:57:43.979847+00:00",
+        "issue_time_manila": "2026-11-07T00:00:00+08:00",
+        "features": {
+          "heat_detections_1d": 0.0,
+          "heat_detections_3d": 0.0,
+          "heat_detections_7d": 0.0,
+          "neighbor_heat_1d": 0.0,
+          "neighbor_heat_3d": 1.0,
+          "hours_since_last_detection": 23362.433333333334,
+          "hours_since_last_usable_pass": 11.116666666666667,
+          "coverage_days_7d": 0.0,
+          "distinct_satellites_7d": 0.0,
+          "persistence_heat_yesterday": 0.0,
+          "month_sin": -0.5000000000000004,
+          "month_cos": 0.8660254037844384
+        }
+      },
+      "current_candidate_score_using_archived_inputs": 0.9948734278161007,
+      "snapshot_readings": [
+        {
+          "lat": 7.08782,
+          "lon": 124.25303,
+          "acq_date": "2026-11-07",
+          "acq_time": "04:33",
+          "acq_time_raw": "0433",
+          "satellite_code": "N21",
+          "platform": "NOAA-21",
+          "instrument": "VIIRS",
+          "confidence": "n",
+          "frp": 8.93,
+          "brightness": 339.4,
+          "daynight": "D",
+          "source": "NASA FIRMS",
+          "place_name": null,
+          "place_or_coordinates": "7.08782, 124.25303",
+          "coordinates_text": "7.08782, 124.25303",
+          "acq_date_ph": "2026-11-07",
+          "acq_time_ph": "12:33",
+          "acq_datetime_utc": "2026-11-07T04:33:00Z",
+          "timezone": "Asia/Manila",
+          "feed_status": "ok"
+        }
+      ],
+      "v1_score_using_archived_inputs": 0.01460449570634722
+    }
+  },
+  "paired_cells.parquet": {
+    "rows": 41456,
+    "columns": [
+      "cell_id",
+      "cell_key",
+      "center_lon",
+      "center_lat",
+      "local_date",
+      "local_hour",
+      "modis_local_hour",
+      "hours_from_aqua",
+      "region_id",
+      "region_name",
+      "landscape",
+      "role",
+      "modis_file",
+      "viirs_file",
+      "viirs_platform",
+      "modis_geo_file",
+      "viirs_geo_file",
+      "modis_time",
+      "viirs_time",
+      "modis_detected",
+      "viirs_hotspot_pixel_count",
+      "modis_hotspot_pixel_count",
+      "shared_visible_km2",
+      "shared_coverage_fraction",
+      "modis_visible_km2",
+      "viirs_visible_km2",
+      "outcome",
+      "eligible",
+      "exclusion_reason",
+      "data_origin",
+      "modis_fire_low",
+      "modis_fire_nominal",
+      "modis_fire_high",
+      "modis_clear",
+      "modis_cloud",
+      "modis_water",
+      "modis_unknown",
+      "modis_missing",
+      "viirs_fire_low",
+      "viirs_fire_nominal",
+      "viirs_fire_high",
+      "viirs_clear",
+      "viirs_cloud",
+      "viirs_water",
+      "viirs_unknown",
+      "viirs_missing"
+    ],
+    "local_date": {
+      "min": "2013-03-12",
+      "max": "2022-12-04",
+      "nov7_rows": 0
+    }
+  },
+  "philippines_hotspot_coverage_cell_days.parquet": {
+    "rows": 11437,
+    "columns": [
+      "cell_id",
+      "ph_date",
+      "coverage_status",
+      "label_support",
+      "platform",
+      "pass_time_utc",
+      "fire_file",
+      "geo_file",
+      "visible_land_km2",
+      "visible_land_fraction",
+      "qualifying_detection_count",
+      "n_passes",
+      "usable_clear_zero_passes",
+      "center_lon",
+      "center_lat"
+    ],
+    "ph_date": {
+      "min": "2023-02-16",
+      "max": "2024-03-13",
+      "nov7_rows": 0
+    }
+  },
+  "philippines_hotspot_cell_days.parquet": {
+    "rows": 3398,
+    "columns": [
+      "cell_id",
+      "issue_date_ph",
+      "label",
+      "label_status",
+      "split",
+      "recent_heat",
+      "feature_schema_version",
+      "coverage_rule_version",
+      "heat_detections_1d",
+      "heat_detections_3d",
+      "heat_detections_7d",
+      "neighbor_heat_1d",
+      "neighbor_heat_3d",
+      "hours_since_last_detection",
+      "hours_since_last_usable_pass",
+      "coverage_days_7d",
+      "distinct_satellites_7d",
+      "persistence_heat_yesterday",
+      "month_sin",
+      "month_cos",
+      "episode_id"
+    ],
+    "issue_date_ph": {
+      "min": "2023-02-19",
+      "max": "2026-11-14",
+      "nov7_rows": 6
+    }
+  },
+  "activity_store_nov7": [],
+  "current_artifact_hash": "3c1e4896964db152",
+  "v1_artifact": {
+    "source_commit": "11f1861",
+    "hash": "b299a230f29f8c39",
+    "kind": "classifier",
+    "winner": "extra_trees"
+  }
+}

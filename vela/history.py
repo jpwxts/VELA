@@ -101,7 +101,7 @@ def attach_heat_overlay(
     return {**payload, "days": days}
 
 
-def _fill_mindanao_store_activity(month_days: list[dict], ring: list[list[float]]) -> None:
+def _fill_mindanao_store_activity(month_days: list[dict], ring: list[list[float]], geometry: dict | None = None) -> None:
     """Fill missing day activity from coverage/FIRMS store backfill inside the ring."""
 
     try:
@@ -116,7 +116,9 @@ def _fill_mindanao_store_activity(month_days: list[dict], ring: list[list[float]
             day = entry["date"]
             with _connect(store.path) as connection:
                 cell_rows = connection.execute(
-                    "SELECT cell_id, activity_value FROM activity_cell_days WHERE ph_date = ?",
+                    "SELECT cell_id, activity_value, platform, method FROM activity_cell_days WHERE ph_date = ? "
+                    "AND ((platform = 'Aqua' AND method = 'observed Aqua activity') "
+                    "OR (platform = 'Suomi-NPP' AND method = 'calibrated VIIRS estimate'))",
                     (day,),
                 ).fetchall()
             inside = []
@@ -126,7 +128,8 @@ def _fill_mindanao_store_activity(month_days: list[dict], ring: list[list[float]
                     lon, lat = cell_center(int(x_text), int(y_text))
                 except Exception:
                     continue
-                if point_in_ring(lon, lat, ring):
+                from vela.boundaries import point_in_geometry
+                if point_in_geometry(lon, lat, geometry) if geometry else point_in_ring(lon, lat, ring):
                     inside.append(crow)
             if not inside:
                 continue
@@ -139,12 +142,14 @@ def _fill_mindanao_store_activity(month_days: list[dict], ring: list[list[float]
             entry["estimated_cell_days"] = len(vals)
             entry["activity_denominator"] = float(len(vals))
             entry["clear_zero"] = entry["activity_rate"] == 0
-            entry["activity_source"] = "mindanao_coverage_firms_store"
+            entry["activity_source"] = "eligible_aqua_suomi_store"
+            entry["method_counts"] = {method: sum(row["method"] == method for row in inside)
+                                      for method in {row["method"] for row in inside}}
     except Exception:
         return
 
 
-def build_monthly_history(ring: list[list[float]], year: int, month: int, *, today: date | None = None) -> dict:
+def build_monthly_history(ring: list[list[float]], year: int, month: int, *, today: date | None = None, geometry: dict | None = None) -> dict:
     """Keep gaps, clear zeros, insufficient coverage and held-out dates distinct.
 
     Daily values are published only within weeks that meet the existing coverage
@@ -159,7 +164,8 @@ def build_monthly_history(ring: list[list[float]], year: int, month: int, *, tod
     def land_frame(path):
         frame = serving._filter_box(serving._frame(path), *box)
         if not frame.empty:
-            inside = [point_in_ring(float(lon), float(lat), ring)
+            from vela.boundaries import point_in_geometry
+            inside = [(point_in_geometry(float(lon), float(lat), geometry) if geometry else point_in_ring(float(lon), float(lat), ring))
                       for lon, lat in zip(frame["center_lon"], frame["center_lat"])]
             frame = frame.loc[inside].copy()
         return frame
@@ -214,6 +220,7 @@ def build_monthly_history(ring: list[list[float]], year: int, month: int, *, tod
             "eligible_cell_days": tally["eligible_coverage_cell_days"],
             "estimated_cell_days": tally["activity_estimate_cell_days"] if public else 0,
             "activity_denominator": tally["activity_denominator"] if public else None,
+            "method_counts": tally["method_counts"],
             "clear_zero": bool(public and status == "complete" and tally["activity_rate"] == 0),
         })
         day += timedelta(days=1)
@@ -247,7 +254,7 @@ def build_monthly_history(ring: list[list[float]], year: int, month: int, *, tod
         })
     selected = months[month - 1]
     month_days = [entry for entry in all_days if entry["date"].startswith(f"{year}-{month:02d}")]
-    _fill_mindanao_store_activity(month_days, ring)
+    _fill_mindanao_store_activity(month_days, ring, geometry)
     published = [entry for entry in month_days if entry["activity_rate"] is not None]
     if published and selected.get("activity_rate") is None:
         denominator = sum(entry.get("activity_denominator") or 0 for entry in published)

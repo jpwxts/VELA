@@ -178,11 +178,12 @@ def build_public_land_check(*, day: str = DEFAULT_DAY, region: str = "philippine
         observation_date=day,
         fixture={
             "name": f"philippines_{day}",
-            "label": f"Philippines · {day} · NASA FIRMS snapshot (no map key required)",
+            "label": f"Philippines · {day} · NASA FIRMS UTC-day snapshot (includes Philippine dates 7–8 Nov; no map key required)",
             "path": f"data/public/philippines/{day}.geojson",
             "source": "NASA FIRMS",
         },
     )
+    payload["heat"]["lead"] += " Saved UTC-day snapshot; Philippine pass dates can fall on the following day. This is not a live NASA search."
     payload["saved"] = True
     payload["public_snapshot"] = True
     payload["region_id"] = preset_id

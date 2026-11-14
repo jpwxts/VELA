@@ -79,7 +79,7 @@ def test_splits_reserve_odd_cells_and_late_dates():
     assert assign_split("2023-08-01", "2391:174") == "test"
 
 
-def test_study_cells_are_land_clipped():
+def test_study_cells_are_land_clipped(tmp_path):
     from vela.hotspot_forecast_dataset import evaluated_cells
 
     cells = study_cells()
@@ -87,7 +87,7 @@ def test_study_cells_are_land_clipped():
     assert 100 < len(evaluated_cells()) < 2000
     assert len(neighbor_ids(cells[0])) == 8
     assert STUDY["id"] == "mindanao_island_v1"
-    freeze_rules()
+    freeze_rules(tmp_path / "rules.json")
 
 
 def test_month_future_days_are_upcoming_not_percent():
@@ -100,21 +100,13 @@ def test_month_future_days_are_upcoming_not_percent():
     assert all(row.get("probability_percent") is None for row in future)
 
 
-def test_past_day_includes_model_board():
+def test_past_reconstruction_does_not_publish_uncalibrated_model_board():
     from vela.hotspot_forecast_serve import forecast_for_cell
-
-    payload = forecast_for_cell(
-        cell_id="2399:175",
-        issue_date_ph="2024-03-05",
-        historical_simulation=True,
-        ph_today="2026-11-14",
-    )
-    assert payload.get("probability_percent") is not None
-    board = payload.get("model_board") or {}
-    assert len(board.get("models") or []) >= 6
-    assert "evaluation" in (board or payload)
-    claim = (board.get("evaluation") or payload.get("evaluation") or {}).get("claimable_holdout") or {}
-    assert "accuracy" in claim or claim == {}
+    payload = forecast_for_cell(cell_id="2399:175", issue_date_ph="2024-03-05",
+                                historical_simulation=True, ph_today="2026-11-14")
+    assert payload["probability_percent"] is None
+    assert "Calibration" in payload["reason"]
+    assert "model_board" not in payload
 
 
 def test_firms_refresh_status_file_exists():
@@ -165,7 +157,7 @@ def test_mindanao_outside_maguindanao_is_coverage_only():
     assert payload.get("support", {}).get("geographic_support", {}).get("in_study_region") is True
 
 
-def test_probability_overlay_returns_raw_continuous_cell_predictions():
+def test_probability_overlay_suppresses_uncalibrated_predictions():
     from vela.grid import geographic_bounds
     from vela.hotspot_forecast_serve import probability_overlay
 
@@ -184,19 +176,10 @@ def test_probability_overlay_returns_raw_continuous_cell_predictions():
         ph_today="2026-11-14",
     )
 
-    assert payload["status"] == "ok"
-    assert payload["probability_scale"] == {
-        "kind": "continuous",
-        "domain": [0.0, 1.0],
-        "normalization": "none",
-    }
+    assert payload["status"] == "unavailable"
+    assert payload["cells"] == []
     assert payload["polygon_probability"] is None
-    assert payload["cells"]
-    selected = next(row for row in payload["cells"] if row["cell_id"] == "2399:175")
-    assert 0.0 <= selected["probability"] <= 1.0
-    assert selected["probability_percent"] == round(selected["probability"] * 100)
-    assert selected["grid_x"] == 2399
-    assert selected["grid_y"] == 175
+    assert "Calibration" in payload["reason"]
 
 
 def test_probability_overlay_does_not_score_an_unsupported_boundary():

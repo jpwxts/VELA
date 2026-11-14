@@ -295,9 +295,13 @@ function setHistoryMonth(value) {
   const maximum = todayIso().slice(0, 7);
   state.calendarMonth = value < "1990-01" ? "1990-01" : value > maximum ? maximum : value;
   state.historyDay = dayInput.value.startsWith(state.calendarMonth) ? dayInput.value : `${state.calendarMonth}-01`;
+  state.hotspotMonthRequestId = (state.hotspotMonthRequestId || 0) + 1;
+  state.hotspotMonth = null;
+  state.hotspotMonthPendingKey = null;
   renderObservationCalendar();
   renderDaySummary();
   loadMonthlyHistory();
+  if (state.hotspotMonthCellId) loadHotspotMonthForSquare(state.hotspotMonthCellId, state.calendarMonth);
 }
 
 function chooseHistoryMonth() {
@@ -334,7 +338,8 @@ function historyStatusWords(status, day) {
 
 function currentMonthHistory() {
   const payload = state.monthHistory;
-  return payload && `${payload.year}-${String(payload.month).padStart(2, "0")}` === state.calendarMonth ? payload : null;
+  const expected = JSON.stringify([summaryTarget().ring, state.calendarMonth, state.summarySquare ? null : state.boundaryPreset || null]);
+  return payload && state.historyKey === expected && `${payload.year}-${String(payload.month).padStart(2, "0")}` === state.calendarMonth ? payload : null;
 }
 
 async function loadMonthlyHistory(options = {}) {
@@ -344,7 +349,8 @@ async function loadMonthlyHistory(options = {}) {
     return;
   }
   const month = state.calendarMonth || dayInput.value.slice(0, 7);
-  const key = JSON.stringify([state.polygon, month]);
+  const ring = summaryTarget().ring;
+  const key = JSON.stringify([ring, month, state.summarySquare ? null : state.boundaryPreset || null]);
   if (!options.retry && state.historyKey === key && state.monthHistory) {
     renderObservationCalendar();
     renderDaySummary();
@@ -359,7 +365,7 @@ async function loadMonthlyHistory(options = {}) {
   renderDaySummary();
   try {
     const [year, number] = month.split("-").map(Number);
-    const heatDays = [...state.checkedDays.entries()]
+    const heatDays = [...(state.summarySquare ? new Map() : state.checkedDays).entries()]
       .filter(([, row]) => row && (row.detection_count > 0 || row.status === "heat"))
       .map(([day, row]) => ({
         date: day,
@@ -369,11 +375,12 @@ async function loadMonthlyHistory(options = {}) {
     const response = await fetch("/api/history/month", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        coordinates: state.polygon,
+        coordinates: ring,
+        boundary_preset: state.summarySquare ? null : state.boundaryPreset || null,
         year,
         month: number,
         heat_days: heatDays,
-        checked_days: [...state.checkedDays.keys()],
+        checked_days: state.summarySquare ? [] : [...state.checkedDays.keys()],
       }),
     });
     if (!response.ok) throw new Error("history failed");
@@ -394,6 +401,9 @@ async function loadMonthlyHistory(options = {}) {
 
 async function loadHotspotMonthForSquare(cellId, yearMonth) {
   if (!cellId || !yearMonth) return;
+  const key = `${cellId}|${yearMonth}`;
+  if (state.hotspotMonthPendingKey === key || (state.hotspotMonthKey === key && state.hotspotMonth?.year_month === yearMonth)) return;
+  state.hotspotMonthPendingKey = key;
   const requestId = (state.hotspotMonthRequestId = (state.hotspotMonthRequestId || 0) + 1);
   state.hotspotMonthCellId = cellId;
   state.hotspotMonthKey = `${cellId}|${yearMonth}`;
@@ -408,6 +418,8 @@ async function loadHotspotMonthForSquare(cellId, yearMonth) {
   } catch (_error) {
     if (requestId !== state.hotspotMonthRequestId) return;
     state.hotspotMonth = null;
+  } finally {
+    if (requestId === state.hotspotMonthRequestId) state.hotspotMonthPendingKey = null;
   }
 }
 
@@ -470,8 +482,8 @@ function renderObservationCalendar() {
     }
     let rateText = available
       ? historyPercent(rate)
-      : (record?.heat_status === "readings" ? String(record.heat_count || "·") : "—");
-    if (forecastMode && hotspot) {
+      : (record?.heat_status === "readings" ? String(record.heat_count || "·") : record?.heat_status === "checked_empty" ? "0" : "—");
+    if (forecastMode && hotspot && !["readings", "checked_empty"].includes(record?.heat_status)) {
       classes.push("forecast");
       if (hotspot.calendar_state === "upcoming" || iso > today) {
         classes.push("forecast-upcoming");
@@ -579,52 +591,31 @@ function historyHotspotForDay(iso) {
 }
 
 function historyChartSeries(rows, annual) {
-  const hasActivity = rows.some((row) => typeof row.activity_rate === "number" && Number.isFinite(row.activity_rate));
-  if (hasActivity) {
-    return {
-      kind: "activity",
-      title: "Burning activity history",
-      valueOf: (row) => (Number.isFinite(row.activity_rate) ? row.activity_rate : null),
-      format: (value) => historyPercent(value),
-      empty: "No burning-activity estimates for this period",
-    };
-  }
-  const forecastMode = !annual && Boolean(state.hotspotMonthCellId && state.hotspotMonth?.days?.length);
-  const hasForecast = forecastMode && rows.some((row) => {
-    const hotspot = historyHotspotForDay(row.date);
-    return hotspot && hotspot.probability_percent != null;
-  });
-  if (hasForecast) {
-    return {
-      kind: "hotspot",
-      title: "Hotspot chance history",
-      valueOf: (row) => {
-        const hotspot = historyHotspotForDay(row.date);
-        return hotspot?.probability_percent != null ? hotspot.probability_percent / 100 : null;
-      },
-      format: (value) => `${Math.round(value * 100)}%`,
-      empty: "No hotspot forecasts for this period",
-    };
-  }
-  const hasHeat = !annual && rows.some((row) => row.heat_status === "readings" && (row.heat_count || 0) > 0);
-  if (hasHeat) {
-    const peak = Math.max(1, ...rows.map((row) => Number(row.heat_count) || 0));
-    return {
-      kind: "heat",
-      title: "Satellite heat readings",
-      valueOf: (row) => (row.heat_status === "readings" ? (Number(row.heat_count) || 0) / peak : null),
-      format: (value) => `${Math.round(value * peak)}`,
-      empty: "No heat readings for this period",
-      axisIsCount: true,
-      axisPeak: peak,
-    };
-  }
+  const metric = document.querySelector("#history-chart-metric")?.value || "heat";
+  if (metric === "activity") return {
+    kind: "activity", title: "Estimated burning activity",
+    valueOf: row => (["complete", "partial"].includes(row.activity_status) && Number.isFinite(row.activity_rate) ? row.activity_rate : null),
+    format: historyPercent, empty: "Coverage inputs missing",
+  };
+  if (metric === "hotspot") return {
+    kind: "hotspot", title: "Next-24-hour satellite heat forecast",
+    valueOf: row => {
+      if (annual || !state.hotspotMonthCellId) return null;
+      const issue = historyHotspotForDay(row.date);
+      return issue?.issuance_kind === "preserved_archive" && !issue.historical_simulation && issue.probability_percent != null
+        ? issue.probability_percent / 100 : null;
+    },
+    format: value => `${Math.round(value * 100)}%`,
+    empty: "No approved issued forecasts",
+  };
+  const peak = Math.max(1, ...rows.map(row => Number(row.heat_count) || 0));
   return {
-    kind: "empty",
-    title: "Burning activity history",
-    valueOf: () => null,
-    format: () => "—",
-    empty: state.historyLoading ? "Loading history…" : state.historyError ? "Could not load history" : "No estimates for this period",
+    kind: "heat", title: "Satellite heat readings",
+    valueOf: row => !annual && ["readings", "checked_empty"].includes(row.heat_status)
+      ? (Number(row.heat_count) || 0) / peak : null,
+    format: value => `${Math.round(value * peak)}`,
+    empty: annual ? "Choose Month for Philippine-day reading counts" : "No completed heat checks for this period",
+    axisIsCount: true, axisPeak: peak,
   };
 }
 
@@ -713,7 +704,7 @@ function renderHistoryChart() {
     <thead><tr>
       <th>${annual ? "Month" : "Day"}</th>
       <th>Burning activity</th>
-      <th>Heat readings</th>
+      <th>Heat readings</th><th>Activity numerator / eligible square-days</th><th>Contributions</th>
       ${showForecastCols ? "<th>Hotspot chance</th><th>Models</th>" : ""}
       <th>Status</th>
     </tr></thead>
@@ -733,6 +724,8 @@ function renderHistoryChart() {
         <td>${annual ? escapeHtml(monthLabel(`${row.month}-01`)) : index + 1}</td>
         <td>${historyPercent(row.activity_rate)}</td>
         <td>${heatText}</td>
+        <td>${row.activity_rate != null && row.activity_denominator != null ? `${(row.activity_rate * row.activity_denominator).toFixed(2)} / ${row.activity_denominator}` : "—"}</td>
+        <td>${escapeHtml(Object.entries(row.method_counts || {}).map(([name, count]) => `${name}: ${count}`).join("; ") || "—")}</td>
         ${showForecastCols ? `<td>${chanceText}</td><td>${escapeHtml(models)}</td>` : ""}
         <td>${escapeHtml(historyStatusWords(row.activity_status, row))}</td>
       </tr>`;
@@ -871,3 +864,5 @@ document.querySelector("#week-detail")?.addEventListener("click", (event) => {
   if (!choice) return;
   renderTrace(choice.dataset.outcome);
 });
+
+document.querySelector("#history-chart-metric")?.addEventListener("change", renderHistoryChart);

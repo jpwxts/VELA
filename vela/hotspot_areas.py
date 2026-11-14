@@ -229,7 +229,7 @@ def platform_status_for_cell(payload: dict, cell_id: str | None, observation_day
                 }
             )
             continue
-        if feed.get("status") == "request_failed":
+        if feed.get("status") not in {"ok", "no_hotspots"}:
             statuses.append(
                 {
                     "platform": platform,

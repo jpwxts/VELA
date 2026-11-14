@@ -1,14 +1,16 @@
 {
   "status": "selected",
-  "state": "holdout_evaluated",
+  "state": "publication_suspended_calibration_audit",
   "chosen_model": "hist_gradient_boosting",
   "kind": "classifier",
   "threshold": 0.1,
   "model_artifact": "/Users/florlyn/Desktop/MODISVIIRS/data/models/philippines_hotspot_winner.joblib",
   "model_hash": "3c1e4896964db152",
-  "approved_for_serving": true,
+  "approved_for_serving": false,
   "public_label": "Chance of satellite-detected heat",
   "comparison_path": "/Users/florlyn/Desktop/MODISVIIRS/data/metrics/philippines_hotspot_model_comparison.json",
   "coverage_rule_version": "hotspot_coverage_v2_1",
-  "recorded_at_utc": "2026-11-14T14:26:39.634536+00:00"
+  "recorded_at_utc": "2026-11-14T14:26:39.634536+00:00",
+  "calibration_verified": false,
+  "reason": "Calibration is not validated for representative covered square-days. The >=90% holdout band contains 32 August positives and no negatives; November is outside the evaluated seasonal distribution. Observed satellite heat remains available."
 }

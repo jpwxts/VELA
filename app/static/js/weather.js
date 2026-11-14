@@ -1,3 +1,12 @@
+function renderWeatherSummary(forecast) {
+  const value = document.querySelector("#land-weather-value");
+  if (!value) return;
+  const day = (forecast?.days || []).find(row => row.valid_date === dayInput.value) || forecast?.days?.[0];
+  value.textContent = day
+    ? `${day.danger_level || "Unavailable"} · valid ${day.valid_date} · near the land boundary’s center`
+    : forecast?.status === "loading" ? "Loading dated fire-weather danger…" : "Fire-weather danger unavailable";
+}
+
 // Weather outlook tab and the forecast point on the globe.
 
 function clearWeatherOutlook() {
@@ -57,6 +66,7 @@ function dayCardSummary(day) {
 }
 
 function renderOutlook(forecast, selectors) {
+  renderWeatherSummary(forecast);
   const headline = document.querySelector(selectors.headline);
   const explanation = document.querySelector(selectors.explanation);
   const coverage = document.querySelector(selectors.coverage);
@@ -138,6 +148,14 @@ function renderOutlook(forecast, selectors) {
     }
   }
 
+  if (forecast?.status === "loading") {
+    headline.textContent = "Fire-weather danger · loading…";
+    explanation.textContent = "Weather loads independently of satellite heat and coverage estimates.";
+    status.textContent = "Waiting for the dated weather outlook.";
+    daysHost.innerHTML = "";
+    detail.innerHTML = "";
+    return;
+  }
   if (!forecast || !(forecast.days || []).length) {
     headline.textContent = "Forecast values unavailable";
     explanation.textContent = "No outlook days were returned for this location.";

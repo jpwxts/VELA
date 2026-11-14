@@ -8,6 +8,7 @@ import logging
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Literal
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
@@ -67,7 +68,7 @@ def http_get(url: str) -> tuple[int, str]:
 def firms_http_get(url: str) -> tuple[int, str]:
     """FIRMS area pulls use a tighter timeout so one stalled feed cannot hang the land check."""
 
-    response = retrying_get(url, timeout=25.0, attempts=3)
+    response = retrying_get(url, timeout=12.0, attempts=1)
     return response.status_code, response.text
 
 
@@ -155,9 +156,12 @@ class CheckLandRequest(BaseModel):
     platforms: list[str] = Field(default_factory=lambda: ["Aqua", "Suomi-NPP", "NOAA-20", "NOAA-21"])
     label: str | None = None
     include_hotspots: bool = True
+    include_weather: bool = True
+    boundary_preset: Literal["mindanao", "philippines"] | None = None
 
 
 class HistoryRequest(BaseModel):
+    boundary_preset: Literal["mindanao", "philippines"] | None = None
     coordinates: list[tuple[float, float]] = Field(..., min_length=3, max_length=2000)
     year: int = Field(..., ge=1990, le=9998)
     month: int = Field(..., ge=1, le=12)
@@ -781,6 +785,14 @@ def check_land(body: CheckLandRequest):
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+    geometry = None
+    if body.boundary_preset:
+        from vela.boundaries import load_preset
+        preset = load_preset(body.boundary_preset)
+        geometry = preset["geometry"]
+        box = preset["bbox"]
+        ring = normalize_ring([[box["west"], box["south"]], [box["east"], box["south"]],
+                               [box["east"], box["north"]], [box["west"], box["north"]]])
     west, south, east, north = polygon_bbox(ring)
     # Expand the FIRMS query slightly so "nearby" detections just outside the fence are returned.
     pad = 0.05
@@ -798,6 +810,8 @@ def check_land(body: CheckLandRequest):
     platforms = body.platforms or OBSERVATION_PLATFORMS
 
     def _load_forecast():
+        if not body.include_weather:
+            return {"ok": False, "status": "loading", "days": []}
         payload = build_forecast(west, south, east, north, request_bytes, load_model_report())
         if payload.get("ok"):
             payload = issue_forecast(ARCHIVE, payload)
@@ -835,6 +849,7 @@ def check_land(body: CheckLandRequest):
         hotspot_payload=hotspots_payload,
         label=body.label,
         observation_date=observation_date,
+        geometry=geometry,
     )
     # Persist Philippine detections once so Live, History, and analytics share them.
     if _ring_uses_manila_day(ring) and body.include_hotspots:
@@ -1018,10 +1033,19 @@ def wildfire_report(
 def observation_ask(body: ObservationAskRequest):
     """Ask whether a tapped square was observed, without inventing a clear zero."""
 
-    from vela.grid import cell_identifier, indices
+    from vela.grid import cell_identifier, indices, geographic_bounds
     from vela.hotspot_areas import platform_status_for_cell
 
-    payload = FIRMS.hotspots(body.west, body.south, body.east, body.north, body.date, body.platforms)
+    x_index, y_index = indices(body.lon, body.lat)
+    west, south, east, north = geographic_bounds(int(x_index), int(y_index))
+    ring = [[west, south], [east, south], [east, north], [west, north], [west, south]]
+    if _ring_uses_manila_day(ring):
+        from vela.firms_day import fetch_firms_for_ph_day
+        payload = fetch_firms_for_ph_day(FIRMS, ring, body.date, body.platforms, pad=0)
+    else:
+        payload = FIRMS.hotspots(body.west, body.south, body.east, body.north, body.date, body.platforms)
+    from vela.hotspot_areas import group_hotspot_areas
+    payload["hotspot_areas"] = group_hotspot_areas(payload)
     x_index, y_index = indices(body.lon, body.lat)
     cell_id = cell_identifier(int(x_index), int(y_index))
     statuses = platform_status_for_cell(payload, cell_id, body.date)
@@ -1053,7 +1077,7 @@ def calendar(west: float, south: float, east: float, north: float, year: int):
     return build_calendar(west, south, east, north, year)
 
 
-def _snapshot_heat_days_for_ring(ring: list[list[float]], year: int, month: int) -> list[dict]:
+def _snapshot_heat_days_for_ring(ring: list[list[float]], year: int, month: int, geometry: dict | None = None) -> list[dict]:
     """Count public FIRMS snapshot points inside the ring, by Philippine local date."""
 
     from collections import Counter
@@ -1078,7 +1102,8 @@ def _snapshot_heat_days_for_ring(ring: list[list[float]], year: int, month: int)
     counts: Counter[str] = Counter()
     for feature in collection.get("features") or []:
         lon, lat = feature["geometry"]["coordinates"]
-        if not point_in_ring(float(lon), float(lat), ring):
+        from vela.boundaries import point_in_geometry
+        if not (point_in_geometry(float(lon), float(lat), geometry) if geometry else point_in_ring(float(lon), float(lat), ring)):
             continue
         props = feature.get("properties") or {}
         ph = str(props.get("acq_date_ph") or "")[:10] or ph_day_for_utc(
@@ -1117,10 +1142,19 @@ def monthly_history(body: HistoryRequest):
     area = abs(sum(left[0] * right[1] - right[0] * left[1] for left, right in zip(ring, ring[1:])))
     if west == east or south == north or len(set(map(tuple, ring))) < 3 or area < 1e-12:
         raise HTTPException(status_code=400, detail="Select a boundary with an area.")
-    payload = build_monthly_history(ring, body.year, body.month)
+    from vela.observation_store import philippine_today
+    geometry = None
+    if body.boundary_preset:
+        from vela.boundaries import load_preset
+        preset = load_preset(body.boundary_preset)
+        geometry = preset["geometry"]
+        box = preset["bbox"]
+        ring = normalize_ring([[box["west"], box["south"]], [box["east"], box["south"]],
+                               [box["east"], box["north"]], [box["west"], box["north"]]])
+    payload = build_monthly_history(ring, body.year, body.month, today=philippine_today(), geometry=geometry)
     heat_days = list(body.heat_days or [])
     # Auto-attach the published Philippine FIRMS snapshot when the land overlaps it.
-    heat_days.extend(_snapshot_heat_days_for_ring(ring, body.year, body.month))
+    heat_days.extend(_snapshot_heat_days_for_ring(ring, body.year, body.month, geometry))
     # Merge durable store heat days (Live refresh + prior checks) for the same month.
     try:
         from vela.boundaries import point_in_geometry
@@ -1141,7 +1175,7 @@ def monthly_history(body: HistoryRequest):
                 # Prefer ring clip; multipolygon presets can wrap this later.
                 from vela.land_check import point_in_ring
 
-                if point_in_ring(lon, lat, ring):
+                if point_in_geometry(lon, lat, geometry) if geometry else point_in_ring(lon, lat, ring):
                     inside += 1
                     if spot.get("platform"):
                         platforms.add(spot["platform"])
@@ -1328,6 +1362,7 @@ def preparedness(west: float, south: float, east: float, north: float):
     # Public outlook fields (headline, GWIS classes, readable archive time).
     annotated = annotate_forecast_days(forecast)
     annotated["performance"] = forecast.get("performance") or {}
+    annotated["refresh_policy"] = "Provider responses cached up to one hour, keyed by request and UTC date; failures are not cached."
     return annotated
 
 

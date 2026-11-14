@@ -130,6 +130,12 @@
           <!-- Burn activity -->
           <section id="pane-where" class="panel-pane" role="tabpanel" aria-labelledby="tab-where">
             <h3 class="pane-title visually-hidden">Burn activity</h3>
+            <section class="pane-block" aria-live="polite"><h4>Satellite heat observed</h4><p id="observed-heat-summary">Select land to check satellite readings.</p></section>
+            <section class="pane-block" aria-live="polite">
+              <h4>Fire-weather danger</h4>
+              <p id="land-weather-value">Check land to load dated weather.</p>
+              <p id="land-weather-meaning" class="quiet">Weather conditions that could affect a vegetation fire if one starts; separate from satellite heat and wildfire probability.</p>
+            </section>
             <section id="land-summary" class="land-summary" aria-label="Summary of the selected land" hidden>
               <div class="activity" aria-live="polite">
                 <p id="activity-label" class="activity-label">Burning activity</p>
@@ -139,7 +145,7 @@
               </div>
 
               <section id="hotspot-forecast-block" class="sub-block" aria-live="polite">
-                <h4 class="block-heading">Satellite heat forecast (next 24 hours)</h4>
+                <h4 class="block-heading">Chance of satellite-detected heat in the next 24 hours</h4>
                 <p id="hotspot-forecast-label" class="reading-label">Chance satellites record a hotspot in this square in the next 24 hours.</p>
                 <p id="hotspot-forecast-value" class="reading-value is-words">Checking…</p>
                 <p id="hotspot-forecast-meta" class="quiet"></p>
@@ -203,7 +209,7 @@
               <p id="separation-note" class="quiet separation-note" hidden></p>
 
               <section id="heat-block" class="pane-block" hidden>
-                <h4>Recent satellite heat</h4>
+                <h4>Selected land · satellite heat and feed status</h4>
                 <p id="heat-lead" class="result-support"></p>
                 <div id="heat-feeds" class="feed-breakdown-host" aria-label="Satellite feed breakdown"></div>
                 <div id="heat-inside" class="heat-list"></div>
@@ -388,6 +394,12 @@
                 <div class="history-chart-head">
                   <h4 id="history-chart-title">Burning activity history</h4>
                   <label class="visually-hidden" for="history-chart-range">Chart time range</label>
+                  <label for="history-chart-metric">Chart measure</label>
+                  <select id="history-chart-metric">
+                    <option value="heat">Satellite heat readings</option>
+                    <option value="activity">Estimated burning activity</option>
+                    <option value="hotspot">Next-24-hour satellite heat forecast</option>
+                  </select>
                   <select id="history-chart-range">
                     <option value="month">This month</option>
                     <option value="year">This year</option>

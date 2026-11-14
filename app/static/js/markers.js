@@ -259,8 +259,11 @@ function renderPublicResult(payload) {
   count.textContent = publicResult.kind === "unknown_empty"
     ? "No detections returned"
     : `${total} area${total === 1 ? "" : "s"} with heat`;
-  if (payload.date) {
-    state.checkedDays.set(payload.date, { total, multi: multiCount, kind: publicResult.kind || "" });
+  const completed = (payload.results || []).length > 0 && (payload.results || []).every(row => ["ok", "no_hotspots"].includes(row.status));
+  if (payload.date && !state.publicSnapshot && (detections > 0 || completed)) {
+    state.checkedDays.set(payload.date, { total, multi: multiCount, detection_count: detections,
+      platforms: [...new Set((payload.results || []).filter(row => row.hotspots?.length).map(row => row.platform))],
+      kind: publicResult.kind || "" });
     renderObservationCalendar();
     renderDaySummary();
   }
