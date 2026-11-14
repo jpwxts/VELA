@@ -275,6 +275,91 @@ def live_refresh(ph_date: str | None = None):
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
+@app.get("/api/hotspot-forecast")
+def hotspot_forecast(
+    cell_id: str = Query(...),
+    issue_date: str | None = None,
+    historical_simulation: bool = Query(False),
+):
+    """Chance of satellite-detected heat in the next 24 hours (MODIS/VIIRS only)."""
+
+    from vela.hotspot_forecast_serve import forecast_for_cell
+
+    return forecast_for_cell(
+        cell_id=cell_id,
+        issue_date_ph=issue_date,
+        historical_simulation=historical_simulation,
+    )
+
+
+@app.get("/api/hotspot-forecast/replay")
+def hotspot_forecast_replay(cell_id: str = Query(...), issue_date: str = Query(...)):
+    """Replay yesterday's (or any past) hotspot forecast and later MODIS/VIIRS evidence."""
+
+    from datetime import timedelta, timezone
+
+    from vela.hotspot_forecast import issue_datetime_manila
+    from vela.hotspot_forecast_dataset import load_study_detections
+    from vela.hotspot_forecast_serve import HotspotForecastStore, forecast_for_cell
+    from vela.observation_store import ObservationStore
+
+    forecast = forecast_for_cell(
+        cell_id=cell_id,
+        issue_date_ph=issue_date[:10],
+        historical_simulation=True,
+    )
+    obs = ObservationStore()
+    detections = load_study_detections(obs)
+    start = issue_datetime_manila(issue_date[:10]).astimezone(timezone.utc)
+    end = start + timedelta(days=1)
+    followed = [
+        {
+            "platform": spot.get("platform"),
+            "acq_date": spot.get("acq_date"),
+            "acq_time": spot.get("acq_time"),
+            "lat": spot.get("lat"),
+            "lon": spot.get("lon"),
+        }
+        for spot in detections
+        if spot.get("_cell_id") == cell_id and start <= spot["_acq_utc"] < end
+    ]
+    status = "heat_detected" if followed else "no_heat_observed"
+    label = (
+        f"Observed · {len(followed)} qualifying detection(s) after issue"
+        if followed
+        else "Observed · no qualifying MODIS/VIIRS heat in the window"
+    )
+    HotspotForecastStore().record_outcome(cell_id, issue_date[:10], status, label, len(followed))
+    return {
+        "forecast": forecast,
+        "followed_detections": followed,
+        "outcome": {"status": status, "label": label, "detection_count": len(followed)},
+        "note": "Historical simulation replay. Live issued forecasts are preserved separately.",
+    }
+
+
+class HotspotPolygonRequest(BaseModel):
+    cell_ids: list[str] = Field(default_factory=list)
+    issue_date: str | None = None
+
+
+@app.post("/api/hotspot-forecast/polygon-summary")
+def hotspot_polygon_summary(body: HotspotPolygonRequest):
+    from vela.hotspot_forecast_serve import polygon_hotspot_summary
+
+    return polygon_hotspot_summary(body.cell_ids, body.issue_date)
+
+
+@app.get("/api/hotspot-forecast/metrics")
+def hotspot_forecast_metrics():
+    from vela.hotspot_forecast import COMPARISON_PATH, RULES_PATH
+    import json as _json
+
+    comparison = _json.loads(COMPARISON_PATH.read_text()) if COMPARISON_PATH.is_file() else None
+    rules = _json.loads(RULES_PATH.read_text()) if RULES_PATH.is_file() else None
+    return {"comparison": comparison, "rules": rules}
+
+
 @app.get("/api/onset/forecast")
 def onset_forecast(
     cell_id: str = Query(...),

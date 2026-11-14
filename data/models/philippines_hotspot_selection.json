@@ -1,0 +1,13 @@
+{
+  "status": "selected",
+  "state": "holdout_evaluated",
+  "chosen_model": "extra_trees",
+  "kind": "classifier",
+  "threshold": 0.05,
+  "model_artifact": "/Users/florlyn/Desktop/MODISVIIRS/data/models/philippines_hotspot_winner.joblib",
+  "model_hash": "b299a230f29f8c39",
+  "approved_for_serving": true,
+  "public_label": "Chance of satellite-detected heat",
+  "comparison_path": "/Users/florlyn/Desktop/MODISVIIRS/data/metrics/philippines_hotspot_model_comparison.json",
+  "recorded_at_utc": "2026-11-14T13:42:52.357473+00:00"
+}

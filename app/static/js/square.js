@@ -278,6 +278,97 @@ function setPanelMode(mode) {
   }
 }
 
+function renderHotspotForecast(payload) {
+  const value = document.querySelector("#hotspot-forecast-value");
+  const meta = document.querySelector("#hotspot-forecast-meta");
+  const outcome = document.querySelector("#hotspot-forecast-outcome");
+  const note = document.querySelector("#hotspot-forecast-note");
+  const label = document.querySelector("#hotspot-forecast-label");
+  const replay = document.querySelector("#replay-hotspot-forecast");
+  if (!value) return;
+  if (label && payload?.public_label) label.textContent = payload.public_label;
+  if (payload?.status === "issued" && payload.probability_percent != null) {
+    value.textContent = `${payload.probability_percent}%`;
+    value.classList.remove("is-words");
+    meta.textContent = [
+      payload.issue_time_manila ? `Issued ${payload.issue_time_manila}` : "",
+      payload.model_version ? `Model ${payload.model_version}` : "",
+      payload.historical_simulation ? "Historical simulation" : "Issued forecast",
+    ].filter(Boolean).join(" · ");
+  } else {
+    value.textContent = payload?.calendar_state === "insufficient_inputs" ? "Insufficient inputs" : "Not available";
+    value.classList.add("is-words");
+    meta.textContent = payload?.issue_time_manila ? `Issue slot ${payload.issue_time_manila}` : "";
+  }
+  const out = payload?.outcome || {};
+  outcome.textContent = out.label || "Outcome awaiting observation";
+  note.textContent = payload?.reason
+    || payload?.label_note
+    || "MODIS/VIIRS heat chance only — separate from fire weather, harmonization, and wildfire-onset research.";
+  if (replay) {
+    replay.hidden = !payload?.cell_id;
+    replay.dataset.cellId = payload?.cell_id || "";
+    replay.dataset.issueDate = payload?.issue_date_ph || "";
+  }
+}
+
+async function loadHotspotForecast(cellId, issueDate) {
+  const value = document.querySelector("#hotspot-forecast-value");
+  if (value) {
+    value.textContent = "Checking…";
+    value.classList.add("is-words");
+  }
+  try {
+    const params = new URLSearchParams({ cell_id: cellId });
+    if (issueDate) params.set("issue_date", String(issueDate).slice(0, 10));
+    const response = await fetch(`/api/hotspot-forecast?${params}`);
+    const payload = await response.json();
+    renderHotspotForecast(payload);
+    state.lastHotspotForecast = payload;
+  } catch (_error) {
+    renderHotspotForecast({
+      status: "unavailable",
+      reason: "Satellite heat forecast could not be loaded.",
+      calendar_state: "insufficient_inputs",
+    });
+  }
+}
+
+document.querySelector("#replay-hotspot-forecast")?.addEventListener("click", async () => {
+  const button = document.querySelector("#replay-hotspot-forecast");
+  const cellId = button?.dataset.cellId;
+  let issueDate = button?.dataset.issueDate;
+  if (!cellId) return;
+  if (!issueDate && state.phToday) {
+    const parts = state.phToday.split("-").map(Number);
+    const stamp = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+    stamp.setUTCDate(stamp.getUTCDate() - 1);
+    issueDate = stamp.toISOString().slice(0, 10);
+  }
+  if (!issueDate) return;
+  button.disabled = true;
+  try {
+    const params = new URLSearchParams({ cell_id: cellId, issue_date: issueDate });
+    const response = await fetch(`/api/hotspot-forecast/replay?${params}`);
+    const payload = await response.json();
+    renderHotspotForecast({
+      ...payload.forecast,
+      outcome: payload.outcome,
+      label_note: payload.note,
+    });
+    if (payload.followed_detections?.length && typeof renderIndividuals === "function") {
+      // Keep replay evidence visible in the note.
+      const note = document.querySelector("#hotspot-forecast-note");
+      if (note) {
+        note.textContent = `${payload.note} Later passes: `
+          + payload.followed_detections.map((row) => `${row.platform} ${row.acq_date} ${row.acq_time} UTC`).join(" · ");
+      }
+    }
+  } finally {
+    button.disabled = false;
+  }
+});
+
 function renderOnsetForecast(payload) {
   const value = document.querySelector("#onset-value");
   const meta = document.querySelector("#onset-meta");
@@ -434,6 +525,7 @@ function renderFindingsPanel(matched, findings) {
     renderResearchModel(model);
   }
   if (matched.cell_id) {
+    loadHotspotForecast(matched.cell_id, matched.observation_day || dayInput.value);
     loadOnsetForecast(matched.cell_id, matched.observation_day || dayInput.value);
   }
 }

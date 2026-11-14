@@ -1,0 +1,56 @@
+{
+  "product": "philippines_hotspot_24h",
+  "question": "For this 5 km square, what is the estimated chance that MODIS or VIIRS will detect heat in the next 24 hours?",
+  "public_label": "Chance of satellite-detected heat",
+  "study": {
+    "id": "mindanao_maguindanao_compact_v1",
+    "label": "Compact Maguindanao / western Mindanao study box",
+    "bbox": {
+      "west": 123.6,
+      "south": 6.3,
+      "east": 124.7,
+      "north": 7.4
+    },
+    "clip_preset": "mindanao"
+  },
+  "coverage_rule": {
+    "version": "hotspot_coverage_v1",
+    "platforms": [
+      "Aqua",
+      "Terra",
+      "Suomi-NPP",
+      "NOAA-20",
+      "NOAA-21"
+    ],
+    "products": "FIRMS area CSV via FirmsClient (MODIS_SP/NRT, VIIRS_*_SP/NRT)",
+    "detection_quality_filters": "All FIRMS points returned for the platforms above are qualifying. No confidence/FRP filter in v1 (frozen before model comparison).",
+    "positive": "\u22651 qualifying detection whose Philippine-local acquisition falls inside the square and the [00:00, +24h) Manila window.",
+    "negative": "regional_query_ok for the study bbox on that Philippine day (\u22652 platforms status in {ok, no_hotspots}) AND zero qualifying detections in the square-window. This is successful FIRMS retrieval including zeros, not a per-pixel clear-sky proof.",
+    "unknown": "Day not queried successfully, or fewer than 2 platform successes.",
+    "availability_assumption": "Historical publication timestamps are unavailable. Conservative rule: treat acquisition time as availability time. Predictors use only detections with acquisition < issue time. Target-window detections are labels only."
+  },
+  "feature_schema_version": "hotspot_features_v1",
+  "feature_names": [
+    "heat_detections_1d",
+    "heat_detections_3d",
+    "heat_detections_7d",
+    "neighbor_heat_1d",
+    "neighbor_heat_3d",
+    "hours_since_last_detection",
+    "hours_since_last_usable_pass",
+    "coverage_days_7d",
+    "distinct_satellites_7d",
+    "persistence_heat_yesterday",
+    "month_sin",
+    "month_cos"
+  ],
+  "frozen_at_utc": "2026-11-14T13:43:32.227777+00:00",
+  "harmonization_untouched": true,
+  "onset_pipeline_untouched": true,
+  "excludes": [
+    "BFP",
+    "weather APIs",
+    "harmonization probability",
+    "onset probability"
+  ]
+}

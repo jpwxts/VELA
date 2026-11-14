@@ -1,0 +1,31 @@
+{
+  "name": "philippines_hotspot_split_v1",
+  "registered_before_fitting": true,
+  "study": {
+    "id": "mindanao_maguindanao_compact_v1",
+    "label": "Compact Maguindanao / western Mindanao study box",
+    "bbox": {
+      "west": 123.6,
+      "south": 6.3,
+      "east": 124.7,
+      "north": 7.4
+    },
+    "clip_preset": "mindanao"
+  },
+  "feature_schema_version": "hotspot_features_v1",
+  "dataset_path": "data/processed/philippines_hotspot_cell_days.parquet",
+  "row_counts": {
+    "train": 24192,
+    "validation": 12528,
+    "test": 27216
+  },
+  "label_counts": {
+    "positive": 1187,
+    "negative": 62749,
+    "unknown": 0
+  },
+  "coverage_days": 148,
+  "cells": 432,
+  "availability_assumption": "Acquisition time treated as availability time; target-window detections excluded from features.",
+  "harmonization_holdouts_untouched": true
+}

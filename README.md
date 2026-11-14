@@ -55,6 +55,43 @@ Activity (%) = 100 × (sum of Aqua activity indicators + sum of eligible calibra
 
 **Philippine evaluation (“Agreement with Aqua in the Philippines”):** run `python -m scripts.evaluate_philippines_agreement`. Current result: **0 Philippine paired cell-days** in `paired_cells.parquet`, so weekly MAE and Brier score are **undefined**. Smallest archive candidate set remains the a-priori 2019-03-06 Mindanao quartet (**170 243 619 B**, not downloaded). See `data/metrics/philippines_agreement_with_aqua.json`. Wildfire confirmation is a separate evaluation.
 
+### Philippine satellite-hotspot forecast (MODIS/VIIRS, Mindanao-first)
+
+Public question: *For this 5 km square, what is the estimated chance that MODIS or VIIRS will detect heat in the next 24 hours?*  
+Label shown in the UI: **Chance of satellite-detected heat.**
+
+This product is **separate** from Aqua–Suomi harmonization and from the Philippine wildfire-onset research pipeline. It uses **NASA FIRMS MODIS/VIIRS only** (no BFP, no weather APIs).
+
+| Piece | Location |
+| --- | --- |
+| Coverage rules (frozen) | `data/metrics/philippines_hotspot_coverage_rules.json` |
+| Backfill inventory | `data/metrics/philippines_hotspot_inventory.json` |
+| Cell-day dataset | `data/processed/philippines_hotspot_cell_days.parquet` |
+| Split + counts | `data/manifests/philippines_hotspot_split.json` |
+| Six-model comparison | `data/metrics/philippines_hotspot_model_comparison.json` |
+| Selected model | `data/models/philippines_hotspot_winner.joblib` |
+| API | `GET /api/hotspot-forecast`, `/replay`, `/metrics` |
+
+**Study region.** Compact Maguindanao / western Mindanao box `123.6–124.7°E, 6.3–7.4°N`, clipped to the Mindanao land multipolygon. Multi-season FIRMS windows: 2023-02/03, 2023-08, 2024-02/03, 2024-08, 2025-02/03, 2026-11 (includes the 7 Nov snapshot).
+
+**Labels.** One example = one 5 km square issued at **00:00 Asia/Manila**. Positive = ≥1 qualifying FIRMS detection in the square during the next 24 h. Negative = regional query OK (≥2 platforms `ok`/`no_hotspots`) and zero detections. Unknown = failed/incomplete retrieval. Availability assumption: acquisition time ≈ availability time; target-window detections are labels only.
+
+**Latest trained counts (real FIRMS):** positives **1187** · negatives **62749** · unknown **0** · cells **432** · coverage days **148** · splits train/val/test **24192 / 12528 / 27216**.
+
+**Leaderboard (validation Brier, lower better):** Extra Trees **0.0583** (winner) · Random Forest 0.0588 · HistGradientBoosting 0.0634 · Logistic 0.0636 · seasonal baseline 0.0636 · calibrated SVM 0.0678 · decision tree 0.0692 · persistence 0.0999. Extra Trees beats persistence, so the model is not only repeating yesterday’s heat.
+
+**Holdout (adequately observed days only):** Brier **0.00512** vs seasonal **0.00514** (tiny skill). Recent-heat squares vs no-recent-heat squares are reported separately in the comparison JSON — cold-square recall is near zero, so anticipating brand-new heat remains hard. Analytics shows overall metrics; each calendar/square cell shows the **issued** forecast for that date.
+
+```bash
+conda activate vela
+python -m scripts.backfill_mindanao_firms_hotspot --plan   # disk estimate
+python -m scripts.backfill_mindanao_firms_hotspot --run    # needs FIRMS_MAP_KEY
+python -m scripts.build_hotspot_forecast_dataset
+python -m scripts.train_hotspot_forecast
+```
+
+**Demo clicks.** Live or Saved example → Mindanao / Maguindanao → open cell `2393:174` → **Satellite heat forecast** shows percentage + Manila issue time → **Replay yesterday’s forecast** reveals later MODIS/VIIRS passes and observed outcome (historical simulations are labeled).
+
 ### Philippine 24-hour wildfire-onset forecast (Mindanao-first)
 
 Product question (when labels exist): *What is the estimated probability that at least one new wildfire will start in this 5 km square during the next 24 hours?*

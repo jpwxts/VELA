@@ -1,0 +1,51 @@
+{
+  "days": 148,
+  "written_total": 1923,
+  "ok_days": 148,
+  "inventory": {
+    "study": {
+      "id": "mindanao_maguindanao_compact_v1",
+      "label": "Compact Maguindanao / western Mindanao study box",
+      "bbox": {
+        "west": 123.6,
+        "south": 6.3,
+        "east": 124.7,
+        "north": 7.4
+      },
+      "clip_preset": "mindanao"
+    },
+    "windows": [
+      [
+        "2023-02-15",
+        "2023-03-14"
+      ],
+      [
+        "2023-08-01",
+        "2023-08-28"
+      ],
+      [
+        "2024-02-15",
+        "2024-03-14"
+      ],
+      [
+        "2024-08-01",
+        "2024-08-28"
+      ],
+      [
+        "2025-02-15",
+        "2025-03-07"
+      ],
+      [
+        "2026-11-01",
+        "2026-11-14"
+      ]
+    ],
+    "planned_ph_days": 148,
+    "cached_firms_sqlite_bytes": 3993600,
+    "observation_store_bytes": 184320,
+    "estimated_additional_transfer_bytes": 47360000,
+    "estimated_peak_disk_bytes": 51537920,
+    "free_disk_note": "Keep under available free space; incremental fetch; compact cell-days retained after build.",
+    "inventoried_at_utc": "2026-11-14T13:28:07.878959+00:00"
+  }
+}

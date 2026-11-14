@@ -1,0 +1,481 @@
+{
+  "status": "research_trained",
+  "state": "holdout_evaluated",
+  "recorded_at_utc": "2026-11-14T13:42:52.357473+00:00",
+  "seed": 0,
+  "feature_schema_version": "hotspot_features_v1",
+  "dataset_path": "/Users/florlyn/Desktop/MODISVIIRS/data/processed/philippines_hotspot_cell_days.parquet",
+  "split_manifest": "/Users/florlyn/Desktop/MODISVIIRS/data/manifests/philippines_hotspot_split.json",
+  "data_version": "e386ae30b22038a0",
+  "row_counts": {
+    "train": 24192,
+    "validation": 12528,
+    "test": 27216,
+    "positive_train": 229,
+    "positive_valid": 818,
+    "positive_test": 140
+  },
+  "classifiers": [
+    {
+      "name": "logistic_regression",
+      "threshold": 0.05,
+      "metrics": {
+        "threshold": 0.05,
+        "positive_event_count": 818,
+        "brier_score": 0.06363192968866746,
+        "baseline_brier_score": 0.06363444297472076,
+        "brier_skill_vs_baseline": 3.949568717531715e-05,
+        "precision": 0.1958502024291498,
+        "recall": 0.4731051344743276,
+        "f1": 0.2770221904080172,
+        "accuracy": 0.8387611749680716,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            10121,
+            1589
+          ],
+          [
+            431,
+            387
+          ]
+        ],
+        "pr_curve_points": 6274
+      }
+    },
+    {
+      "name": "decision_tree",
+      "threshold": 0.15,
+      "metrics": {
+        "threshold": 0.15,
+        "positive_event_count": 818,
+        "brier_score": 0.06915344419080818,
+        "baseline_brier_score": 0.06363444297472076,
+        "brier_skill_vs_baseline": -0.08672977963019002,
+        "precision": 0.20723226703755215,
+        "recall": 0.1821515892420538,
+        "f1": 0.19388418998048146,
+        "accuracy": 0.9011015325670498,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            11140,
+            570
+          ],
+          [
+            669,
+            149
+          ]
+        ],
+        "pr_curve_points": 13
+      }
+    },
+    {
+      "name": "random_forest",
+      "threshold": 0.05,
+      "metrics": {
+        "threshold": 0.05,
+        "positive_event_count": 818,
+        "brier_score": 0.05882710828532441,
+        "baseline_brier_score": 0.06363444297472076,
+        "brier_skill_vs_baseline": 0.07554611095293307,
+        "precision": 0.15467854869509867,
+        "recall": 0.5941320293398533,
+        "f1": 0.24545454545454545,
+        "accuracy": 0.7614942528735632,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            9054,
+            2656
+          ],
+          [
+            332,
+            486
+          ]
+        ],
+        "pr_curve_points": 4211
+      }
+    },
+    {
+      "name": "extra_trees",
+      "threshold": 0.05,
+      "metrics": {
+        "threshold": 0.05,
+        "positive_event_count": 818,
+        "brier_score": 0.05829823289905099,
+        "baseline_brier_score": 0.06363444297472076,
+        "brier_skill_vs_baseline": 0.0838572607257616,
+        "precision": 0.17959183673469387,
+        "recall": 0.5378973105134475,
+        "f1": 0.2692778457772338,
+        "accuracy": 0.8093869731800766,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            9700,
+            2010
+          ],
+          [
+            378,
+            440
+          ]
+        ],
+        "pr_curve_points": 3618
+      }
+    },
+    {
+      "name": "hist_gradient_boosting",
+      "threshold": 0.05,
+      "metrics": {
+        "threshold": 0.05,
+        "positive_event_count": 818,
+        "brier_score": 0.06338195836238023,
+        "baseline_brier_score": 0.06363444297472076,
+        "brier_skill_vs_baseline": 0.003967735090269264,
+        "precision": 0.16127401415571285,
+        "recall": 0.3899755501222494,
+        "f1": 0.22818311874105865,
+        "accuracy": 0.8277458492975734,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            10051,
+            1659
+          ],
+          [
+            499,
+            319
+          ]
+        ],
+        "pr_curve_points": 2739
+      }
+    },
+    {
+      "name": "calibrated_svm",
+      "threshold": 0.15,
+      "metrics": {
+        "threshold": 0.15,
+        "positive_event_count": 818,
+        "brier_score": 0.0677733464933274,
+        "baseline_brier_score": 0.06363444297472076,
+        "brier_skill_vs_baseline": -0.06504187551780483,
+        "precision": 0.20067114093959731,
+        "recall": 0.36552567237163813,
+        "f1": 0.25909878682842286,
+        "accuracy": 0.8635057471264368,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            10519,
+            1191
+          ],
+          [
+            519,
+            299
+          ]
+        ],
+        "pr_curve_points": 6274
+      }
+    }
+  ],
+  "baselines": [
+    {
+      "name": "regional_seasonal_detection_rate",
+      "metrics": {
+        "threshold": 0.5,
+        "positive_event_count": 818,
+        "brier_score": 0.06363444297472076,
+        "baseline_brier_score": 0.06363444297472076,
+        "brier_skill_vs_baseline": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "accuracy": 0.93470625798212,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            11710,
+            0
+          ],
+          [
+            818,
+            0
+          ]
+        ],
+        "pr_curve_points": 3
+      }
+    },
+    {
+      "name": "persistence_recent_heat",
+      "metrics": {
+        "threshold": 0.5,
+        "positive_event_count": 818,
+        "brier_score": 0.09985632183908046,
+        "baseline_brier_score": 0.06363444297472076,
+        "brier_skill_vs_baseline": -0.5692181336253559,
+        "precision": 0.22349936143039592,
+        "recall": 0.2139364303178484,
+        "f1": 0.21861336664584635,
+        "accuracy": 0.9001436781609196,
+        "confusion_matrix_labels": [
+          0,
+          1
+        ],
+        "confusion_matrix": [
+          [
+            11102,
+            608
+          ],
+          [
+            643,
+            175
+          ]
+        ],
+        "pr_curve_points": 3
+      }
+    }
+  ],
+  "leaderboard": [
+    {
+      "name": "extra_trees",
+      "kind": "classifier",
+      "brier": 0.05829823289905099
+    },
+    {
+      "name": "random_forest",
+      "kind": "classifier",
+      "brier": 0.05882710828532441
+    },
+    {
+      "name": "hist_gradient_boosting",
+      "kind": "classifier",
+      "brier": 0.06338195836238023
+    },
+    {
+      "name": "logistic_regression",
+      "kind": "classifier",
+      "brier": 0.06363192968866746
+    },
+    {
+      "name": "regional_seasonal_detection_rate",
+      "kind": "baseline",
+      "brier": 0.06363444297472076
+    },
+    {
+      "name": "calibrated_svm",
+      "kind": "classifier",
+      "brier": 0.0677733464933274
+    },
+    {
+      "name": "decision_tree",
+      "kind": "classifier",
+      "brier": 0.06915344419080818
+    },
+    {
+      "name": "persistence_recent_heat",
+      "kind": "baseline",
+      "brier": 0.09985632183908046
+    }
+  ],
+  "winner": {
+    "name": "extra_trees",
+    "kind": "classifier",
+    "threshold": 0.05,
+    "why": "Lowest validation Brier among six classifiers and two baselines (seasonal rate, persistence). Not chosen by accuracy\u2248F1.",
+    "validation_metrics": {
+      "threshold": 0.05,
+      "positive_event_count": 818,
+      "brier_score": 0.05829823289905099,
+      "baseline_brier_score": 0.06363444297472076,
+      "brier_skill_vs_baseline": 0.0838572607257616,
+      "precision": 0.17959183673469387,
+      "recall": 0.5378973105134475,
+      "f1": 0.2692778457772338,
+      "accuracy": 0.8093869731800766,
+      "confusion_matrix_labels": [
+        0,
+        1
+      ],
+      "confusion_matrix": [
+        [
+          9700,
+          2010
+        ],
+        [
+          378,
+          440
+        ]
+      ],
+      "pr_curve_points": 3618
+    }
+  },
+  "holdout": {
+    "metrics": {
+      "threshold": 0.05,
+      "positive_event_count": 140,
+      "brier_score": 0.0051229443627867095,
+      "baseline_brier_score": 0.00513574666495685,
+      "brier_skill_vs_baseline": 0.00249278303727396,
+      "precision": 0.02040816326530612,
+      "recall": 0.014285714285714285,
+      "f1": 0.01680672268907563,
+      "accuracy": 0.9914021164021164,
+      "confusion_matrix_labels": [
+        0,
+        1
+      ],
+      "confusion_matrix": [
+        [
+          26980,
+          96
+        ],
+        [
+          138,
+          2
+        ]
+      ],
+      "pr_curve_points": 979
+    },
+    "reliability_table": [
+      {
+        "bin": "0.0-0.1",
+        "n": 27199,
+        "mean_predicted": 0.0076345128910839,
+        "observed_rate": 0.005110482003014817
+      },
+      {
+        "bin": "0.1-0.2",
+        "n": 15,
+        "mean_predicted": 0.1356001779150199,
+        "observed_rate": 0.06666666666666667
+      },
+      {
+        "bin": "0.2-0.3",
+        "n": 1,
+        "mean_predicted": 0.22197384782337784,
+        "observed_rate": 0.0
+      },
+      {
+        "bin": "0.3-0.4",
+        "n": 1,
+        "mean_predicted": 0.3090249541136491,
+        "observed_rate": 0.0
+      },
+      {
+        "bin": "0.4-0.5",
+        "n": 0,
+        "mean_predicted": null,
+        "observed_rate": null
+      },
+      {
+        "bin": "0.5-0.6",
+        "n": 0,
+        "mean_predicted": null,
+        "observed_rate": null
+      },
+      {
+        "bin": "0.6-0.7",
+        "n": 0,
+        "mean_predicted": null,
+        "observed_rate": null
+      },
+      {
+        "bin": "0.7-0.8",
+        "n": 0,
+        "mean_predicted": null,
+        "observed_rate": null
+      },
+      {
+        "bin": "0.8-0.9",
+        "n": 0,
+        "mean_predicted": null,
+        "observed_rate": null
+      },
+      {
+        "bin": "0.9-1.0",
+        "n": 0,
+        "mean_predicted": null,
+        "observed_rate": null
+      }
+    ],
+    "recent_heat_squares": {
+      "threshold": 0.05,
+      "positive_event_count": 2,
+      "brier_score": 0.017798414998655424,
+      "baseline_brier_score": 0.016147531939373114,
+      "brier_skill_vs_baseline": -0.10223748529996102,
+      "precision": 0.03773584905660377,
+      "recall": 1.0,
+      "f1": 0.07272727272727272,
+      "accuracy": 0.5785123966942148,
+      "confusion_matrix_labels": [
+        0,
+        1
+      ],
+      "confusion_matrix": [
+        [
+          68,
+          51
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "pr_curve_points": 96
+    },
+    "no_recent_heat_squares": {
+      "threshold": 0.05,
+      "positive_event_count": 138,
+      "brier_score": 0.0050663386441323404,
+      "baseline_brier_score": 0.00508657058013661,
+      "brier_skill_vs_baseline": 0.00397751995878648,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "accuracy": 0.993245986344344,
+      "confusion_matrix_labels": [
+        0,
+        1
+      ],
+      "confusion_matrix": [
+        [
+          26912,
+          45
+        ],
+        [
+          138,
+          0
+        ]
+      ],
+      "pr_curve_points": 884
+    },
+    "scored_on": "adequately observed square-days only (positives + covered negatives)"
+  },
+  "model_artifact": "/Users/florlyn/Desktop/MODISVIIRS/data/models/philippines_hotspot_winner.joblib",
+  "model_hash": "b299a230f29f8c39",
+  "approved_for_serving": true,
+  "public_label": "Chance of satellite-detected heat"
+}
