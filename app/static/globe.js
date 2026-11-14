@@ -6,7 +6,7 @@
  * the basemap is Esri's keyless light-gray canvas recoloured in the browser,
  * and terrain is Esri's keyless world elevation service.
  *
- * app.js talks to the globe only through the object returned by
+ * The page scripts (static/js/) talk to the globe only through the object returned by
  * VelaGlobe.create(), so nothing else in the app depends on Cesium.
  */
 (function () {

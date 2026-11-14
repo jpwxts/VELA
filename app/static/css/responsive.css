@@ -1,0 +1,79 @@
+/* ---------- narrow screens: rail becomes a tab bar, card becomes a sheet ---------- */
+
+@media (max-width: 860px) {
+  .masthead { height: 54px; padding: 0 14px; gap: 12px; }
+  .brand { font-size: 1.5rem; }
+  .brand-mark { width: 26px; height: 26px; }
+
+  .workspace { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .rail { flex-direction: row; padding: 0; border-right: 0; border-bottom: 1px solid var(--line); }
+  .panel-tabs { flex: 1; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0; }
+  .rail-button {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    width: 64px;
+    height: 56px;
+    margin-top: 0;
+    padding: 6px 4px;
+    font: 600 0.75rem/1.25 var(--font-ui);
+  }
+  .rail-button[data-tip]::after { display: none; }
+  /* Touch has no hover, so the phone tab bar keeps short names under the icons. */
+  .panel-tab {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    height: 56px;
+    padding: 6px 4px;
+    font: 600 0.75rem/1.25 var(--font-ui);
+    text-align: center;
+  }
+  .panel-tab > span,
+  .rail-button > span {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+  .panel-tab[data-tip]::after { display: none; }
+  .panel-tab.on { box-shadow: inset 0 -3px 0 var(--teal); }
+  .wide-only { display: none; }
+
+  .toolbar { top: 10px; left: 10px; right: 10px; max-width: none; }
+  .toolbar { flex-wrap: nowrap; }
+  .search { flex: 1; min-width: 0; }
+  .search input { flex: 1; width: auto; min-width: 0; height: 44px; }
+  .tool { height: 44px; }
+  .map-hint { top: 64px; left: 10px; }
+  /* On a phone the legend drops from the tab bar, above the sheet. */
+  .legend { left: 10px; top: 64px; bottom: auto; z-index: 6; width: 244px; }
+
+  .card {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: auto;
+    max-height: 52%;
+    border-width: 1px 0 0;
+    border-radius: 14px 14px 0 0;
+    animation-name: sheet-in;
+  }
+  @keyframes sheet-in {
+    from { opacity: 0; transform: translateY(16px); }
+  }
+  .card-head { padding: 16px 56px 14px 18px; }
+  .card-title { font-size: 1.5rem; }
+  .card-body { padding: 18px 18px 26px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

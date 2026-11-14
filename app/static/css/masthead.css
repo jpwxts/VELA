@@ -1,0 +1,21 @@
+/* ---------- masthead ---------- */
+
+.masthead {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 64px;
+  padding: 0 24px 0 26px;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 800 1.75rem/1 var(--font-ui);
+  letter-spacing: -0.035em;
+}
+.brand-mark { width: 30px; height: 30px; flex: none; }
+.flame-outer { fill: var(--ember); }
+.flame-inner { fill: var(--paper); }

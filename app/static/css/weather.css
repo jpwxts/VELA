@@ -1,0 +1,52 @@
+/* weather outlook */
+
+.day-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 6px;
+}
+.day-chip { display: grid; gap: 1px; padding: 6px 4px; line-height: 1.2; }
+.day-chip .day-date { font-variant-numeric: tabular-nums; }
+.day-chip .day-level { font-size: 0.75rem; opacity: 0.86; }
+
+.day-detail {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.day-detail > * + * { margin-top: 12px; }
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 16px;
+  margin-top: 18px;
+}
+.stat-grid div { padding: 12px 0 14px; border-top: 1px solid var(--line); }
+.stat-grid dt {
+  font: 500 0.75rem/1.4 var(--font-data);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.stat-grid dd {
+  margin-top: 4px;
+  font: 500 1.5rem/1.15 var(--font-display);
+  font-variant-numeric: lining-nums;
+}
+.stat-grid small {
+  display: block;
+  margin-top: 2px;
+  font: 400 0.8125rem/1.35 var(--font-ui);
+  color: var(--ink-soft);
+}
+
+.outlook-measures { display: grid; gap: 6px; font-size: 0.875rem; }
+.outlook-measures li { padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.outlook-measures li:last-child { border-bottom: 0; }
+
+.why-this-day { margin-top: 20px; }
+.why-this-day > * + * { margin-top: 8px; }
+.why-this-day ul { display: grid; gap: 4px; padding-left: 18px; list-style: disc; font-size: 0.875rem; color: var(--ink-soft); }
+
+#weather-meta-body { display: grid; gap: 6px; font-size: 0.875rem; }

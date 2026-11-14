@@ -433,11 +433,17 @@ def test_one_observation_prefers_the_usable_pass():
     assert dropped[0]["modis_detected"] is None
 
 
+def _page_scripts():
+    from pathlib import Path
+
+    return "\n".join(path.read_text(encoding="utf-8") for path in sorted(Path("app/static/js").glob("*.js")))
+
+
 def test_page_language_does_not_call_the_metric_burned_area():
     from pathlib import Path
 
     page = Path("app/static/index.html").read_text(encoding="utf-8")
-    script = Path("app/static/app.js").read_text(encoding="utf-8")
+    script = _page_scripts()
     assert CALENDAR_METRIC in page
     assert "Panay" not in page and "Panay" not in script
     assert "Reveal MODIS" in script
@@ -834,7 +840,7 @@ def test_page_keeps_every_hotspot_marker_and_the_combined_summary():
     from pathlib import Path
 
     page = Path("app/static/index.html").read_text(encoding="utf-8")
-    script = Path("app/static/app.js").read_text(encoding="utf-8")
+    script = _page_scripts()
     assert "Combined observations" in page
     assert "flatMap((result) => result.hotspots || [])" in script
     assert "calibration pending" in script

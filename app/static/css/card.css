@@ -1,0 +1,176 @@
+/* ---------- the card ---------- */
+
+.card {
+  position: absolute;
+  top: var(--gap);
+  right: var(--gap);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  width: var(--card-width);
+  max-height: calc(100% - 2 * var(--gap));
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+  animation: card-in 280ms var(--ease-out);
+}
+.card:focus-visible { outline-offset: 0; }
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateX(10px); }
+}
+
+.card-head {
+  position: relative;
+  flex: none;
+  padding: 22px 60px 18px 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.crumb {
+  margin-bottom: 6px;
+  font: 500 0.75rem/1.4 var(--font-data);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.card-title {
+  font: 500 1.875rem/1.12 var(--font-display);
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.card-meta { margin-top: 8px; font-size: 0.875rem; color: var(--ink-soft); }
+.coords {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  gap: 0 18px;
+  margin-top: 4px;
+  font: 400 0.75rem/1.5 var(--font-data);
+  font-variant-numeric: tabular-nums;
+}
+.coords span { white-space: nowrap; }
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--ink);
+}
+.icon-button svg { width: 18px; height: 18px; }
+.icon-button:hover { background: var(--teal-wash); }
+.icon-button.framed { border: 1px solid var(--line-strong); background: var(--field); }
+.icon-button.framed:hover { background: var(--teal-wash); }
+#sheet-close { position: absolute; top: 12px; right: 12px; }
+
+.card-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 22px 24px 28px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+.card-body::-webkit-scrollbar { width: 10px; }
+.card-body::-webkit-scrollbar-thumb {
+  border: 3px solid var(--card);
+  border-radius: 6px;
+  background: var(--line-strong);
+}
+
+.pane-title {
+  margin-bottom: 16px;
+  font: 500 1.75rem/1.15 var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.panel-pane > * + *,
+#land-secondary-content > * + * { margin-top: 14px; }
+.panel-pane > .pane-block,
+.panel-pane > .land-result > .pane-block,
+#land-secondary-content > .pane-block,
+#land-secondary-content > .land-result > .pane-block,
+.pane-block + .pane-block {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.panel-pane > .pane-title + .pane-block,
+#land-secondary-content > .land-controls {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+.pane-block > * + *,
+.sub-block > * + *,
+.land-result > * + *,
+.history-view > * + *,
+.outlook-pane > * + *,
+.research-pane > * + * { margin-top: 10px; }
+
+h4 {
+  font: 600 1.0625rem/1.3 var(--font-display);
+  letter-spacing: -0.003em;
+}
+h5 { font: 700 0.875rem/1.3 var(--font-ui); }
+
+.sub-block {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.lede { color: var(--ink-soft); max-width: 60ch; }
+.quiet { font-size: 0.875rem; color: var(--ink-soft); }
+.stamp {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.result-lead { font-weight: 600; }
+.secondary-note { font-size: 0.875rem; color: var(--ink-soft); }
+
+.reading-label {
+  font: 500 0.75rem/1.4 var(--font-data);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.reading-value {
+  font: 500 2.125rem/1.1 var(--font-display);
+  letter-spacing: -0.015em;
+  font-variant-numeric: lining-nums;
+}
+.reading-label + .reading-value { margin-top: 4px; }
+
+.fact {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  align-items: baseline;
+  font-size: 0.875rem;
+}
+.fact dt { color: var(--ink-soft); }
+.fact dd { font-weight: 600; }
+
+/* Setup and saved-example notes: information, not errors, so they stay in paper tones. */
+.notice {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--plate);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.notice code { font-size: 0.75rem; overflow-wrap: anywhere; }

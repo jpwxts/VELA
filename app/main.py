@@ -89,6 +89,17 @@ app = FastAPI(title="Vela", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
+@app.middleware("http")
+async def revalidate_page_files(request, call_next):
+    """Browsers recheck the page and its files on every load (a cheap 304 when
+    unchanged), so edits show up without version numbers in index.html."""
+
+    response = await call_next(request)
+    if request.url.path == "/" or request.url.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 class AreaRequest(BaseModel):
     west: float
     south: float

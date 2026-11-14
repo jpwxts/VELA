@@ -188,7 +188,8 @@ Needed only for granule download, smoke tests, and model-table builds—not for 
 
 ```text
 app/                 FastAPI server, FIRMS client, geocode, static UI
-  static/            Single-page atlas: CesiumJS globe (globe.js) + rail and card (app.js)
+  static/            Single-page atlas: CesiumJS globe (globe.js); page scripts in js/, one file per
+                     feature, loaded in order with main.js last; styles in css/, one file per area
 vela/                Science & serving: grid, pairing, land check, preparedness, calendar
 scripts/             Catalog, ingest, train, expansion, validation helpers
 config/              Regions, settings, global plans

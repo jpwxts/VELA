@@ -34,7 +34,7 @@
         "rule": "side-tab",
         "value": "*",
         "files": [
-          "app/static/styles.css"
+          "app/static/css/rail.css"
         ],
         "createdAt": "2026-11-13T17:42:10.204Z",
         "reason": "Sanctioned: the teal bar marks the active rail tab (a real state), as drawn in the reference screenshots the user pinned on 2026-11-14"
