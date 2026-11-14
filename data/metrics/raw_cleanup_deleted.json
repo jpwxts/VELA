@@ -1,0 +1,30 @@
+{
+  "permanent_deletion_performed": true,
+  "deleted": [
+    "data/raw/_quarantine_pending_delete/yakutia",
+    "data/raw/_quarantine_pending_delete/zambia"
+  ],
+  "reclaimable_was_gb": 6.642,
+  "free_gb_after_delete": 12.16,
+  "used_gb_after_delete": 232.94,
+  "verification_after_delete": {
+    "zambia_week_activity_percent": 4.77,
+    "zambia_week_cell_days": 22742,
+    "zambia_week_ok": true,
+    "cell_523_383_opens": true,
+    "cell_523_383_probability": 0.010412366436853273,
+    "cell_523_383_raw_activity": 0.0,
+    "model_selection_readable": true,
+    "model_selection_mae_pp": 0.6598571873046138,
+    "frozen_model_present": true,
+    "yakutia_raw_present": false,
+    "zambia_raw_present": false,
+    "downloads_enabled": false,
+    "all_required_checks_passed": true
+  },
+  "raw_remaining": [
+    "arnhem",
+    "california",
+    "cerrado"
+  ]
+}

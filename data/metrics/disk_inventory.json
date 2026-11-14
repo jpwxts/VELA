@@ -1,0 +1,190 @@
+{
+  "disk": {
+    "path": "/Users/florlyn/Desktop/MODISVIIRS",
+    "total_gb": 245.11,
+    "used_gb": 237.41,
+    "free_gb": 7.7
+  },
+  "counting_rule": "Each physical file counted once by (device, inode). No hard-linked duplicates found across regions.",
+  "unique_raw": {
+    "files": 280,
+    "bytes": 14857654538,
+    "gb": 14.858
+  },
+  "shared_basenames_across_regions": {},
+  "shared_basename_count": 0,
+  "by_file_type_gb": {
+    "raw_fire_granules": 0.2,
+    "raw_geolocation_granules": 14.657,
+    "processed_tables": 0.009,
+    "model_artifacts": 0.003,
+    "demo_test_fixtures": 0.006,
+    "manifests": 0.0,
+    "catalog": 0.0,
+    "cache": 0.004
+  },
+  "by_file_type_bytes": {
+    "raw_fire_granules": 200339771,
+    "raw_geolocation_granules": 14657314767,
+    "processed_tables": 9454587,
+    "model_artifacts": 2611367,
+    "demo_test_fixtures": 5655617,
+    "manifests": 180399,
+    "catalog": 288698,
+    "cache": 3964928
+  },
+  "by_region": [
+    {
+      "region_id": "cerrado",
+      "bytes": 5286078833,
+      "gb": 5.286,
+      "files": 90,
+      "by_type": {
+        "raw_fire": {
+          "bytes": 81352330,
+          "gb": 0.081,
+          "files": 45
+        },
+        "raw_geolocation": {
+          "bytes": 5204726503,
+          "gb": 5.205,
+          "files": 45
+        }
+      }
+    },
+    {
+      "region_id": "yakutia",
+      "bytes": 5263837929,
+      "gb": 5.264,
+      "files": 96,
+      "by_type": {
+        "raw_fire": {
+          "bytes": 39904189,
+          "gb": 0.04,
+          "files": 48
+        },
+        "raw_geolocation": {
+          "bytes": 5223933740,
+          "gb": 5.224,
+          "files": 48
+        }
+      }
+    },
+    {
+      "region_id": "california",
+      "bytes": 2115142495,
+      "gb": 2.115,
+      "files": 48,
+      "by_type": {
+        "raw_fire": {
+          "bytes": 29329423,
+          "gb": 0.029,
+          "files": 24
+        },
+        "raw_geolocation": {
+          "bytes": 2085813072,
+          "gb": 2.086,
+          "files": 24
+        }
+      }
+    },
+    {
+      "region_id": "zambia",
+      "bytes": 1378240299,
+      "gb": 1.378,
+      "files": 26,
+      "by_type": {
+        "raw_fire": {
+          "bytes": 35497584,
+          "gb": 0.035,
+          "files": 13
+        },
+        "raw_geolocation": {
+          "bytes": 1342742715,
+          "gb": 1.343,
+          "files": 13
+        }
+      }
+    },
+    {
+      "region_id": "arnhem",
+      "bytes": 814354982,
+      "gb": 0.814,
+      "files": 20,
+      "by_type": {
+        "raw_fire": {
+          "bytes": 14256245,
+          "gb": 0.014,
+          "files": 10
+        },
+        "raw_geolocation": {
+          "bytes": 800098737,
+          "gb": 0.8,
+          "files": 10
+        }
+      }
+    }
+  ],
+  "largest_directories": [
+    {
+      "path": "data",
+      "bytes": 14880564097,
+      "gb": 14.881,
+      "files": 428
+    },
+    {
+      "path": "data/raw",
+      "bytes": 14857654538,
+      "gb": 14.858,
+      "files": 280
+    },
+    {
+      "path": "data/raw/cerrado",
+      "bytes": 5286078833,
+      "gb": 5.286,
+      "files": 90
+    },
+    {
+      "path": "data/raw/yakutia",
+      "bytes": 5263837929,
+      "gb": 5.264,
+      "files": 96
+    },
+    {
+      "path": "data/raw/california",
+      "bytes": 2115142495,
+      "gb": 2.115,
+      "files": 48
+    },
+    {
+      "path": "data/raw/zambia",
+      "bytes": 1378240299,
+      "gb": 1.378,
+      "files": 26
+    },
+    {
+      "path": "data/raw/arnhem",
+      "bytes": 814354982,
+      "gb": 0.814,
+      "files": 20
+    },
+    {
+      "path": "data/processed",
+      "bytes": 9454587,
+      "gb": 0.009,
+      "files": 70
+    },
+    {
+      "path": "data/fixtures",
+      "bytes": 5655617,
+      "gb": 0.006,
+      "files": 22
+    },
+    {
+      "path": "data/models",
+      "bytes": 2611367,
+      "gb": 0.003,
+      "files": 16
+    }
+  ]
+}

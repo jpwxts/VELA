@@ -1,0 +1,20 @@
+{
+  "mode": "dry_run",
+  "order": [
+    "yakutia",
+    "zambia"
+  ],
+  "preserve": [
+    "data/models",
+    "data/processed",
+    "data/manifests",
+    "data/fixtures",
+    "data/catalog"
+  ],
+  "candidate_count": 0,
+  "total_bytes": 0,
+  "total_gb": 0.0,
+  "shared_across_regions_count": 0,
+  "candidates": [],
+  "note": "Processed Zambia/Yakutia parquet tables, frozen models, manifests, catalog validation records, and fixtures are not on this list."
+}

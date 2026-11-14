@@ -1,0 +1,21 @@
+{
+  "mode": "quarantine",
+  "moved": [
+    {
+      "region_id": "yakutia",
+      "from": "data/raw/yakutia",
+      "to": "data/raw/_quarantine_pending_delete/yakutia",
+      "bytes": 5263837929,
+      "gb": 5.264
+    },
+    {
+      "region_id": "zambia",
+      "from": "data/raw/zambia",
+      "to": "data/raw/_quarantine_pending_delete/zambia",
+      "bytes": 1378240299,
+      "gb": 1.378
+    }
+  ],
+  "space_reclaimed": false,
+  "reason": "rename on same volume"
+}
