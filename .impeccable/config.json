@@ -38,6 +38,24 @@
         ],
         "createdAt": "2026-11-13T17:42:10.204Z",
         "reason": "Sanctioned: the teal bar marks the active rail tab (a real state), as drawn in the reference screenshots the user pinned on 2026-11-14"
+      },
+      {
+        "rule": "pulsing-dot",
+        "value": "*",
+        "files": [
+          "app/static/index.html"
+        ],
+        "createdAt": "2026-11-14T15:40:47.110Z",
+        "reason": "Agent: the three dots animate only while a hotspot search request is in flight (hidden when it settles, still under reduced motion); a real live state, added on purpose in 673c7fd"
+      },
+      {
+        "rule": "marquee",
+        "value": "*",
+        "files": [
+          "app/static/index.html"
+        ],
+        "createdAt": "2026-11-14T15:40:47.300Z",
+        "reason": "Agent: indeterminate progress bar shown only while a hotspot search request is in flight, not scrolling content; reduced motion parks it"
       }
     ]
   }
