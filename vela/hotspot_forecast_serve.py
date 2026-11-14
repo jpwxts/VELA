@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from datetime import date, datetime, timezone
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -32,7 +33,7 @@ from vela.hotspot_forecast_dataset import (
     load_study_detections,
     study_cells,
 )
-from vela.grid import center, geographic_bounds
+from vela.grid import cell_identifier, center, geographic_bounds, indices
 from vela.land_check import normalize_ring, point_in_ring, polygon_bbox
 from vela.observation_store import ObservationStore, _connect as store_connect
 from vela.settings import DATA_DIR
@@ -960,7 +961,11 @@ def month_forecasts_for_cell(
     }
 
 
+@lru_cache(maxsize=None)
 def _overlay_cell(cell_id: str) -> dict[str, Any]:
+    """A square's grid position, centre and bounds. Cached: the grid never moves;
+    callers copy the dict and never change it."""
+
     x_text, y_text = str(cell_id).split(":", 1)
     x_index, y_index = int(x_text), int(y_text)
     west, south, east, north = geographic_bounds(x_index, y_index)
@@ -972,6 +977,18 @@ def _overlay_cell(cell_id: str) -> dict[str, Any]:
         "center": {"lon": longitude, "lat": latitude},
         "bounds": {"west": west, "south": south, "east": east, "north": north},
     }
+
+
+def _ring_touches_study(ring: list[list[float]]) -> bool:
+    """Whether a boundary reaches the Mindanao study grid, probed at its corners and centre."""
+
+    lons = [float(lon) for lon, _ in ring]
+    lats = [float(lat) for _, lat in ring]
+    probe_lons = lons + [sum(lons) / len(lons)]
+    probe_lats = lats + [sum(lats) / len(lats)]
+    xs, ys = indices(probe_lons, probe_lats)
+    study = _study_set()
+    return any(cell_identifier(x, y) in study for x, y in zip(xs, ys))
 
 
 def _cell_overlaps_ring(cell: dict[str, Any], ring: list[list[float]], ring_box: tuple[float, float, float, float]) -> bool:
@@ -1003,10 +1020,12 @@ def probability_overlay(
     observation_store: ObservationStore | None = None,
     store: HotspotForecastStore | None = None,
 ) -> dict[str, Any]:
-    """Continuous 0–1 prediction surface for supported cells touching a boundary.
+    """Continuous 0–1 prediction surface for evaluated cells touching a boundary.
 
     This bulk path is read-only: it reuses preserved forecasts where available and
     scores the remaining cells without turning the selected polygon into one chance.
+    Only squares inside the evaluated Maguindanao box are scored, the same rule as
+    the square and month paths; other Mindanao squares stay unshaded, never 0%.
     """
 
     ring = normalize_ring(coordinates)
@@ -1015,7 +1034,7 @@ def probability_overlay(
     ring_box = polygon_bbox(ring)
     selected_cells = [
         cell
-        for cell in (_overlay_cell(cell_id) for cell_id in study_cells())
+        for cell in (_overlay_cell(cell_id) for cell_id in sorted(_eval_set()))
         if _cell_overlaps_ring(cell, ring, ring_box)
     ]
     base = {
@@ -1032,10 +1051,21 @@ def probability_overlay(
         "cells": [],
     }
     if not selected_cells:
+        if _ring_touches_study(ring):
+            return {
+                **base,
+                "status": "coverage_status_only",
+                "reason": (
+                    "Inside Mindanao, but outside the Maguindanao v2.1 evaluated box. "
+                    "Percentages wait for island-wide clear-pass evaluation."
+                ),
+                "extent": None,
+                "highest_square": None,
+            }
         return {
             **base,
             "status": "unsupported",
-            "reason": "The selected boundary does not overlap the evaluated Maguindanao forecast area.",
+            "reason": "Outside Mindanao — hotspot-forecast percentages are not evaluated here.",
             "extent": None,
             "highest_square": None,
         }
@@ -1055,7 +1085,9 @@ def probability_overlay(
         issue_date_ph=day,
         ph_today=today,
         selection=selection,
-        support={"geographic_support": {"in_study_region": True}},
+        # No hand-made support record: the check derives study and evaluated-box
+        # membership from the cell itself, exactly as for a single square.
+        support=None,
         observation_store=obs,
         allow_historical_reconstruction=historical_simulation,
     )
@@ -1078,7 +1110,7 @@ def probability_overlay(
         }
 
     detections = load_study_detections(obs)
-    coverage_days = {date_text for _, date_text in fire_mask_coverage_keys(study_cells())["square_days"]}
+    coverage_days = _coverage_days_cached()
     archive = store or HotspotForecastStore()
     archived = archive.for_day(day)
     rows = []

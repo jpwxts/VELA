@@ -214,6 +214,26 @@ def test_probability_overlay_does_not_score_an_unsupported_boundary():
     assert payload["polygon_probability"] is None
 
 
+def test_probability_overlay_leaves_mindanao_squares_outside_the_evaluated_box_unshaded():
+    from vela.grid import geographic_bounds
+    from vela.hotspot_forecast_serve import _eval_set, probability_overlay
+
+    # A Mindanao study square well east of the evaluated Maguindanao box.
+    assert "2416:135" not in _eval_set()
+    west, south, east, north = geographic_bounds(2416, 135)
+    payload = probability_overlay(
+        [[west, south], [east, south], [east, north], [west, north], [west, south]],
+        "2026-11-13",
+        historical_simulation=True,
+        ph_today="2026-11-14",
+    )
+
+    assert payload["status"] == "coverage_status_only"
+    assert "outside the Maguindanao v2.1 evaluated box" in payload["reason"]
+    assert payload["cells"] == []
+    assert payload["polygon_probability"] is None
+
+
 def test_high_probability_audit_and_diagnosis_exist():
     audit = ROOT / "data" / "metrics" / "philippines_hotspot_high_probability_audit.json"
     diagnosis = ROOT / "data" / "metrics" / "philippines_hotspot_tamatalon_99pct_diagnosis.json"
