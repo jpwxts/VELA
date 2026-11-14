@@ -208,6 +208,7 @@ async function restoreSavedLandSelection() {
   refreshLandSummary();
   if (state.lastPayload) {
     clearMapLayers();
+    renderProbabilityOverlay();
     renderPublicResult(state.lastPayload);
     renderAreas(state.lastPayload.hotspot_areas);
     renderIndividuals(state.lastPayload);

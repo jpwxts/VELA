@@ -25,6 +25,7 @@ function highlightLandHeat() {
 }
 
 function clearMapLayers() {
+  clearProbabilitySurface();
   state.areaLayers.forEach((layer) => layer.remove());
   state.areaLayers = [];
   state.markerByCell.clear();
@@ -32,6 +33,142 @@ function clearMapLayers() {
   state.individualMarkers = [];
   clearSelectedSquare();
   clearMemberPoints();
+}
+
+const PROBABILITY_COLOUR_STOPS = [
+  [0.00, [41, 39, 95]],
+  [0.25, [37, 107, 131]],
+  [0.50, [38, 145, 126]],
+  [0.75, [137, 186, 88]],
+  [1.00, [242, 210, 71]],
+];
+
+function probabilityColour(value) {
+  const probability = Math.max(0, Math.min(1, Number(value) || 0));
+  const upperIndex = PROBABILITY_COLOUR_STOPS.findIndex(([stop]) => stop >= probability);
+  if (upperIndex <= 0) return PROBABILITY_COLOUR_STOPS[0][1];
+  const [upperStop, upperColour] = PROBABILITY_COLOUR_STOPS[upperIndex];
+  const [lowerStop, lowerColour] = PROBABILITY_COLOUR_STOPS[upperIndex - 1];
+  const amount = (probability - lowerStop) / (upperStop - lowerStop);
+  return lowerColour.map((channel, index) => Math.round(channel + (upperColour[index] - channel) * amount));
+}
+
+function probabilityCanvas(cells) {
+  const xs = cells.map((cell) => Number(cell.grid_x));
+  const ys = cells.map((cell) => Number(cell.grid_y));
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const width = maxX - minX + 1;
+  const height = maxY - minY + 1;
+  const source = document.createElement("canvas");
+  source.width = width;
+  source.height = height;
+  const sourceContext = source.getContext("2d");
+  sourceContext.clearRect(0, 0, width, height);
+  cells.forEach((cell) => {
+    const [red, green, blue] = probabilityColour(cell.probability);
+    sourceContext.fillStyle = `rgb(${red} ${green} ${blue})`;
+    sourceContext.fillRect(Number(cell.grid_x) - minX, maxY - Number(cell.grid_y), 1, 1);
+  });
+
+  // Upscale the prediction grid once with bilinear filtering. Cesium applies
+  // linear texture filtering again, producing a continuous surface rather than buckets.
+  // Enough pixels per square that the boundary cut below stays crisp.
+  const scale = Math.max(4, Math.min(32, Math.floor(512 / Math.max(width, height))));
+  const canvas = document.createElement("canvas");
+  canvas.width = width * scale;
+  canvas.height = height * scale;
+  const context = canvas.getContext("2d");
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
+  context.drawImage(source, 0, 0, canvas.width, canvas.height);
+  return canvas;
+}
+
+// Shade only the selected land: squares on the edge are cut along the boundary.
+// The 5 km grid's rows and columns follow parallels and meridians, so the
+// canvas maps linearly onto the overlay's longitude/latitude extent.
+function clipToLand(canvas, extent, ring) {
+  const context = canvas.getContext("2d");
+  const x = (lon) => ((lon - extent.west) / (extent.east - extent.west)) * canvas.width;
+  const y = (lat) => ((extent.north - lat) / (extent.north - extent.south)) * canvas.height;
+  context.globalCompositeOperation = "destination-in";
+  context.beginPath();
+  ring.forEach(([lon, lat], index) => {
+    if (index) context.lineTo(x(lon), y(lat));
+    else context.moveTo(x(lon), y(lat));
+  });
+  context.closePath();
+  context.fill();
+  context.globalCompositeOperation = "source-over";
+}
+
+function clearProbabilitySurface(forget = false) {
+  if (state.probabilityLayer) state.probabilityLayer.remove();
+  state.probabilityLayer = null;
+  if (forget) state.probabilityOverlay = null;
+  const legend = document.querySelector("#probability-legend");
+  if (legend) legend.hidden = true;
+}
+
+function resetProbabilityOverlay() {
+  state.probabilityRequestId += 1;
+  clearHotspotSearches("probability");
+  clearProbabilitySurface(true);
+}
+
+function renderProbabilityOverlay(payload = state.probabilityOverlay) {
+  clearProbabilitySurface();
+  const cells = payload?.status === "ok" ? (payload.cells || []) : [];
+  if (!cells.length || !payload.extent) return;
+  const opacity = state.basemap === "satellite" ? 0.48 : 0.62;
+  const canvas = probabilityCanvas(cells);
+  if (state.polygon && state.polygon.length >= 4) clipToLand(canvas, payload.extent, state.polygon);
+  state.probabilityLayer = globe.addRasterOverlay(canvas, payload.extent, { opacity });
+  // The Map-style picture copies the globe, so take it again once the shading is on.
+  const layer = state.probabilityLayer;
+  layer.ready.then((shown) => {
+    if (shown && layer === state.probabilityLayer && state.pictureMode === "map") drawLandCutout(state.pictureAreas);
+  });
+  const legend = document.querySelector("#probability-legend");
+  if (legend) {
+    legend.hidden = false;
+    legend.title = payload.note || "Each 5 km square's own prediction, on a fixed 0–100% scale.";
+    // Say so when the backend marks any square's score as experimental.
+    const experimental = cells.some((cell) => cell.experimental);
+    document.querySelector("#probability-legend-text").textContent =
+      `Chance satellites record a hotspot · 0–100%${experimental ? " · experimental" : ""}`;
+  }
+}
+
+async function loadProbabilityOverlay(issueDate) {
+  if (!state.polygon || state.polygon.length < 4) return;
+  const requestId = ++state.probabilityRequestId;
+  clearProbabilitySurface(true);
+  const finishSearch = beginHotspotSearch("probability");
+  try {
+    const response = await fetch("/api/hotspot-forecast/overlay", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        coordinates: state.polygon,
+        issue_date: issueDate || dayInput.value,
+        historical_simulation: Boolean(state.phToday && (issueDate || dayInput.value) < state.phToday),
+      }),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.detail || "Probability overlay failed");
+    if (requestId !== state.probabilityRequestId) return;
+    state.probabilityOverlay = payload;
+    renderProbabilityOverlay(payload);
+  } catch (_error) {
+    if (requestId !== state.probabilityRequestId) return;
+    clearProbabilitySurface(true);
+  } finally {
+    finishSearch();
+  }
 }
 
 function clearMemberPoints() {
@@ -76,6 +213,7 @@ function visibleAreas(hotspotAreas) {
 function renderHotspots(payload) {
   state.lastPayload = payload;
   state.multiOnly = false;
+  state.probabilityOverlay = null;
   clearMapLayers();
   const publicResult = document.querySelector("#public-result");
   if (publicResult) publicResult.hidden = false;
@@ -90,6 +228,7 @@ function applyAreaFilter(multiOnly) {
   state.multiOnly = Boolean(multiOnly);
   closeAreaPanel();
   clearMapLayers();
+  renderProbabilityOverlay();
   renderPublicResult(state.lastPayload);
   renderAreas(state.lastPayload?.hotspot_areas);
   renderIndividuals(state.lastPayload);
@@ -348,6 +487,7 @@ function showMemberPoints(area, options = {}) {
 document.querySelector("#basemap-satellite")?.addEventListener("change", (event) => {
   state.basemap = event.target.checked ? "satellite" : "atlas";
   globe.setBasemap(state.basemap);
+  renderProbabilityOverlay();
   drawLandCutout(state.lastPayload?.hotspot_areas?.areas || []);
 });
 

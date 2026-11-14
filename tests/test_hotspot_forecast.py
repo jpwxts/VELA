@@ -123,6 +123,55 @@ def test_outside_study_is_unsupported():
     assert "Outside Maguindanao" in (payload.get("reason") or "")
 
 
+def test_probability_overlay_returns_raw_continuous_cell_predictions():
+    from vela.grid import geographic_bounds
+    from vela.hotspot_forecast_serve import probability_overlay
+
+    west, south, east, north = geographic_bounds(2399, 175)
+    ring = [
+        [west, south],
+        [east, south],
+        [east, north],
+        [west, north],
+        [west, south],
+    ]
+    payload = probability_overlay(
+        ring,
+        "2026-11-13",
+        historical_simulation=True,
+        ph_today="2026-11-14",
+    )
+
+    assert payload["status"] == "ok"
+    assert payload["probability_scale"] == {
+        "kind": "continuous",
+        "domain": [0.0, 1.0],
+        "normalization": "none",
+    }
+    assert payload["polygon_probability"] is None
+    assert payload["cells"]
+    selected = next(row for row in payload["cells"] if row["cell_id"] == "2399:175")
+    assert 0.0 <= selected["probability"] <= 1.0
+    assert selected["probability_percent"] == round(selected["probability"] * 100)
+    assert selected["grid_x"] == 2399
+    assert selected["grid_y"] == 175
+
+
+def test_probability_overlay_does_not_score_an_unsupported_boundary():
+    from vela.hotspot_forecast_serve import probability_overlay
+
+    payload = probability_overlay(
+        [[-120.1, 36.9], [-120.0, 36.9], [-120.0, 37.0], [-120.1, 37.0], [-120.1, 36.9]],
+        "2026-11-14",
+        historical_simulation=True,
+        ph_today="2026-11-14",
+    )
+
+    assert payload["status"] == "unsupported"
+    assert payload["cells"] == []
+    assert payload["polygon_probability"] is None
+
+
 def test_high_probability_audit_and_diagnosis_exist():
     audit = ROOT / "data" / "metrics" / "philippines_hotspot_high_probability_audit.json"
     diagnosis = ROOT / "data" / "metrics" / "philippines_hotspot_tamatalon_99pct_diagnosis.json"

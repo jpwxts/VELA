@@ -360,11 +360,33 @@ class HotspotPolygonRequest(BaseModel):
     issue_date: str | None = None
 
 
+class HotspotOverlayRequest(BaseModel):
+    coordinates: list[list[float]] = Field(..., min_length=3, max_length=2000)
+    issue_date: str | None = None
+    historical_simulation: bool = False
+
+
 @app.post("/api/hotspot-forecast/polygon-summary")
 def hotspot_polygon_summary(body: HotspotPolygonRequest):
     from vela.hotspot_forecast_serve import polygon_hotspot_summary
 
     return polygon_hotspot_summary(body.cell_ids, body.issue_date)
+
+
+@app.post("/api/hotspot-forecast/overlay")
+def hotspot_probability_overlay(body: HotspotOverlayRequest):
+    """Raw backend square probabilities and geometry for continuous map shading."""
+
+    from vela.hotspot_forecast_serve import probability_overlay
+
+    try:
+        return probability_overlay(
+            body.coordinates,
+            body.issue_date,
+            historical_simulation=body.historical_simulation,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.get("/api/hotspot-forecast/month")

@@ -315,6 +315,7 @@
       addArea() { return handle; },
       addPath() { return handle; },
       addPoint() { return handle; },
+      addRasterOverlay() { return { ...handle, ready: Promise.resolve(false) }; },
       addOverlay(_lat, _lon, element) { return { ...handle, element }; },
       snapshot() { return Promise.resolve(false); },
       satelliteCutout,
@@ -646,6 +647,43 @@
       return {
         remove() {
           entities.forEach((entity) => viewer.entities.remove(entity));
+          scene.requestRender();
+        },
+      };
+    }
+
+    /* ---- one-tile raster overlays: smoothed backend probability surfaces ---- */
+    function addRasterOverlay(canvas, bounds, style = {}) {
+      let layer = null;
+      let removed = false;
+      const rectangle = Cesium.Rectangle.fromDegrees(
+        Number(bounds.west),
+        Number(bounds.south),
+        Number(bounds.east),
+        Number(bounds.north)
+      );
+      const url = canvas.toDataURL("image/png");
+      const options = { rectangle };
+      const providerPromise = typeof Cesium.SingleTileImageryProvider.fromUrl === "function"
+        ? Cesium.SingleTileImageryProvider.fromUrl(url, options)
+        : Promise.resolve(new Cesium.SingleTileImageryProvider({ url, ...options }));
+      const ready = providerPromise.then((provider) => {
+        if (removed) return false;
+        /* Under the place names, so they stay readable over the shading. */
+        layer = layers.addImageryProvider(provider, layers.indexOf(atlasLabels));
+        layer.alpha = style.opacity == null ? 0.62 : Number(style.opacity);
+        if (Cesium.TextureMagnificationFilter?.LINEAR) {
+          layer.magnificationFilter = Cesium.TextureMagnificationFilter.LINEAR;
+        }
+        scene.requestRender();
+        return true;
+      }).catch(() => false);
+      return {
+        ready,
+        remove() {
+          removed = true;
+          if (layer) layers.remove(layer, true);
+          layer = null;
           scene.requestRender();
         },
       };
@@ -1218,6 +1256,7 @@
         return spot ? { x: spot.x, y: spot.y } : null;
       },
       addArea,
+      addRasterOverlay,
       addPath,
       addPoint,
       addOverlay,

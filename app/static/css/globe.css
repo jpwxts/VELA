@@ -269,3 +269,11 @@
 .swatch-land::before { width: 20px; border-top: 2px dashed var(--ink); }
 .swatch-reading::before { width: 8px; height: 8px; border-radius: 50%; background: var(--ink); }
 .swatch-cell::before { width: 14px; height: 12px; border: 2px solid var(--teal); background: color-mix(in srgb, var(--teal) 14%, transparent); }
+.swatch-probability { width: 54px; }
+.swatch-probability::before {
+  width: 52px;
+  height: 12px;
+  border: 1px solid rgb(255 255 255 / 35%);
+  border-radius: 3px;
+  background: linear-gradient(90deg, #29275f 0%, #256b83 25%, #26917e 50%, #89ba58 75%, #f2d247 100%);
+}

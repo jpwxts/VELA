@@ -27,6 +27,8 @@ from vela.hotspot_forecast_dataset import (
     load_study_detections,
     study_cells,
 )
+from vela.grid import center, geographic_bounds
+from vela.land_check import normalize_ring, point_in_ring, polygon_bbox
 from vela.observation_store import ObservationStore, _connect as store_connect
 from vela.settings import DATA_DIR
 
@@ -152,6 +154,16 @@ class HotspotForecastStore:
             )
             connection.commit()
             return int(cursor.rowcount or 0)
+
+    def for_day(self, issue_date_ph: str) -> dict[str, dict]:
+        """All preserved square forecasts for one Philippine issue date."""
+
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT cell_id, payload_json FROM hotspot_issues WHERE issue_date_ph = ?",
+                (str(issue_date_ph)[:10],),
+            ).fetchall()
+        return {str(row["cell_id"]): json.loads(row["payload_json"]) for row in rows}
 
 
 def philippine_today(now: datetime | None = None) -> str:
@@ -331,10 +343,15 @@ def _load_model_bundle(selection: dict) -> dict | None:
         return None
     path = Path(artifact)
     if not path.is_file():
+        path = DATA_DIR / "models" / path.name
+    if not path.is_file():
         return None
     bundle = joblib.load(path)
     if bundle.get("kind") == "baseline" and bundle.get("winner_name") != "persistence_recent_heat":
-        comparison = json.loads(Path(selection["comparison_path"]).read_text(encoding="utf-8"))
+        comparison_path = Path(selection["comparison_path"])
+        if not comparison_path.is_file():
+            comparison_path = DATA_DIR / "metrics" / comparison_path.name
+        comparison = json.loads(comparison_path.read_text(encoding="utf-8"))
         rate = comparison.get("row_counts", {}).get("positive_train", 0) / max(
             1, comparison.get("row_counts", {}).get("train", 1)
         )
@@ -671,6 +688,182 @@ def month_forecasts_for_cell(
         "note": (
             "Issued archive rows for past/today Manila dates; labeled historical reconstructions "
             "for eligible past days without an archive; Upcoming for dates after Philippine today."
+        ),
+    }
+
+
+def _overlay_cell(cell_id: str) -> dict[str, Any]:
+    x_text, y_text = str(cell_id).split(":", 1)
+    x_index, y_index = int(x_text), int(y_text)
+    west, south, east, north = geographic_bounds(x_index, y_index)
+    longitude, latitude = center(x_index, y_index)
+    return {
+        "cell_id": cell_id,
+        "grid_x": x_index,
+        "grid_y": y_index,
+        "center": {"lon": longitude, "lat": latitude},
+        "bounds": {"west": west, "south": south, "east": east, "north": north},
+    }
+
+
+def _cell_overlaps_ring(cell: dict[str, Any], ring: list[list[float]], ring_box: tuple[float, float, float, float]) -> bool:
+    bounds = cell["bounds"]
+    west, south, east, north = ring_box
+    if bounds["east"] < west or bounds["west"] > east or bounds["north"] < south or bounds["south"] > north:
+        return False
+    if point_in_ring(float(cell["center"]["lon"]), float(cell["center"]["lat"]), ring):
+        return True
+    if any(bounds["west"] <= lon <= bounds["east"] and bounds["south"] <= lat <= bounds["north"] for lon, lat in ring):
+        return True
+    return any(
+        point_in_ring(lon, lat, ring)
+        for lon, lat in (
+            (bounds["west"], bounds["south"]),
+            (bounds["east"], bounds["south"]),
+            (bounds["east"], bounds["north"]),
+            (bounds["west"], bounds["north"]),
+        )
+    )
+
+
+def probability_overlay(
+    coordinates: list[list[float]],
+    issue_date_ph: str | None = None,
+    *,
+    historical_simulation: bool = False,
+    ph_today: str | None = None,
+    observation_store: ObservationStore | None = None,
+    store: HotspotForecastStore | None = None,
+) -> dict[str, Any]:
+    """Continuous 0–1 prediction surface for supported cells touching a boundary.
+
+    This bulk path is read-only: it reuses preserved forecasts where available and
+    scores the remaining cells without turning the selected polygon into one chance.
+    """
+
+    ring = normalize_ring(coordinates)
+    day = str(issue_date_ph or philippine_today())[:10]
+    today = str(ph_today or philippine_today())[:10]
+    ring_box = polygon_bbox(ring)
+    selected_cells = [
+        cell
+        for cell in (_overlay_cell(cell_id) for cell_id in study_cells())
+        if _cell_overlaps_ring(cell, ring, ring_box)
+    ]
+    base = {
+        "status": "ok",
+        "issue_date_ph": day,
+        "ph_today": today,
+        "public_label": PUBLIC_LABEL,
+        "probability_scale": {
+            "kind": "continuous",
+            "domain": [0.0, 1.0],
+            "normalization": "none",
+        },
+        "polygon_probability": None,
+        "cells": [],
+    }
+    if not selected_cells:
+        return {
+            **base,
+            "status": "unsupported",
+            "reason": "The selected boundary does not overlap the evaluated Maguindanao forecast area.",
+            "extent": None,
+            "highest_square": None,
+        }
+    if day > today:
+        return {
+            **base,
+            "status": "upcoming",
+            "reason": "Upcoming — no issued probability surface until that Philippine date.",
+            "extent": None,
+            "highest_square": None,
+        }
+
+    selection = load_selection()
+    obs = observation_store or ObservationStore()
+    eligibility = forecast_eligibility(
+        cell_id=selected_cells[0]["cell_id"],
+        issue_date_ph=day,
+        ph_today=today,
+        selection=selection,
+        support={"geographic_support": {"in_study_region": True}},
+        observation_store=obs,
+        allow_historical_reconstruction=historical_simulation,
+    )
+    if not eligibility["eligible"]:
+        return {
+            **base,
+            "status": "unavailable",
+            "reason": eligibility["reason"],
+            "extent": None,
+            "highest_square": None,
+        }
+    bundle = _load_model_bundle(selection or {})
+    if bundle is None:
+        return {
+            **base,
+            "status": "unavailable",
+            "reason": "Model artifact unavailable",
+            "extent": None,
+            "highest_square": None,
+        }
+
+    detections = load_study_detections(obs)
+    coverage_days = {date_text for _, date_text in fire_mask_coverage_keys(study_cells())["square_days"]}
+    archive = store or HotspotForecastStore()
+    archived = archive.for_day(day)
+    rows = []
+    for cell in selected_cells:
+        preserved = archived.get(cell["cell_id"])
+        if preserved is not None and preserved.get("probability") is not None:
+            probability = float(preserved["probability"])
+            experimental = experimental_score_meta(
+                probability,
+                day,
+                preserved.get("features") or {},
+            )
+            issuance_kind = "preserved_archive"
+        else:
+            features = build_feature_row(
+                cell_id=cell["cell_id"],
+                issue_date_ph=day,
+                detections=detections,
+                coverage_days=coverage_days,
+            )
+            probability = _predict_probability(bundle, features)
+            experimental = experimental_score_meta(probability, day, features)
+            issuance_kind = "historical_reconstruction" if day < today else "live_map_prediction"
+        probability = max(0.0, min(1.0, float(probability)))
+        rows.append(
+            {
+                **cell,
+                "probability": probability,
+                "probability_percent": int(round(probability * 100)),
+                "issuance_kind": issuance_kind,
+                "experimental": bool(experimental.get("experimental")),
+            }
+        )
+
+    extent = {
+        "west": min(row["bounds"]["west"] for row in rows),
+        "south": min(row["bounds"]["south"] for row in rows),
+        "east": max(row["bounds"]["east"] for row in rows),
+        "north": max(row["bounds"]["north"] for row in rows),
+    }
+    highest = max(rows, key=lambda row: row["probability"])
+    return {
+        **base,
+        "cells": rows,
+        "extent": extent,
+        "highest_square": {
+            "cell_id": highest["cell_id"],
+            "probability_percent": highest["probability_percent"],
+        },
+        "reason": None,
+        "note": (
+            "Each shade is a backend square prediction on a fixed 0–100% scale. "
+            "Colors are interpolated only for display; no polygon-wide probability is calculated."
         ),
     }
 
