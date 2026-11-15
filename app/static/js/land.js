@@ -6,7 +6,8 @@ const hotspotSearches = new Map();
 function syncHotspotSearchProgress() {
   const loading = hotspotSearches.size > 0;
   document.querySelector("#hotspot-search-progress").hidden = !loading;
-  document.querySelector("#land-summary .activity").setAttribute("aria-busy", String(loading));
+  // The activity answer card; optional so a markup change cannot stop a land check.
+  document.querySelector("#land-summary .activity-answer")?.setAttribute("aria-busy", String(loading));
 }
 
 function beginHotspotSearch(scope) {
