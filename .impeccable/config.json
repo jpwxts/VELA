@@ -56,6 +56,15 @@
         ],
         "createdAt": "2026-11-14T15:40:47.300Z",
         "reason": "Agent: indeterminate progress bar shown only while a hotspot search request is in flight, not scrolling content; reduced motion parks it"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "app/static/index.html"
+        ],
+        "createdAt": "2026-11-15T07:43:45.513Z",
+        "reason": "Agent (Claude, 2026-11-15): the only element firing is .readings-table-wrap, a padding-free scroll container (sticky header, full-bleed row rules) whose cells carry the inset. Measured in Chrome: text 8/8/8/8.2px from the border in both tables. The static scan cannot see cell padding."
       }
     ]
   }

@@ -95,6 +95,8 @@ def attach_heat_overlay(
             day["heat_status"] = "readings"
             day["heat_count"] = count
             day["heat_source"] = heat.get("source")
+            if heat.get("platforms"):
+                day["heat_platforms"] = sorted({str(name) for name in heat["platforms"] if name})
         elif queried:
             day["heat_status"] = "checked_empty"
             day["heat_count"] = 0

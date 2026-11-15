@@ -441,6 +441,9 @@ function renderObservationCalendar() {
   const today = todayIso();
   const payload = currentMonthHistory();
   const daily = new Map((payload?.days || []).map((day) => [day.date, day]));
+  // Heat-only days shade by their share of this month's busiest day.
+  const heatPeak = Math.max(1, ...(payload?.days || []).map((day) => (
+    day.heat_status === "readings" ? Number(day.heat_count) || 0 : 0)));
   const hotspotDays = new Map((state.hotspotMonth?.days || []).map((day) => [day.date, day]));
   const forecastMode = Boolean(state.hotspotMonthCellId && state.hotspotMonth?.days?.length);
   if (state.hotspotMonthCellId && state.hotspotMonth?.year_month !== state.calendarMonth) {
@@ -508,7 +511,8 @@ function renderObservationCalendar() {
     const label = `${formatObservationDay(iso)}${notes.length ? `, ${notes.join(", ")}` : ""}`;
     cells.push(
       `<button type="button" class="${classes.join(" ")}" data-day="${iso}" aria-label="${escapeHtml(label)}"`
-      + ` aria-pressed="${iso === selected}" style="--activity-strength:${available ? 10 + Math.min(1, Math.max(0, rate)) * 28 : 0}%"`
+      + ` aria-pressed="${iso === selected}" style="--activity-strength:${available ? 10 + Math.min(1, Math.max(0, rate)) * 28 : 0}%;`
+      + `--heat-strength:${record?.heat_status === "readings" ? Math.round(14 + ((Number(record.heat_count) || 0) / heatPeak) * 46) : 0}%"`
       + `${disabled ? " disabled" : ""}><span>${day}</span><span class="cal-day-rate">${rateText}</span></button>`
     );
   }
@@ -572,6 +576,8 @@ function historyHotspotForDay(iso) {
   return (state.hotspotMonth?.days || []).find((entry) => entry.date === iso) || null;
 }
 
+// Each series returns raw values (a count, or a 0–1 share) so the axis, average,
+// peak and table all read the same numbers.
 function historyChartSeries(rows, annual) {
   const hasActivity = rows.some((row) => typeof row.activity_rate === "number" && Number.isFinite(row.activity_rate));
   if (hasActivity) {
@@ -580,7 +586,10 @@ function historyChartSeries(rows, annual) {
       title: "Burning activity history",
       valueOf: (row) => (Number.isFinite(row.activity_rate) ? row.activity_rate : null),
       format: (value) => historyPercent(value),
+      axisFormat: (value) => `${Math.round(value * 100)}%`,
+      valueHeading: "Burning activity",
       empty: "No burning-activity estimates for this period",
+      percent: true,
     };
   }
   const forecastMode = !annual && Boolean(state.hotspotMonthCellId && state.hotspotMonth?.days?.length);
@@ -597,20 +606,27 @@ function historyChartSeries(rows, annual) {
         return hotspot?.probability_percent != null ? hotspot.probability_percent / 100 : null;
       },
       format: (value) => `${Math.round(value * 100)}%`,
+      axisFormat: (value) => `${Math.round(value * 100)}%`,
+      valueHeading: "Hotspot chance",
       empty: "No hotspot forecasts for this period",
+      percent: true,
     };
   }
   const hasHeat = !annual && rows.some((row) => row.heat_status === "readings" && (row.heat_count || 0) > 0);
   if (hasHeat) {
-    const peak = Math.max(1, ...rows.map((row) => Number(row.heat_count) || 0));
     return {
       kind: "heat",
       title: "Satellite heat readings",
-      valueOf: (row) => (row.heat_status === "readings" ? (Number(row.heat_count) || 0) / peak : null),
-      format: (value) => `${Math.round(value * peak)}`,
+      // Checked-and-empty is a measured zero only when coverage was observed; an empty
+      // FIRMS answer with unknown coverage stays a gap, never an inferred zero.
+      valueOf: (row) => (row.heat_status === "readings"
+        ? (Number(row.heat_count) || 0)
+        : row.heat_status === "checked_empty" && row.heat_coverage === "observed" ? 0 : null),
+      format: (value) => `${Math.round(value)} reading${Math.round(value) === 1 ? "" : "s"}`,
+      axisFormat: (value) => (value >= 1000 ? `${(value / 1000).toFixed(value >= 10000 ? 0 : 1)}K` : `${value}`),
+      valueHeading: "Heat readings",
       empty: "No heat readings for this period",
-      axisIsCount: true,
-      axisPeak: peak,
+      count: true,
     };
   }
   return {
@@ -618,13 +634,142 @@ function historyChartSeries(rows, annual) {
     title: "Burning activity history",
     valueOf: () => null,
     format: () => "—",
+    axisFormat: (value) => `${Math.round(value * 100)}%`,
+    valueHeading: "Value",
     empty: state.historyLoading ? "Loading history…" : state.historyError ? "Could not load history" : "No estimates for this period",
+    percent: true,
   };
+}
+
+// Round axis maxima to 1 / 2 / 2.5 / 5 × 10ⁿ so tick labels stay clean.
+function historyNiceAxis(maximum, { count = false, percent = false } = {}) {
+  if (!(maximum > 0)) return { top: percent ? 0.1 : 4, step: percent ? 0.05 : 1 };
+  const raw = maximum / 4;
+  const power = 10 ** Math.floor(Math.log10(raw));
+  const unit = raw / power;
+  let step = (unit <= 1 ? 1 : unit <= 2 ? 2 : unit <= 2.5 ? 2.5 : unit <= 5 ? 5 : 10) * power;
+  if (count) step = Math.max(1, Math.ceil(step));
+  if (percent) step = Math.max(0.01, step);
+  let top = Math.ceil(maximum / step - 1e-9) * step;
+  if (percent) top = Math.min(1, top);
+  return { top: Math.max(step, top), step };
+}
+
+// Column path: square at the baseline, 4px rounded data end.
+function historyColumnPath(x, bottom, width, height) {
+  const radius = Math.min(4, width / 2, height);
+  const top = bottom - height;
+  return `M${x},${bottom}V${top + radius}Q${x},${top} ${x + radius},${top}`
+    + `H${x + width - radius}Q${x + width},${top} ${x + width},${top + radius}V${bottom}Z`;
+}
+
+function historyRowLabel(key, annual) {
+  return annual ? monthLabel(`${key}-01`) : formatObservationDay(key);
+}
+
+// Totals, averages and peaks the chart draws from: computed once, shown as tiles,
+// as the average line, as the peak label, and in the data table.
+function historyChartStats(series, rows, annual) {
+  const today = todayIso();
+  const keyOf = (row) => (annual ? row.month : row.date);
+  const elapsed = rows.filter((row) => (annual ? keyOf(row) <= today.slice(0, 7) : keyOf(row) <= today));
+  const points = elapsed
+    .map((row) => ({ row, key: keyOf(row), value: series.valueOf(row) }))
+    .filter((point) => typeof point.value === "number" && Number.isFinite(point.value));
+  if (!points.length) return { points, elapsed: elapsed.length, count: 0 };
+  const values = points.map((point) => point.value);
+  const total = values.reduce((sum, value) => sum + value, 0);
+  const peak = points.reduce((best, point) => (point.value > best.value ? point : best), points[0]);
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  const median = sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+  // Second half against first half of the observed points: a direction, not a forecast.
+  let trend = null;
+  if (points.length >= 4) {
+    const half = Math.floor(points.length / 2);
+    const early = points.slice(0, half).reduce((sum, point) => sum + point.value, 0) / half;
+    const late = points.slice(points.length - half).reduce((sum, point) => sum + point.value, 0) / half;
+    trend = { early, late };
+  }
+  return {
+    points,
+    elapsed: elapsed.length,
+    count: points.length,
+    total,
+    mean: total / points.length,
+    median,
+    peak,
+    trend,
+  };
+}
+
+function historyTrendWords(series, trend) {
+  if (!trend) return null;
+  const { early, late } = trend;
+  if (early === 0 && late === 0) return "Flat";
+  if (early === 0) return "Rising from zero";
+  const change = (late - early) / early;
+  if (Math.abs(change) < 0.1) return "About level";
+  const size = `${Math.round(Math.abs(change) * 100)}%`;
+  return change > 0 ? `Up ${size}` : `Down ${size}`;
+}
+
+function renderHistoryChartStats(series, stats, annual) {
+  const host = document.querySelector("#history-chart-stats");
+  if (!host) return;
+  if (!stats.count) {
+    host.innerHTML = "";
+    host.hidden = true;
+    return;
+  }
+  const unit = annual ? "month" : "day";
+  const tile = (label, value, sub) => `<div><dt>${escapeHtml(label)}</dt><dd><strong>${escapeHtml(value)}</strong>${
+    sub ? `<span>${escapeHtml(sub)}</span>` : ""}</dd></div>`;
+  const peakWhen = annual
+    ? new Intl.DateTimeFormat("en-GB", { month: "long", timeZone: "UTC" }).format(new Date(`${stats.peak.key}-01T00:00:00Z`))
+    : formatObservationDay(stats.peak.key);
+  const trend = historyTrendWords(series, stats.trend);
+  const tiles = [];
+  if (series.kind === "heat") {
+    tiles.push(tile("Total readings", stats.total.toLocaleString("en-GB"), `${stats.count} of ${stats.elapsed} ${unit}s with heat`));
+    tiles.push(tile("Peak day", `${Math.round(stats.peak.value)}`, peakWhen));
+    tiles.push(tile("Average", stats.mean.toFixed(1), `per heat ${unit} · median ${stats.median}`));
+  } else {
+    tiles.push(tile("Average", series.format(stats.mean), `${stats.count} of ${stats.elapsed} ${unit}s with ${series.kind === "hotspot" ? "forecasts" : "estimates"}`));
+    tiles.push(tile(`Peak ${unit}`, series.format(stats.peak.value), peakWhen));
+    tiles.push(tile("Median", series.format(stats.median), `across ${stats.count} ${unit}${stats.count === 1 ? "" : "s"}`));
+  }
+  tiles.push(tile("Trend", trend || "Too few points", trend ? `later vs earlier ${unit}s` : "Needs 4 or more"));
+  host.innerHTML = tiles.join("");
+  host.hidden = false;
+}
+
+function renderHistoryChartTable(series, rows, annual) {
+  const body = document.querySelector("#history-chart-data-rows");
+  const details = document.querySelector("#history-chart-data");
+  if (!body || !details) return;
+  const today = todayIso();
+  const keyOf = (row) => (annual ? row.month : row.date);
+  const listed = rows.filter((row) => (annual ? keyOf(row) <= today.slice(0, 7) : keyOf(row) <= today));
+  document.querySelector("#history-chart-data-period").textContent = annual ? "Month" : "Day";
+  document.querySelector("#history-chart-data-value").textContent = series.valueHeading;
+  details.hidden = series.kind === "empty" || !listed.length;
+  body.innerHTML = listed.map((row) => {
+    const value = series.valueOf(row);
+    const available = typeof value === "number" && Number.isFinite(value);
+    const status = series.kind === "heat"
+      ? (row.heat_area_count ? `${row.heat_area_count} squares` : (available ? "" : "No readings stored"))
+      : historyStatusWords(row.activity_status, row);
+    return `<tr><td>${escapeHtml(historyRowLabel(keyOf(row), annual))}</td>`
+      + `<td class="num">${available ? escapeHtml(series.format(value)) : "—"}</td>`
+      + `<td>${escapeHtml(status || "")}</td></tr>`;
+  }).join("");
 }
 
 function renderHistoryChart() {
   const svg = document.querySelector("#history-chart");
   if (!svg) return;
+  hideHistoryChartTip();
   const payload = currentMonthHistory();
   const annual = document.querySelector("#history-chart-range").value === "year";
   const selectedMonth = state.calendarMonth || todayIso().slice(0, 7);
@@ -635,6 +780,7 @@ function renderHistoryChart() {
   const monthName = new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })
     .format(new Date(Date.UTC(year, month - 1, 1)));
   const series = historyChartSeries(rows, annual);
+  state.historyChart = { series, rows, annual };
   const titleNode = document.querySelector("#history-chart-title");
   if (titleNode) titleNode.textContent = series.title;
   document.querySelector("#history-chart-caption").textContent = annual
@@ -642,67 +788,151 @@ function renderHistoryChart() {
     : series.kind === "hotspot"
       ? `Daily hotspot chance for square ${state.hotspotMonthCellId} in ${monthName}. Not burning activity.`
       : series.kind === "heat"
-        ? `Daily satellite heat readings in ${monthName}. Burning-activity estimates are not processed for these days.`
+        ? `Satellite heat readings inside this land each day of ${monthName}. Select a bar to see that day.`
         : `Daily burning activity in ${monthName}. Select a bar to see that day.`;
   const description = document.querySelector("#history-chart-description");
   if (description) {
     description.textContent = series.kind === "hotspot"
       ? ""
       : series.kind === "heat"
-        ? "Bars are heat-reading counts. Empty activity cells mean the estimate pipeline has not processed this land/date yet."
+        ? "Each bar counts the individual satellite detections stored for that Philippine day. Burning-activity estimates are not processed for these days yet."
         : "Percentages use observed grid squares with usable estimates. Empty periods have no estimate.";
     description.hidden = !description.textContent;
   }
+
+  const stats = historyChartStats(series, rows, annual);
+  renderHistoryChartStats(series, stats, annual);
+  renderHistoryChartTable(series, rows, annual);
+
   const left = 34;
-  const bottom = 154;
-  const height = 126;
-  const width = 292;
-  const band = width / rows.length;
-  const highest = Math.max(0, ...rows.map((row) => {
-    const value = series.valueOf(row);
-    return value == null ? 0 : value;
-  }));
-  const axisMaximum = series.axisIsCount
-    ? 1
-    : Math.min(1, Math.max(0.1, Math.ceil(highest * 10) / 10));
+  const right = 328;
+  const top = 26;
+  const bottom = 166;
+  const height = bottom - top;
+  const band = (right - left) / rows.length;
+  // 2px surface gap between neighbours; never wider than 24px.
+  const barWidth = Math.max(2, Math.min(24, band - 2));
+  const axis = historyNiceAxis(stats.count ? stats.peak.value : 0, { count: series.count, percent: series.percent });
+  const yOf = (value) => bottom - (Math.max(0, value) / axis.top) * height;
+  const today = todayIso();
   const parts = [];
-  for (const fraction of [0, 0.5, 1]) {
-    const y = bottom - height * fraction;
-    const axisLabel = series.axisIsCount
-      ? String(Math.round(fraction * (series.axisPeak || 1)))
-      : `${(fraction * axisMaximum * 100).toFixed(0)}%`;
-    parts.push(`<line class="history-chart-grid" x1="${left}" y1="${y}" x2="326" y2="${y}"/>`
-      + `<text class="history-chart-axis" x="28" y="${y + 3}" text-anchor="end">${axisLabel}</text>`);
+
+  for (let tick = 0; tick <= axis.top + 1e-9; tick += axis.step) {
+    const y = yOf(tick);
+    parts.push(`<line class="history-chart-grid${tick === 0 ? " baseline" : ""}" x1="${left}" y1="${y}" x2="${right}" y2="${y}"/>`
+      + `<text class="history-chart-axis" x="${left - 6}" y="${y + 3}" text-anchor="end">${escapeHtml(series.axisFormat(Number(tick.toFixed(4))))}</text>`);
   }
+
   rows.forEach((row, index) => {
     const key = annual ? row.month : row.date;
-    const future = annual ? key > todayIso().slice(0, 7) : key > todayIso();
+    const future = annual ? key > today.slice(0, 7) : key > today;
+    const isToday = !annual && key === today;
     const value = series.valueOf(row);
     const available = typeof value === "number" && Number.isFinite(value);
     const x = left + index * band;
-    const barWidth = Math.max(3, band - (annual ? 7 : 3));
-    const barHeight = available ? Math.max(2, Math.min(1, Math.max(0, value) / axisMaximum) * height) : 0;
+    const barX = x + (band - barWidth) / 2;
     const selected = annual ? key === selectedMonth : key === (state.historyDay || dayInput.value);
-    const label = annual ? new Intl.DateTimeFormat("en-GB", { month: "short", timeZone: "UTC" })
-      .format(new Date(`${key}-01T00:00:00Z`)) : String(index + 1);
-    const hotspot = annual ? null : historyHotspotForDay(key);
-    const words = available
-      ? series.format(value)
-      : historyStatusWords(row.activity_status, row);
-    const descriptionText = `${annual ? monthLabel(`${key}-01`) : formatObservationDay(key)}: ${words}`;
-    const attributes = future ? "" : `role="button" tabindex="0" data-history-${annual ? "month" : "day"}="${key}" aria-label="${escapeHtml(descriptionText)}"`;
-    parts.push(`<g class="history-chart-bar${selected ? " selected" : ""}${row.activity_status === "partial" ? " partial" : ""}${series.kind === "hotspot" ? " forecast" : ""}" ${attributes}>
-      <title>${escapeHtml(descriptionText)}</title>
-      <rect class="history-chart-hit" x="${x}" y="20" width="${band}" height="138"/>
-      ${available ? `<rect class="history-chart-value${value === 0 ? " zero" : ""}${series.kind === "hotspot" ? " hotspot" : ""}${series.kind === "heat" ? " heat" : ""}" x="${x + (band - barWidth) / 2}" y="${bottom - barHeight}" width="${barWidth}" height="${barHeight}" rx="1"/>`
-        : ""}
-      ${annual || index === 0 || (index + 1) % 5 === 0 || index === rows.length - 1 ? `<text class="history-chart-axis" x="${x + band / 2}" y="172" text-anchor="middle">${label}</text>` : ""}
+    const isPeak = stats.count && stats.peak.key === key;
+    const label = annual
+      ? new Intl.DateTimeFormat("en-GB", { month: "narrow", timeZone: "UTC" }).format(new Date(`${key}-01T00:00:00Z`))
+      : String(index + 1);
+    const words = available ? series.format(value) : historyStatusWords(row.activity_status, row);
+    const descriptionText = `${historyRowLabel(key, annual)}: ${words}`;
+    const attributes = future
+      ? `data-history-index="${index}"`
+      : `role="button" tabindex="0" data-history-index="${index}" data-history-${annual ? "month" : "day"}="${key}" aria-label="${escapeHtml(descriptionText)}"`;
+    let mark = "";
+    if (available && value > 0) {
+      const barHeight = Math.max(2, bottom - yOf(value));
+      mark = `<path class="history-chart-value ${series.kind}" d="${historyColumnPath(barX, bottom, barWidth, barHeight)}"/>`;
+    } else if (available) {
+      // A measured zero: a hairline on the baseline, distinct from a missing day.
+      mark = `<rect class="history-chart-value zero" x="${barX}" y="${bottom - 1.5}" width="${barWidth}" height="1.5"/>`;
+    } else if (!future) {
+      mark = `<circle class="history-chart-missing" cx="${x + band / 2}" cy="${bottom - 2}" r="1"/>`;
+    }
+    const showLabel = annual || index === 0 || (index + 1) % 5 === 0 || index === rows.length - 1 || selected || isToday;
+    parts.push(`<g class="history-chart-bar${selected ? " selected" : ""}${future ? " future" : ""}${row.activity_status === "partial" ? " partial" : ""}" ${attributes}>
+      <rect class="history-chart-hit" x="${x}" y="${top - 8}" width="${band}" height="${bottom - top + 26}"/>
+      ${mark}
+      ${showLabel ? `<text class="history-chart-axis${selected ? " selected" : ""}${isToday ? " today" : ""}" x="${x + band / 2}" y="${bottom + 13}" text-anchor="middle">${escapeHtml(label)}</text>` : ""}
     </g>`);
+    if (isPeak && value > 0) {
+      const peakX = Math.min(right - 8, Math.max(left + 8, x + band / 2));
+      parts.push(`<text class="history-chart-peak" x="${peakX}" y="${yOf(value) - 5}" text-anchor="middle">${escapeHtml(series.kind === "heat" ? String(Math.round(value)) : series.format(value))}</text>`);
+    }
   });
-  if (!rows.some((row) => series.valueOf(row) != null)) {
-    parts.push(`<text class="history-chart-empty" x="184" y="91" text-anchor="middle">${escapeHtml(series.empty)}</text>`);
+
+  // Average reference line across observed periods.
+  if (stats.count >= 2 && stats.mean > 0) {
+    const y = yOf(stats.mean);
+    const text = `avg ${series.kind === "heat" ? stats.mean.toFixed(1) : series.format(stats.mean)}`;
+    parts.push(`<line class="history-chart-mean" x1="${left}" y1="${y}" x2="${right}" y2="${y}"/>`
+      + `<text class="history-chart-mean-label" x="${right}" y="${y - 4}" text-anchor="end">${escapeHtml(text)}</text>`);
+  }
+
+  if (!stats.count) {
+    parts.push(`<text class="history-chart-empty" x="${(left + right) / 2}" y="${(top + bottom) / 2}" text-anchor="middle">${escapeHtml(series.empty)}</text>`);
   }
   svg.innerHTML = parts.join("");
+  const key = document.querySelector("#history-chart-key");
+  if (key) {
+    key.hidden = !stats.count;
+    key.innerHTML = stats.count
+      ? `<span class="key-swatch ${series.kind}"></span>${escapeHtml(series.valueHeading)}`
+        + (stats.count >= 2 ? `<span class="key-line"></span>Average` : "")
+        + `<span class="key-dot-missing"></span>No data`
+      : "";
+  }
+}
+
+function hideHistoryChartTip() {
+  const tip = document.querySelector("#history-chart-tip");
+  if (tip) tip.hidden = true;
+}
+
+function showHistoryChartTip(group) {
+  const tip = document.querySelector("#history-chart-tip");
+  const frame = document.querySelector("#history-chart-frame");
+  const chart = state.historyChart;
+  if (!tip || !frame || !chart) return;
+  const row = chart.rows[Number(group.dataset.historyIndex)];
+  if (!row) return;
+  const key = chart.annual ? row.month : row.date;
+  const value = chart.series.valueOf(row);
+  const available = typeof value === "number" && Number.isFinite(value);
+  const future = chart.annual ? key > todayIso().slice(0, 7) : key > todayIso();
+  tip.replaceChildren();
+  const line = (text, className) => {
+    if (!text) return;
+    const node = document.createElement("p");
+    if (className) node.className = className;
+    node.textContent = text;
+    tip.append(node);
+  };
+  line(available ? chart.series.format(value) : future ? "Not yet" : "No data", "tip-value");
+  line(historyRowLabel(key, chart.annual), "tip-label");
+  if (chart.series.kind === "heat" && available) {
+    line([
+      row.heat_area_count ? `${row.heat_area_count} squares with heat` : null,
+      (row.heat_platforms || row.platforms || []).length ? joinPlatformNames(row.heat_platforms || row.platforms) : null,
+    ].filter(Boolean).join(" · "));
+  } else if (!available && !future) {
+    line(historyStatusWords(row.activity_status, row));
+  } else if (row.activity_status === "partial") {
+    line("Partial estimate");
+  }
+  if (!future) line(chart.annual ? "Select to open this month" : "Select to see this day", "tip-note");
+  tip.hidden = false;
+  const frameBox = frame.getBoundingClientRect();
+  const markBox = (group.querySelector(".history-chart-value") || group.querySelector(".history-chart-hit")).getBoundingClientRect();
+  const tipBox = tip.getBoundingClientRect();
+  let leftPx = markBox.left - frameBox.left + markBox.width / 2 - tipBox.width / 2;
+  leftPx = Math.max(0, Math.min(frameBox.width - tipBox.width, leftPx));
+  let topPx = markBox.top - frameBox.top - tipBox.height - 8;
+  if (topPx < 0) topPx = 0;
+  tip.style.left = `${leftPx}px`;
+  tip.style.top = `${topPx}px`;
 }
 
 function openForecastDay(iso) {
@@ -804,6 +1034,17 @@ document.querySelector("#history-year")?.addEventListener("change", chooseHistor
 document.querySelector("#history-retry")?.addEventListener("click", () => loadMonthlyHistory({ retry: true }));
 document.querySelector("#history-chart-range")?.addEventListener("change", renderHistoryChart);
 document.querySelector("#history-chart")?.addEventListener("click", chooseHistoryChartItem);
+document.querySelector("#history-chart")?.addEventListener("pointermove", (event) => {
+  const group = event.target.closest("[data-history-index]");
+  if (group) showHistoryChartTip(group);
+  else hideHistoryChartTip();
+});
+document.querySelector("#history-chart")?.addEventListener("pointerleave", hideHistoryChartTip);
+document.querySelector("#history-chart")?.addEventListener("focusin", (event) => {
+  const group = event.target.closest("[data-history-index]");
+  if (group) showHistoryChartTip(group);
+});
+document.querySelector("#history-chart")?.addEventListener("focusout", hideHistoryChartTip);
 
 document.querySelector("#history-chart")?.addEventListener("keydown", (event) => {
   if (event.key !== "Enter" && event.key !== " ") return;

@@ -95,7 +95,10 @@ def parse_hotspots(text: str) -> list[dict]:
             continue
         satellite = str(row.get("satellite", "")).strip()
         instrument = str(row.get("instrument", "")).strip() or "unknown"
+        # The detection channel (MODIS 4 µm / VIIRS I4) and its background channel
+        # (MODIS 11 µm / VIIRS I5). Each pixel keeps its own values.
         brightness = row.get("brightness", row.get("bright_ti4", ""))
+        background = row.get("bright_t31", row.get("bright_ti5", ""))
         hotspots.append(
             {
                 "lat": float(row["latitude"]),
@@ -110,6 +113,9 @@ def parse_hotspots(text: str) -> list[dict]:
                 "frp": _float(row.get("frp", "")),
                 "daynight": str(row.get("daynight", "")).strip(),
                 "brightness": _float(brightness),
+                "bright_2": _float(background),
+                "scan": _float(row.get("scan", "")),
+                "track": _float(row.get("track", "")),
                 "version": str(row.get("version", "")).strip(),
             }
         )

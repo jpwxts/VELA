@@ -41,12 +41,9 @@
   color: var(--ink-soft);
 }
 
-.outlook-measures { display: grid; gap: 6px; font-size: 0.875rem; }
-.outlook-measures li { padding-bottom: 6px; border-bottom: 1px solid var(--line); }
-.outlook-measures li:last-child { border-bottom: 0; }
+/* Loading, empty and error lines only: blank lines take no space, and the block
+   disappears once an outlook has loaded. */
+.outlook-summary > p:empty { display: none; }
+.outlook-summary:not(:has(> p:not(:empty))):not(:has(> #weather-retry:not([hidden]))) { display: none; }
 
-.why-this-day { margin-top: 20px; }
-.why-this-day > * + * { margin-top: 8px; }
-.why-this-day ul { display: grid; gap: 4px; padding-left: 18px; list-style: disc; font-size: 0.875rem; color: var(--ink-soft); }
 
-#weather-meta-body { display: grid; gap: 6px; font-size: 0.875rem; }

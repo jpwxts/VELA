@@ -220,6 +220,8 @@ function revealCellDetail(bounds, marks = [], heat = null) {
     ring: [[west, south], [east, south], [east, north], [west, north], [west, south]],
     box: [west, south, east, north],
     marks,
+    // Only this square's own detections: never the whole land's readings.
+    readings: heat?.readings || [],
   };
   clearHotspotDetailSearches();
   document.querySelector("#cell-detail").hidden = true;
@@ -232,6 +234,7 @@ function revealCellDetail(bounds, marks = [], heat = null) {
   setSquareHeat(heat);
   document.querySelector(".card-body")?.scrollTo({ top: 0 });
   drawLandCutout([]);
+  renderHotspotReadings();
   trackHotspotSearch("activity", loadWeeklyActivity);
   trackHotspotSearch("outlook", loadDayOutlook);
 }
@@ -589,7 +592,7 @@ async function showArea(area) {
   setPanelMode("detected");
   revealCellDetail(matched.bounds || squareAround(matched.center_lat, matched.center_lon), [
     { lat: matched.center_lat, lon: matched.center_lon, multi: Boolean(matched.multiple_satellites) },
-  ], { state: "seen", platforms: matched.platforms || [] });
+  ], { state: "seen", platforms: matched.platforms || [], readings: matched.members || [] });
   // Defer pan until the panel is laid out so width/height are accurate.
   requestAnimationFrame(() => panSelectionClearOfPanel(matched));
   const members = matched.members || [];
@@ -870,7 +873,7 @@ function showDetection(spot) {
   state.detailRequestId += 1;
   clearHotspotSearches("square");
   revealCellDetail(squareAround(Number(spot.lat), Number(spot.lon)), [{ lat: Number(spot.lat), lon: Number(spot.lon) }],
-    { state: "seen", platforms: [spot.platform] });
+    { state: "seen", platforms: [spot.platform], readings: [spot] });
   const place = spot.place_name || spot.place_or_coordinates
     || (spot.lat != null && spot.lon != null ? `${Number(spot.lat).toFixed(5)}, ${Number(spot.lon).toFixed(5)}` : "Location unavailable");
   const localStamp = spot.acq_date_ph && spot.acq_time_ph
@@ -920,7 +923,7 @@ function showDetectionStack(spots) {
   const first = spots[0];
   revealCellDetail(squareAround(Number(first.lat), Number(first.lon)), [
     { lat: Number(first.lat), lon: Number(first.lon), multi: spots.length > 1 },
-  ], { state: "seen", platforms: spots.map((spot) => spot.platform) });
+  ], { state: "seen", platforms: spots.map((spot) => spot.platform), readings: spots });
   document.querySelector("#area-sentence").textContent =
     `${spots.length} satellite readings overlap at this location.`;
   beginPlaceLookup({ mode: "point", lat: first.lat, lon: first.lon });

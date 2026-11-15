@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="/static/css/summary.css">
   <link rel="stylesheet" href="/static/css/burn.css">
   <link rel="stylesheet" href="/static/css/history.css">
+  <link rel="stylesheet" href="/static/css/charts.css">
   <link rel="stylesheet" href="/static/css/weather.css">
   <link rel="stylesheet" href="/static/css/responsive.css">
 </head>
@@ -144,6 +145,30 @@
                 <p id="activity-note" class="quiet"></p>
               </div>
 
+              <section id="hotspot-readings" class="sub-block hotspot-readings" aria-labelledby="hotspot-readings-title" hidden>
+                <h4 id="hotspot-readings-title" class="block-heading">Hotspot readings</h4>
+                <details id="hotspot-readings-table" class="fold readings-table">
+                  <summary id="hotspot-readings-table-summary">Every hotspot</summary>
+                  <div class="readings-table-wrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th scope="col">Satellite · time</th>
+                          <th class="num" scope="col"><abbr title="Satellite pixel brightness temperature">Pixel °C</abbr></th>
+                          <th class="num" scope="col"><abbr title="Fire radiative power, megawatts">FRP</abbr></th>
+                          <th scope="col">Conf.</th>
+                          <th class="num" scope="col"><abbr title="Air temperature at this hotspot, at the pass hour">Air °C</abbr></th>
+                          <th class="num" scope="col"><abbr title="Relative humidity at this hotspot, at the pass hour">RH %</abbr></th>
+                          <th class="num" scope="col"><abbr title="Wind speed at this hotspot, at the pass hour, km/h">Wind</abbr></th>
+                        </tr>
+                      </thead>
+                      <tbody id="hotspot-readings-rows"></tbody>
+                    </table>
+                  </div>
+                  <p id="hotspot-readings-conditions-note" class="quiet"></p>
+                </details>
+              </section>
+
               <section id="hotspot-forecast-block" class="sub-block" aria-live="polite">
                 <h4 class="block-heading">Satellite heat forecast (next 24 hours)</h4>
                 <p id="hotspot-forecast-label" class="reading-label">Chance satellites record a hotspot in this square in the next 24 hours.</p>
@@ -152,7 +177,7 @@
               </section>
 
               <div class="hours">
-                <h4 id="hours-title">Today at this land</h4>
+                <h4 id="hours-title">Today near the center of this land</h4>
                 <div class="hours-frame">
                   <button type="button" id="hours-prev" class="hours-nav prev" aria-label="Earlier hours">
                     <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 5 7 10l5 5"/></svg>
@@ -370,7 +395,8 @@
               <ul id="history-activity-key" class="history-key" aria-label="Burning activity calendar legend">
                 <li><span class="history-swatch active" aria-hidden="true"></span>Estimated burning activity</li>
                 <li><span class="history-swatch zero" aria-hidden="true"></span>Usable zero estimate</li>
-                <li><span class="history-swatch missing" aria-hidden="true"></span>Satellite heat readings / unchecked / gap</li>
+                <li><span class="history-swatch heat-scale" aria-hidden="true"></span>Satellite heat readings · darker = more readings (number shown)</li>
+                <li><span class="history-swatch missing" aria-hidden="true"></span>Unchecked / gap</li>
               </ul>
               <ul id="history-forecast-key" class="history-key" aria-label="Hotspot forecast calendar legend" hidden>
                 <li><span class="history-swatch forecast-issued" aria-hidden="true"></span>Issued / reconstructed heat chance</li>
@@ -400,8 +426,22 @@
                   </select>
                 </div>
                 <p id="history-chart-caption" class="quiet"></p>
-                <svg id="history-chart" viewBox="0 0 336 192" role="group" aria-roledescription="bar chart" aria-labelledby="history-chart-title history-chart-description"></svg>
+                <dl id="history-chart-stats" class="chart-stats"></dl>
+                <div id="history-chart-frame" class="history-chart-frame">
+                  <svg id="history-chart" viewBox="0 0 336 200" role="group" aria-roledescription="bar chart" aria-labelledby="history-chart-title history-chart-description"></svg>
+                  <div id="history-chart-tip" class="chart-tip" role="status" hidden></div>
+                </div>
+                <p id="history-chart-key" class="chart-key" hidden></p>
                 <p id="history-chart-description" class="quiet">Percentages use observed grid squares with usable estimates. Empty periods have no estimate.</p>
+                <details id="history-chart-data" class="fold chart-data">
+                  <summary>Chart data</summary>
+                  <div class="readings-table-wrap">
+                    <table>
+                      <thead><tr><th scope="col" id="history-chart-data-period">Day</th><th class="num" scope="col" id="history-chart-data-value">Value</th><th scope="col">Status</th></tr></thead>
+                      <tbody id="history-chart-data-rows"></tbody>
+                    </table>
+                  </div>
+                </details>
               </section>
               <p id="history-availability" class="stamp"></p>
               <details class="fold">
@@ -453,26 +493,14 @@
               <p id="weather-fixture-banner" class="notice" hidden></p>
               <div id="weather-days" class="day-strip" role="group" aria-label="Forecast days"></div>
               <article id="weather-detail" class="day-detail" hidden></article>
-              <section id="why-this-day" class="why-this-day" hidden>
-                <h4>Why this day?</h4>
-                <p id="why-this-day-lead"></p>
-                <ul id="why-this-day-points"></ul>
-                <p id="why-this-day-missing" class="quiet"></p>
-              </section>
+              <!-- Loading, empty and error messages only; a loaded outlook leaves these blank. -->
               <div class="pane-block outlook-summary">
                 <p id="weather-headline" class="result-lead">Waiting for a selected plot.</p>
                 <p id="weather-explanation" class="quiet"></p>
                 <p id="weather-location" class="quiet">Confirm land to load a seven-day outlook near the center of your plot.</p>
                 <button type="button" id="weather-retry" class="filter-button" hidden>Retry forecast</button>
-                <p id="weather-coverage" class="quiet"></p>
                 <p id="weather-status" class="stamp"></p>
-                <p id="weather-date-note" class="stamp" hidden></p>
-                <p id="weather-regional-ref" class="quiet" hidden></p>
               </div>
-              <details id="weather-meta" class="fold">
-                <summary>Forecast details</summary>
-                <div id="weather-meta-body"></div>
-              </details>
             </section>
           </section>
 
@@ -495,6 +523,7 @@
   <script src="/static/js/square.js"></script>
   <script src="/static/js/history.js"></script>
   <script src="/static/js/summary.js"></script>
+  <script src="/static/js/readings.js"></script>
   <script src="/static/js/picture.js"></script>
   <script src="/static/js/examples.js"></script>
   <script src="/static/js/main.js"></script>

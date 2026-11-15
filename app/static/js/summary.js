@@ -22,6 +22,7 @@ function refreshLandSummary() {
   syncLandPicture();
   if (!hasLand) return;
   drawLandCutout(state.lastLandCheck?.heat?.hotspot_areas?.areas || []);
+  renderHotspotReadings();
   if (state.lastLandCheck) applyLandSummaryFromCheck(state.lastLandCheck);
   else trackHotspotSearch("activity", loadWeeklyActivity);
   renderLandForecast();
@@ -210,7 +211,10 @@ function applyLandActivity(activity) {
   const published = rate != null
     && (activity.activity_status === "complete" || activity.activity_status === "partial");
   const found = published && Number(rate) > 0;
-  const heatRows = heatDetectionRows();
+  // A square lists only its own detections; the land lists every detection inside it.
+  const heatRows = target.noun === "square"
+    ? heatDetectionRows({ inside: state.summarySquare?.readings || [] })
+    : heatDetectionRows();
   label.textContent = "Burning activity";
   value.classList.toggle("is-words", !found);
   value.classList.toggle("is-found", found);
@@ -243,10 +247,12 @@ function applyLandActivity(activity) {
     note.textContent = "This day has not happened yet in the Philippines.";
   } else {
     value.textContent = "No burning activity found";
+    // When heat was detected, the satellite chips above already say so; no extra note.
     note.textContent = heatRows.length
-      ? `No coverage-backed burning-activity estimate for this ${target.noun} yet. NASA heat was still detected by ${joinPlatformNames(heatRows.map((row) => row.platform))}.`
+      ? ""
       : `No burning activity was found for this ${target.noun} on ${formatObservationDay(dayInput.value)}.`;
   }
+  note.hidden = !note.textContent;
 }
 
 function applyLandSummaryFromCheck(payload) {
@@ -254,6 +260,7 @@ function applyLandSummaryFromCheck(payload) {
   state.activityRequestId += 1;
   clearHotspotSearches("activity");
   applyLandActivity(payload.activity);
+  renderHotspotReadings();
 }
 
 async function loadWeeklyActivity() {
@@ -325,7 +332,7 @@ async function loadDayOutlook() {
     return;
   }
   document.querySelector("#hours-strip").innerHTML = "";
-  document.querySelector("#hours-title").textContent = `Today at this ${target.noun}`;
+  document.querySelector("#hours-title").textContent = hoursTitle(target.noun);
   document.querySelector("#hours-note").hidden = false;
   document.querySelector("#hours-note").textContent = "Loading today’s temperature and wind…";
   let payload = null;
@@ -350,7 +357,7 @@ function renderDayOutlook(outlook) {
   const noun = summaryTarget().noun;
   if (!outlook || !outlook.ok || !(outlook.slots || []).length) {
     strip.innerHTML = "";
-    title.textContent = `Today at this ${noun}`;
+    title.textContent = hoursTitle(noun);
     note.hidden = false;
     note.textContent = "Today’s temperature and wind could not be loaded. Vela needs a connection to Open-Meteo for this.";
     updateHoursNav();
@@ -358,7 +365,7 @@ function renderDayOutlook(outlook) {
   }
   const step = outlook.step_hours || 3;
   const nowHour = outlook.now ? Number(String(outlook.now).slice(11, 13)) : null;
-  title.textContent = `Today at this ${noun} · ${formatShortForecastDay(outlook.date, "UTC")}`;
+  title.textContent = `${hoursTitle(noun)} · ${formatShortForecastDay(outlook.date, "UTC")}`;
   strip.innerHTML = outlook.slots.map((slot) => {
     const current = nowHour != null && nowHour >= slot.hour && nowHour < slot.hour + step;
     const icon = weatherIcon(slot.weather_code, slot.is_day);

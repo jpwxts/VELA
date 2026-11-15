@@ -1488,6 +1488,27 @@ def day_outlook(
     return build_day_outlook(lat, lon, request_bytes)
 
 
+class HotspotConditionPoint(BaseModel):
+    id: str | int | None = None
+    lat: float = Field(..., ge=-90, le=90)
+    lon: float = Field(..., ge=-180, le=180)
+    acq_date: str = Field(default="", max_length=32)
+    acq_time: str | None = Field(default=None, max_length=16)
+
+
+class HotspotConditionsRequest(BaseModel):
+    points: list[HotspotConditionPoint] = Field(..., min_length=1, max_length=200)
+
+
+@app.post("/api/hotspot-conditions")
+def hotspot_conditions(body: HotspotConditionsRequest):
+    """Air temperature, humidity and wind at each hotspot's own location and pass hour."""
+
+    from vela.hotspot_conditions import build_hotspot_conditions
+
+    return build_hotspot_conditions([point.model_dump() for point in body.points], request_bytes)
+
+
 @app.get("/api/preparedness/day")
 def preparedness_day(
     issue_id: str,

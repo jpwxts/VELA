@@ -652,9 +652,20 @@ def classify_detections(
             "acq_time_raw": spot.get("acq_time_raw") or spot.get("acq_time"),
             "confidence": spot.get("confidence"),
             "frp": spot.get("frp"),
+            # Each pixel's own reading: the brightness temperature that triggered the
+            # detection, its background channel, pixel size and day/night flag.
+            "brightness": spot.get("brightness"),
+            "bright_2": spot.get("bright_2"),
+            "daynight": spot.get("daynight"),
+            "instrument": spot.get("instrument"),
+            "scan": spot.get("scan"),
+            "track": spot.get("track"),
             "source": spot.get("source"),
             "distance_km": round(distance, 2),
         }
+        for key in ("acq_date_ph", "acq_time_ph", "place_name"):
+            if spot.get(key):
+                row[key] = spot[key]
         if _inside(lon, lat):
             row["relation"] = "inside"
             inside.append(row)
