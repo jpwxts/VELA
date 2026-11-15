@@ -53,9 +53,16 @@ function probabilityColour(value) {
   return lowerColour.map((channel, index) => Math.round(channel + (upperColour[index] - channel) * amount));
 }
 
+// A square's 5 km grid column and row: given directly, or read from its "x:y" cell id.
+function gridOf(cell) {
+  if (cell.grid_x != null && cell.grid_y != null) return [Number(cell.grid_x), Number(cell.grid_y)];
+  const [x, y] = String(cell.cell_id || "").split(":").map(Number);
+  return [x, y];
+}
+
 function probabilityCanvas(cells) {
-  const xs = cells.map((cell) => Number(cell.grid_x));
-  const ys = cells.map((cell) => Number(cell.grid_y));
+  const xs = cells.map((cell) => gridOf(cell)[0]);
+  const ys = cells.map((cell) => gridOf(cell)[1]);
   const minX = Math.min(...xs);
   const maxX = Math.max(...xs);
   const minY = Math.min(...ys);
@@ -70,7 +77,8 @@ function probabilityCanvas(cells) {
   cells.forEach((cell) => {
     const [red, green, blue] = probabilityColour(cell.probability);
     sourceContext.fillStyle = `rgb(${red} ${green} ${blue})`;
-    sourceContext.fillRect(Number(cell.grid_x) - minX, maxY - Number(cell.grid_y), 1, 1);
+    const [x, y] = gridOf(cell);
+    sourceContext.fillRect(x - minX, maxY - y, 1, 1);
   });
 
   // Upscale the prediction grid once with bilinear filtering. Cesium applies
@@ -170,27 +178,27 @@ async function loadProbabilityOverlay(issueDate) {
   if (!state.polygon || state.polygon.length < 4) return;
   const requestId = ++state.probabilityRequestId;
   clearProbabilitySurface(true);
-  // Off by default: the server is only asked while the legend switch is on.
-  if (!state.showProbability) return;
+  renderLandForecast(null);
+  // Always loaded: the card's land forecast reads it. The legend switch only decides
+  // whether the map is shaded.
   const finishSearch = beginHotspotSearch("probability");
   try {
     const response = await fetch("/api/hotspot-forecast/overlay", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        coordinates: state.polygon,
-        issue_date: issueDate || dayInput.value,
-        historical_simulation: Boolean(state.phToday && (issueDate || dayInput.value) < state.phToday),
-      }),
+      // "Next 24 hours" always starts now, whatever day is being viewed.
+      body: JSON.stringify({ coordinates: state.polygon }),
     });
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.detail || "Probability overlay failed");
     if (requestId !== state.probabilityRequestId) return;
     state.probabilityOverlay = payload;
     renderProbabilityOverlay(payload);
+    renderLandForecast(payload);
   } catch (_error) {
     if (requestId !== state.probabilityRequestId) return;
     clearProbabilitySurface(true);
+    renderLandForecast({ status: "unavailable", reason: "The forecast could not be loaded. Check your connection, then check your land again." });
   } finally {
     finishSearch();
   }

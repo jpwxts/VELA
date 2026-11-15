@@ -530,7 +530,7 @@ function renderObservationCalendar() {
   status.textContent = state.historyLoading ? "Loading burning activity…"
     : state.historyError ? "History could not be loaded. Please try again."
     : forecastMode
-      ? `${hotspotPublished} days with hotspot forecasts for square ${state.hotspotMonthCellId}`
+      ? `${hotspotPublished} ${hotspotPublished === 1 ? "day" : "days"} with hotspot forecasts for square ${state.hotspotMonthCellId}`
         + (upcomingCount ? ` · ${upcomingCount} upcoming` : "")
         + `. Chart plots hotspot chance when burning activity is unprocessed`
         + ` (activity estimates: ${published} / ${daysInMonth}).`

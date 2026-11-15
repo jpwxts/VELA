@@ -295,56 +295,44 @@ function setPanelMode(mode) {
   }
 }
 
+// How a next-24-hour estimate was made, in plain words.
+function forecastMethodLine(issue) {
+  const parts = [issue?.experimental === false ? "" : "Experimental"];
+  if (issue?.method?.kind === "historical_prior") {
+    parts.push("historical base rate, the same for every square");
+  } else if (issue?.model_version) {
+    const f1 = Number(issue?.evaluation?.test?.f1);
+    parts.push(`trained model${Number.isFinite(f1) && f1 > 0 ? ` (test F1 ${f1.toFixed(2)})` : ""}`);
+  }
+  const until = formatManilaTime(issue?.valid_interval?.end_manila);
+  if (until) parts.push(`valid until ${until}`);
+  return parts.filter(Boolean).join(" · ");
+}
+
+// Why the trained model was not used, when the base rate stood in for it.
+function forecastWhyLine(issue) {
+  if (issue?.method?.kind !== "historical_prior") return "";
+  return " The trained model needs seven days of measured satellite coverage here, which this computer does not have yet.";
+}
+
 function renderHotspotForecast(payload) {
   const value = document.querySelector("#hotspot-forecast-value");
   const meta = document.querySelector("#hotspot-forecast-meta");
   const label = document.querySelector("#hotspot-forecast-label");
   if (!value || !meta) return;
-  if (label) {
-    label.textContent = payload?.public_label
-      || "Chance satellites record a hotspot in this square in the next 24 hours.";
-  }
-  const stampBits = [
-    payload?.issue_time_manila ? `Issued ${payload.issue_time_manila}` : "",
-    payload?.model_version ? `Model ${payload.model_version}` : "",
-    payload?.study?.label || payload?.study?.id || "",
-  ].filter(Boolean);
+  if (label) label.textContent = "Chance satellites detect heat in this square in the next 24 hours.";
   if (payload?.status === "issued" && payload.probability_percent != null) {
     value.textContent = `${payload.probability_percent}%`;
     value.classList.remove("is-words");
-    meta.textContent = [
-      payload.experimental ? "Experimental score" : "Next-24-hour satellite hotspot chance",
-      ...stampBits,
-    ].filter(Boolean).join(" · ");
-  } else if (payload?.calendar_state === "upcoming" || payload?.status === "upcoming") {
-    value.textContent = "Upcoming";
-    value.classList.add("is-words");
-    meta.textContent = [
-      payload?.reason || "No issued percentage until that Philippine date.",
-      ...stampBits,
-    ].filter(Boolean).join(" · ");
+    meta.textContent = `${forecastMethodLine(payload)}.${forecastWhyLine(payload)}`;
   } else if (payload?.calendar_state === "unsupported_location" || payload?.status === "unsupported") {
-    value.textContent = "Not evaluated here";
+    value.textContent = "Not available here";
     value.classList.add("is-words");
-    meta.textContent = [
-      payload?.reason || "Outside the trained region — observed heat dots stay visible.",
-      ...stampBits,
-    ].filter(Boolean).join(" · ");
-  } else if (payload?.calendar_state === "coverage_status_only" || payload?.status === "coverage_status_only") {
-    value.textContent = "Coverage only";
-    value.classList.add("is-words");
-    meta.textContent = [
-      payload?.reason
-        || "Inside Mindanao; percentages wait for island-wide evaluation. Observed heat stays visible.",
-      ...stampBits,
-    ].filter(Boolean).join(" · ");
+    meta.textContent = payload?.reason || "Forecasts cover Philippine land only. Observed heat stays visible.";
   } else {
-    value.textContent = payload?.calendar_state === "insufficient_inputs" ? "Insufficient inputs" : "Not available";
+    value.textContent = "Not available";
     value.classList.add("is-words");
-    meta.textContent = [
-      payload?.reason || "No approved model score for this square and date. Observed heat stays visible.",
-      ...stampBits,
-    ].filter(Boolean).join(" · ");
+    meta.textContent = payload?.reason || "No forecast could be issued for this square. Observed heat stays visible.";
   }
   meta.hidden = !meta.textContent;
   if (payload?.cell_id && typeof loadHotspotMonthForSquare === "function") {
@@ -352,7 +340,45 @@ function renderHotspotForecast(payload) {
   }
 }
 
-async function loadHotspotForecast(cellId, issueDate) {
+// The land's forecast: every square's own estimate, summarised (never one chance for the land).
+function renderLandForecast(overlay = state.probabilityOverlay) {
+  if (state.summarySquare) return;
+  const value = document.querySelector("#hotspot-forecast-value");
+  const meta = document.querySelector("#hotspot-forecast-meta");
+  const label = document.querySelector("#hotspot-forecast-label");
+  if (!value || !meta) return;
+  if (!overlay) {
+    value.textContent = "Checking…";
+    value.classList.add("is-words");
+    meta.hidden = true;
+    return;
+  }
+  const summary = overlay.summary;
+  if (overlay.status !== "ok" || !summary || !summary.forecast_squares) {
+    value.textContent = "Not available";
+    value.classList.add("is-words");
+    if (label) label.textContent = "Chance satellites detect heat in the next 24 hours.";
+    meta.textContent = overlay.reason || "No forecast could be issued for this land.";
+    meta.hidden = false;
+    return;
+  }
+  const percent = (number) => `${Math.round(Number(number) * 10) / 10}%`;
+  const same = Math.abs(Number(summary.max_percent) - Number(summary.min_percent)) < 0.05;
+  value.textContent = same ? percent(summary.min_percent) : `${percent(summary.min_percent)}–${percent(summary.max_percent)}`;
+  value.classList.remove("is-words");
+  if (label) {
+    label.textContent = same
+      ? "Chance in each square of your land in the next 24 hours."
+      : "Range across the squares of your land in the next 24 hours.";
+  }
+  const issue = overlay.representative_issue || {};
+  const expected = `About ${Math.round(Number(summary.expected_heat_squares) || 0)} of ${summary.forecast_squares} squares`
+    + `${summary.partial ? " in this sample of your land" : ""} are expected to show heat.`;
+  meta.textContent = `${expected} ${forecastMethodLine(issue)}.${forecastWhyLine(issue)}`;
+  meta.hidden = false;
+}
+
+async function loadHotspotForecast(cellId, point = null) {
   const value = document.querySelector("#hotspot-forecast-value");
   const requestId = (state.hotspotForecastRequestId = (state.hotspotForecastRequestId || 0) + 1);
   if (value) {
@@ -360,9 +386,11 @@ async function loadHotspotForecast(cellId, issueDate) {
     value.classList.add("is-words");
   }
   try {
-    const params = new URLSearchParams({ cell_id: cellId });
-    if (issueDate) params.set("issue_date", String(issueDate).slice(0, 10));
-    const response = await fetch(`/api/hotspot-forecast?${params}`);
+    // "Next 24 hours" always starts now, whatever day is being viewed.
+    const url = cellId
+      ? `/api/hotspot-forecast?${new URLSearchParams({ cell_id: cellId })}`
+      : `/api/hotspot-forecast/point?${new URLSearchParams({ lat: point.lat, lon: point.lon })}`;
+    const response = await fetch(url);
     const payload = await response.json();
     if (requestId !== state.hotspotForecastRequestId) return;
     renderHotspotForecast(payload);
@@ -532,7 +560,7 @@ function renderFindingsPanel(matched, findings) {
     }
   }
   if (matched.cell_id) {
-    loadHotspotForecast(matched.cell_id, matched.observation_day || dayInput.value);
+    loadHotspotForecast(matched.cell_id);
     loadOnsetForecast(matched.cell_id, matched.observation_day || dayInput.value);
   }
 }
@@ -769,6 +797,7 @@ async function askAboutPoint(lat, lon) {
   const date = dayInput.value;
   const panel = document.querySelector("#area-panel");
   revealCellDetail(squareAround(lat, lon), [], { state: "checking" });
+  loadHotspotForecast(null, { lat, lon });
   setPanelMode("empty");
   document.querySelector("#area-sentence").textContent =
     `No heat detection was reported in this square on ${formatObservationDay(date)}.`;

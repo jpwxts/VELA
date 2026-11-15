@@ -24,6 +24,7 @@ function refreshLandSummary() {
   drawLandCutout(state.lastLandCheck?.heat?.hotspot_areas?.areas || []);
   if (state.lastLandCheck) applyLandSummaryFromCheck(state.lastLandCheck);
   else trackHotspotSearch("activity", loadWeeklyActivity);
+  renderLandForecast();
   trackHotspotSearch("outlook", loadDayOutlook);
 }
 
@@ -145,8 +146,17 @@ function applyLandActivity(activity) {
     value.textContent = "Unavailable";
     note.hidden = false;
     note.textContent = activity.explanation;
+  } else if (activity?.activity_status === "future" || activity?.status === "future") {
+    value.textContent = "Not observed yet";
+    note.hidden = false;
+    note.textContent = "This day has not happened yet in the Philippines.";
   } else {
-    value.textContent = "No estimate yet";
+    // Say why there is no figure: it needs processed coverage, which heat points cannot replace.
+    value.textContent = "Not processed yet";
+    note.hidden = false;
+    note.textContent = `Burning activity is measured from processed NASA satellite coverage, which shows where `
+      + `the satellites had a clear view. None is processed for this ${target.noun} and date on this computer yet; `
+      + "heat points alone cannot measure it.";
   }
 }
 
@@ -162,47 +172,29 @@ async function loadWeeklyActivity() {
   const value = document.querySelector("#activity-value");
   const note = document.querySelector("#activity-note");
   const target = summaryTarget();
-  if (!label || !target.box) return;
+  if (!label || !target.ring) return;
   const date = dayInput.value;
-  const year = date.slice(0, 4);
   const requestId = ++state.activityRequestId;
-  const words = (text) => {
-    value.textContent = text;
-    value.classList.add("is-words");
-  };
   label.textContent = "Burning activity";
-  words("Loading…");
+  value.textContent = "Loading…";
+  value.classList.add("is-words");
   note.hidden = false;
-  note.textContent = `Reading the weekly estimate for ${formatObservationDay(date)}.`;
-  const [west, south, east, north] = target.box;
-  let payload;
+  note.textContent = `Reading burning activity for ${formatObservationDay(date)}.`;
+  // Coverage-backed activity for this exact boundary and day (the same source as History).
+  let activity;
   try {
-    const response = await fetch(`/api/calendar?west=${west}&south=${south}&east=${east}&north=${north}&year=${year}`);
-    if (!response.ok) throw new Error("calendar failed");
-    payload = await response.json();
+    const response = await fetch("/api/activity/selection", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ coordinates: target.ring, date }),
+    });
+    if (!response.ok) throw new Error("activity failed");
+    activity = await response.json();
   } catch (_error) {
-    if (requestId !== state.activityRequestId) return;
-    words("Unavailable");
-    note.textContent = "The weekly history request failed. Check your connection, then change the date or redraw to try again.";
-    return;
+    activity = { status: "request_failed", explanation: "The burning-activity request failed. Check your connection, then try again." };
   }
   if (requestId !== state.activityRequestId) return;
-  const weeks = payload.weeks || [];
-  const published = (week) =>
-    week.activity_rate != null && (week.activity_status === "complete" || week.activity_status === "partial");
-  const week = weeks.find((item) => item.week_start <= date && date <= item.week_end);
-  if (week && published(week)) {
-    label.textContent = `Burning activity${target.noun === "square" ? " in this square" : ""} · ${formatWeekRange(week.week_start, week.week_end)}`;
-    value.textContent = `${(week.activity_rate * 100).toFixed(1)}%`;
-    value.classList.remove("is-words");
-    note.textContent =
-      (week.activity_status === "partial" ? "Partial estimate: some days that week lacked usable coverage. " : "")
-      + `How often this ${target.noun}’s grid squares showed burning activity that week. It is not a wildfire probability.`;
-    return;
-  }
-  words("No estimate yet");
-  note.textContent = "";
-  note.hidden = true;
+  applyLandActivity(activity);
 }
 
 // Open-Meteo weather codes (WMO) reduced to seven drawn conditions.

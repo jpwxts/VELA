@@ -94,3 +94,18 @@ function monthLabel(weekStart) {
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
+
+// "Sun 16 Nov, 11:14 am" in Philippine time, or "" when the stamp is missing.
+function formatManilaTime(iso) {
+  if (!iso) return "";
+  const when = new Date(iso);
+  if (Number.isNaN(when.getTime())) return "";
+  return new Intl.DateTimeFormat("en-PH", {
+    timeZone: "Asia/Manila",
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(when);
+}
