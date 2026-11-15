@@ -6,14 +6,22 @@ repeat retrievals without dropping distinct pixels or passes.
 
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
+from vela.geo import lon_span, tile_bbox
 from vela.land_check import classify_detections, point_in_ring, polygon_bbox
 
 MANILA = ZoneInfo("Asia/Manila")
 DEFAULT_PLATFORMS = ["Aqua", "Terra", "Suomi-NPP", "NOAA-20", "NOAA-21"]
+# Concurrent UTC-day workers (PH day needs D-1 and D).
+UTC_DAY_WORKERS = 2
+# Concurrent tile workers for large island draws.
+TILE_WORKERS = 4
+# Boxes wider/taller than this are fetched as geographic tiles.
+TILE_SPAN_DEGREES = 8.0
 
 
 def parse_day(value: str | date) -> date:
@@ -73,6 +81,8 @@ def _feed_row(result: dict, utc_day: str) -> dict:
         outcome = "zero"
     elif status == "ok":
         outcome = "readings"
+    elif status == "no_hotspots":
+        outcome = "zero"
     else:
         outcome = status
     return {
@@ -83,6 +93,7 @@ def _feed_row(result: dict, utc_day: str) -> dict:
         "coverage": coverage,
         "count": count,
         "outcome": outcome,
+        "cached": bool(result.get("cached")),
         "text": result.get("text") or f"{result.get('platform')}: {outcome}",
     }
 
@@ -163,6 +174,7 @@ def filter_payload_to_ph_day(payload: dict, ph_day: str) -> dict:
     """Keep detections whose Asia/Manila local date matches the requested day."""
 
     results = []
+    before = int(payload.get("total_count") or 0)
     for result in payload.get("results") or []:
         kept = []
         for spot in result.get("hotspots") or []:
@@ -178,9 +190,95 @@ def filter_payload_to_ph_day(payload: dict, ph_day: str) -> dict:
         row = dict(result)
         row["hotspots"] = kept
         row["count"] = len(kept)
+        if row.get("status") == "ok" and not kept:
+            row["status"] = "no_hotspots"
         results.append(row)
     total = sum(row["count"] for row in results)
-    return {**payload, "date": ph_day, "results": results, "total_count": total, "ph_day": ph_day}
+    return {
+        **payload,
+        "date": ph_day,
+        "results": results,
+        "total_count": total,
+        "ph_day": ph_day,
+        "points_before_ph_filter": before,
+        "points_after_ph_filter": total,
+    }
+
+
+def _failed_day_payload(firms_client, utc_day: str, platforms: list[str], exc: Exception) -> dict:
+    return {
+        "configured": bool(getattr(firms_client, "key", None)),
+        "date": utc_day,
+        "total_count": 0,
+        "combined": {"coverage": "unknown"},
+        "results": [
+            {
+                "platform": platform,
+                "status": "request_failed",
+                "coverage": "unknown",
+                "count": 0,
+                "hotspots": [],
+                "cached": False,
+                "text": f"{platform}: request failed ({exc.__class__.__name__})",
+            }
+            for platform in platforms
+        ],
+    }
+
+
+def _store_seed_payload(ph_day: str, query_box: tuple[float, float, float, float], platforms: list[str]) -> dict | None:
+    """Reuse detections already stored for this PH day inside the query box."""
+
+    try:
+        from vela.observation_store import ObservationStore
+
+        west, south, east, north = query_box
+        store = ObservationStore()
+        rows = store.detections_for_ph_date(ph_day)
+        if not rows:
+            return None
+        by_platform: dict[str, list] = {name: [] for name in platforms}
+        for spot in rows:
+            platform = spot.get("platform") or "Unrecognized"
+            if platform not in by_platform:
+                continue
+            try:
+                lon = float(spot["lon"])
+                lat = float(spot["lat"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            if not (west <= lon <= east and south <= lat <= north):
+                continue
+            by_platform[platform].append(dict(spot))
+        results = []
+        total = 0
+        for platform in platforms:
+            hotspots = by_platform.get(platform) or []
+            total += len(hotspots)
+            results.append(
+                {
+                    "platform": platform,
+                    "status": "ok" if hotspots else "no_hotspots",
+                    "coverage": "unknown",
+                    "count": len(hotspots),
+                    "hotspots": hotspots,
+                    "cached": True,
+                    "product": "observation_store",
+                    "processing": "store",
+                }
+            )
+        if total == 0:
+            return None
+        return {
+            "configured": True,
+            "date": ph_day,
+            "total_count": total,
+            "combined": {"coverage": "unknown"},
+            "results": results,
+            "source": "observation_store",
+        }
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def fetch_firms_for_ph_day(
@@ -193,39 +291,57 @@ def fetch_firms_for_ph_day(
 ) -> dict:
     """Query overlapping UTC dates for one Manila day and clip later via land_check."""
 
+    started = time.perf_counter()
     day = parse_day(ph_day)
     west, south, east, north = polygon_bbox(ring)
     query_box = (west - pad, south - pad, east + pad, north + pad)
     platforms = platforms or list(DEFAULT_PLATFORMS)
-
-    def fetch(utc_day: str) -> dict:
-        try:
-            return firms_client.hotspots(*query_box, utc_day, platforms)
-        except Exception as exc:  # noqa: BLE001
-            return {
-                "configured": bool(getattr(firms_client, "key", None)),
-                "date": utc_day,
-                "total_count": 0,
-                "combined": {"coverage": "unknown"},
-                "results": [
-                    {
-                        "platform": platform,
-                        "status": "request_failed",
-                        "coverage": "unknown",
-                        "count": 0,
-                        "hotspots": [],
-                        "text": f"{platform}: request failed ({exc.__class__.__name__})",
-                    }
-                    for platform in platforms
-                ],
-            }
-
-    # The UTC days are independent requests: fetch them together, keep their order.
     utc_days = utc_dates_for_ph_day(day)
-    with ThreadPoolExecutor(max_workers=len(utc_days), thread_name_prefix="firms-day") as pool:
-        payloads = list(pool.map(fetch, utc_days))
+    width = lon_span(query_box[0], query_box[2])
+    height = float(query_box[3]) - float(query_box[1])
+    needs_tiles = width > TILE_SPAN_DEGREES or height > TILE_SPAN_DEGREES
+    tiles = tile_bbox(*query_box, max_span=TILE_SPAN_DEGREES) if needs_tiles else [query_box]
+
+    def _one_box(utc_day: str, box: tuple[float, float, float, float]) -> dict:
+        try:
+            return firms_client.hotspots(*box, utc_day, platforms)
+        except Exception as exc:  # noqa: BLE001
+            return _failed_day_payload(firms_client, utc_day, platforms, exc)
+
+    payloads: list[dict] = []
+    # Seed from durable store so redraws reuse national refresh / prior checks.
+    store_seed = _store_seed_payload(day.isoformat(), query_box, platforms)
+    if store_seed is not None:
+        payloads.append(store_seed)
+
+    jobs = [(utc_day, tile) for utc_day in utc_days for tile in tiles]
+    workers = min(max(UTC_DAY_WORKERS, TILE_WORKERS), max(1, len(jobs)))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(_one_box, utc_day, tile): (utc_day, tile) for utc_day, tile in jobs}
+        for future in as_completed(futures):
+            payloads.append(future.result())
+
     merged = merge_hotspot_payloads(payloads, observation_date=day.isoformat())
-    return filter_payload_to_ph_day(merged, day.isoformat())
+    filtered = filter_payload_to_ph_day(merged, day.isoformat())
+    elapsed_ms = round((time.perf_counter() - started) * 1000)
+    cache_hits = sum(1 for row in (filtered.get("results") or []) if row.get("cached"))
+    filtered["timing"] = {
+        "elapsed_ms": elapsed_ms,
+        "utc_days": utc_days,
+        "tiles": len(tiles),
+        "jobs": len(jobs),
+        "store_seeded": store_seed is not None,
+        "cache_hit_feeds": cache_hits,
+        "points_before_ph_filter": filtered.get("points_before_ph_filter"),
+        "points_after_ph_filter": filtered.get("points_after_ph_filter"),
+        "query_box": {
+            "west": query_box[0],
+            "south": query_box[1],
+            "east": query_box[2],
+            "north": query_box[3],
+        },
+    }
+    return filtered
 
 
 def clip_hotspots_to_ring(payload: dict, ring: list[list[float]]) -> dict:
@@ -255,4 +371,5 @@ def clip_hotspots_to_ring(payload: dict, ring: list[list[float]]) -> dict:
         "results": results,
         "total_count": sum(row["count"] for row in results),
         "clipped_to_polygon": True,
+        "points_after_clip": sum(row["count"] for row in results),
     }

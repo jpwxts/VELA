@@ -166,3 +166,93 @@ def test_ttl_cache_stays_within_its_size():
     for key in ("a", "b", "c"):
         cache.get_or_load(key, 60, lambda: key)
     assert len(cache) <= 2
+
+
+def _unreachable_client(calls):
+    class Unreachable:
+        def get(self, url, **_kwargs):
+            calls.append(url)
+            raise httpx.ConnectTimeout("handshake stalled", request=httpx.Request("GET", url))
+
+    return Unreachable()
+
+
+def test_an_unreachable_host_is_skipped_for_a_while_without_touching_others(monkeypatch):
+    from vela import network
+
+    now = [1000.0]
+    calls = []
+    monkeypatch.setattr(network, "_clock", lambda: now[0])
+    monkeypatch.setattr(network, "_failed_at", {})
+    monkeypatch.setattr(network, "shared_client", lambda: _unreachable_client(calls))
+    quiet = {"sleep": lambda _seconds: None}
+
+    try:
+        network.retrying_get("https://weather.example/a", **quiet)
+    except httpx.ConnectTimeout:
+        pass
+    assert len(calls) == 3
+
+    # Within the pause, the host is not contacted at all and the failure is immediate.
+    try:
+        network.retrying_get("https://weather.example/b", **quiet)
+    except httpx.ConnectError as exc:
+        assert "weather.example" in str(exc)
+    else:
+        raise AssertionError("expected an immediate failure")
+    assert len(calls) == 3
+
+    # Other providers are unaffected.
+    try:
+        network.retrying_get("https://satellite.example/c", **quiet)
+    except httpx.ConnectTimeout:
+        pass
+    assert len(calls) == 6
+
+
+def test_after_the_pause_one_attempt_checks_whether_the_host_is_back(monkeypatch):
+    from vela import network
+
+    now = [1000.0]
+    calls = []
+    monkeypatch.setattr(network, "_clock", lambda: now[0])
+    monkeypatch.setattr(network, "_failed_at", {"weather.example": 1000.0})
+    monkeypatch.setattr(network, "shared_client", lambda: _unreachable_client(calls))
+
+    now[0] += network.UNREACHABLE_PAUSE_SECONDS + 1
+    try:
+        network.retrying_get("https://weather.example/a", sleep=lambda _seconds: None)
+    except httpx.ConnectTimeout:
+        pass
+    # Still down: one try, not three, then paused again.
+    assert len(calls) == 1
+    assert network._failed_at["weather.example"] == now[0]
+
+    class Healthy:
+        def get(self, url, **_kwargs):
+            calls.append(url)
+            return httpx.Response(200, text="ok", request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(network, "shared_client", lambda: Healthy())
+    now[0] += network.UNREACHABLE_PAUSE_SECONDS + 1
+    assert network.retrying_get("https://weather.example/b", sleep=lambda _s: None).status_code == 200
+    assert "weather.example" not in network._failed_at
+
+
+def test_a_slow_answer_does_not_pause_the_host(monkeypatch):
+    from vela import network
+
+    calls = []
+
+    class Slow:
+        def get(self, url, **_kwargs):
+            calls.append(url)
+            raise httpx.ReadTimeout("slow answer", request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(network, "_failed_at", {})
+    monkeypatch.setattr(network, "shared_client", lambda: Slow())
+    try:
+        network.retrying_get("https://busy.example/a", sleep=lambda _s: None)
+    except httpx.ReadTimeout:
+        pass
+    assert network._failed_at == {}

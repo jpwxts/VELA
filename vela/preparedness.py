@@ -496,6 +496,15 @@ def _layer_value(getter, layer: str, latitude: float, longitude: float, valid_da
     return read_center_value(body)
 
 
+def unavailable_forecast(
+    west: float, south: float, east: float, north: float, message: str, report: dict | None = None
+) -> dict:
+    """A forecast that says why it is missing, in the same shape as a failed fetch."""
+
+    latitude, longitude = forecast_point(west, south, east, north)
+    return _failed(latitude, longitude, verification_status(report), message)
+
+
 def _failed(latitude: float, longitude: float, performance: dict, message: str) -> dict:
     return {
         "ok": False,

@@ -21,6 +21,18 @@ KEEPALIVE_SECONDS = 60.0
 # will not finish, so give up and retry on a fresh connection instead of waiting out
 # the full allowance meant for a slow answer.
 CONNECT_TIMEOUT_SECONDS = 5.0
+# When a provider cannot be connected to at all (every attempt of a request failed to
+# connect), it is left alone for this long: requests to it fail at once instead of each
+# spending the whole retry budget (3 x 5 s) failing the same way. After the pause, one
+# attempt checks whether it is back.
+UNREACHABLE_PAUSE_SECONDS = 60.0
+# Within this window after a failure, a check is a single attempt rather than three.
+RECOVERY_WINDOW_SECONDS = 10 * 60.0
+_CONNECT_FAILURES = (httpx.ConnectError, httpx.ConnectTimeout)
+
+_clock: Callable[[], float] = time.monotonic
+_failed_at: dict[str, float] = {}
+_failed_lock = threading.Lock()
 
 _client: httpx.Client | None = None
 _client_lock = threading.Lock()
@@ -136,8 +148,9 @@ def retrying_get(
 ) -> httpx.Response:
     """GET with TLS verification and bounded retries for transient failures.
 
-    Requests go through the shared keep-alive client. A `transport` (tests) gets a
-    private client that is closed afterwards.
+    Requests go through the shared keep-alive client, and a provider that could not be
+    connected to at all is paused (see UNREACHABLE_PAUSE_SECONDS). A `transport` (tests)
+    gets a private client that is closed afterwards and is not paused.
     """
 
     if attempts < 1:
@@ -146,6 +159,9 @@ def retrying_get(
     request_timeout = _split_timeout(timeout)
     private = None if transport is None else httpx.Client(follow_redirects=True, transport=transport)
     client = private or shared_client()
+    host = httpx.URL(url).host
+    if private is None:
+        attempts = _attempts_allowed(host, attempts, url)
     try:
         for attempt in range(attempts):
             if before_attempt is not None:
@@ -153,10 +169,16 @@ def retrying_get(
             response = None
             try:
                 response = client.get(url, params=params, headers=headers, auth=auth, timeout=request_timeout)
-            except httpx.TransportError:
+            except httpx.TransportError as exc:
                 if attempt + 1 >= attempts:
+                    if private is None and isinstance(exc, _CONNECT_FAILURES):
+                        with _failed_lock:
+                            _failed_at[host] = _clock()
                     raise
             else:
+                if private is None and host in _failed_at:
+                    with _failed_lock:
+                        _failed_at.pop(host, None)
                 if response.status_code not in RETRYABLE_STATUS_CODES or attempt + 1 >= attempts:
                     return response
                 response.close()
@@ -167,3 +189,22 @@ def retrying_get(
             private.close()
 
     raise RuntimeError("HTTP retry loop ended unexpectedly")
+
+
+def _attempts_allowed(host: str, attempts: int, url: str) -> int:
+    """Attempts for this request: none while the host is paused, one while it recovers."""
+
+    with _failed_lock:
+        failed = _failed_at.get(host)
+    if failed is None:
+        return attempts
+    since = _clock() - failed
+    if since < UNREACHABLE_PAUSE_SECONDS:
+        raise httpx.ConnectError(
+            f"{host} could not be reached a moment ago; not trying again for "
+            f"{UNREACHABLE_PAUSE_SECONDS - since:.0f} s.",
+            request=httpx.Request("GET", url),
+        )
+    if since < RECOVERY_WINDOW_SECONDS:
+        return 1
+    return attempts

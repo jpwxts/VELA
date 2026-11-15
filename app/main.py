@@ -7,7 +7,8 @@ import io
 import logging
 import os
 import threading
-from concurrent.futures import ThreadPoolExecutor
+import time
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -37,6 +38,7 @@ from vela.preparedness import (
     load_model_report,
     region_key,
     request_bytes,
+    unavailable_forecast,
     verification_status,
 )
 from vela.serving import (
@@ -66,12 +68,19 @@ def http_get(url: str) -> tuple[int, str]:
     return response.status_code, response.text
 
 
+def firms_http_get(url: str) -> tuple[int, str]:
+    """FIRMS area pulls use a tighter timeout so one stalled feed cannot hang the land check."""
+
+    response = retrying_get(url, timeout=25.0, attempts=3)
+    return response.status_code, response.text
+
+
 def build_firms() -> FirmsClient:
     cfg = settings()
     return FirmsClient(
         os.environ.get("FIRMS_MAP_KEY", ""),
         ResponseCache(DATA_DIR / "cache" / "firms.sqlite"),
-        http_get,
+        firms_http_get,
         max_span=float(cfg["max_request_span_degrees"]),
         day_range=1,
     )
@@ -81,6 +90,10 @@ FIRMS = build_firms()
 METEOMATICS = MeteomaticsClient(ResponseCache(DATA_DIR / "cache" / "meteomatics.sqlite"))
 ARCHIVE = ForecastArchive(DATA_DIR / "preparedness" / "forecasts.sqlite")
 OBSERVATION_PLATFORMS = ["Aqua", "Terra", "Suomi-NPP", "NOAA-20", "NOAA-21"]
+# Seconds from the start of a land check that the weather may take before the heat is
+# answered without it. A healthy forecast (weather plus 14 fire-danger layers, side by
+# side) takes about 1.5-3 s.
+LAND_CHECK_WEATHER_WAIT_SECONDS = 5.0
 
 
 def _warm_up() -> None:
@@ -810,18 +823,6 @@ def check_land(body: CheckLandRequest):
     pad = 0.05
     query_box = (west - pad, south - pad, east + pad, north + pad)
 
-    def read_forecast() -> dict:
-        forecast = build_forecast(
-            west, south, east, north, request_bytes, load_model_report(), existing=ARCHIVE.get
-        )
-        return issue_forecast(ARCHIVE, forecast) if forecast.get("ok") else forecast
-
-    # Weather and satellite heat come from different providers and do not depend on
-    # each other: the forecast is read on a second thread while this one reads the heat.
-    forecast_pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="forecast")
-    forecast_job = forecast_pool.submit(read_forecast)
-    forecast_pool.shutdown(wait=False)
-
     observation_date = body.date
     if not observation_date:
         if _ring_uses_manila_day(ring):
@@ -832,25 +833,58 @@ def check_land(body: CheckLandRequest):
             observation_date = (date_cls.today() - timedelta(days=1)).isoformat()
 
     platforms = body.platforms or OBSERVATION_PLATFORMS
-    if body.include_hotspots:
+
+    def _load_forecast():
+        payload = build_forecast(
+            west, south, east, north, request_bytes, load_model_report(), existing=ARCHIVE.get
+        )
+        if payload.get("ok"):
+            payload = issue_forecast(ARCHIVE, payload)
+        return payload
+
+    def _load_hotspots():
+        if not body.include_hotspots:
+            return {
+                "configured": bool(FIRMS.key),
+                "date": observation_date,
+                "bbox": {"west": west, "south": south, "east": east, "north": north},
+                "total_count": 0,
+                "combined": {"coverage": "unknown"},
+                "results": [],
+            }
         if _ring_uses_manila_day(ring):
             # Philippine plots: query overlapping UTC dates, assign by Asia/Manila day.
-            hotspots_payload = fetch_firms_for_ph_day(
+            return fetch_firms_for_ph_day(
                 FIRMS, ring, observation_date, platforms, pad=pad
             )
-        else:
-            hotspots_payload = FIRMS.hotspots(*query_box, observation_date, platforms)
-    else:
-        hotspots_payload = {
-            "configured": bool(FIRMS.key),
-            "date": observation_date,
-            "bbox": {"west": west, "south": south, "east": east, "north": north},
-            "total_count": 0,
-            "combined": {"coverage": "unknown"},
-            "results": [],
-        }
+        return FIRMS.hotspots(*query_box, observation_date, platforms)
 
-    forecast = forecast_job.result()
+    # Weather and FIRMS do not depend on each other — run them together.
+    started = time.monotonic()
+    pool = ThreadPoolExecutor(max_workers=2, thread_name_prefix="land-check")
+    forecast_future = pool.submit(_load_forecast)
+    hotspots_future = pool.submit(_load_hotspots)
+    pool.shutdown(wait=False)
+    hotspots_payload = hotspots_future.result()
+    # The heat is what a land check is for. Once it is in, the weather gets what is left
+    # of a short allowance; if it is still out, answer without it rather than make the
+    # heat wait. The weather keeps loading behind the scenes (an issued forecast is
+    # archived), and the Weather tab asks for it again when opened.
+    try:
+        forecast = forecast_future.result(
+            timeout=max(0.0, LAND_CHECK_WEATHER_WAIT_SECONDS - (time.monotonic() - started))
+        )
+    except FutureTimeout:
+        forecast = unavailable_forecast(
+            west,
+            south,
+            east,
+            north,
+            "The weather service is slow to answer, so the satellite heat is shown first. "
+            "Open the Weather tab to load the fire-weather outlook.",
+            load_model_report(),
+        )
+
     payload = build_land_check(
         ring=ring,
         forecast=forecast,
@@ -933,21 +967,29 @@ def check_land(body: CheckLandRequest):
                 "last_successful_source_check_at": persist.get("checked_at")
                 or stamps.get("last_successful_source_check_at"),
             }
+            heat = payload.get("heat") or {}
             payload["live"] = {
                 "mode": "live",
                 "ph_date": str(observation_date)[:10],
                 "timezone": "Asia/Manila",
                 "store_path": str(store.path),
                 "feeds": feeds,
+                "timing": hotspots_payload.get("timing"),
+                "points_before_clip": int(hotspots_payload.get("total_count") or 0),
+                "points_inside": int(heat.get("inside_count") or len(heat.get("inside") or [])),
+                "points_nearby": int(heat.get("nearby_count") or len(heat.get("nearby") or [])),
+                "squares": len(((heat.get("hotspot_areas") or {}).get("areas") or [])),
                 "cache_note": (
-                    "cached=true means FIRMS ResponseCache served a still-valid entry "
-                    "(NRT TTL 3h; standard processing entries do not expire). "
-                    "Refresh now re-queries and records a new checked_at."
+                    "cached=true means FIRMS ResponseCache or the observation store served "
+                    "a still-valid entry (recent NRT TTL 30m; older NRT 3h; standard processing "
+                    "entries do not expire). Refresh now re-queries and records a new checked_at."
                 ),
             }
         except Exception as exc:  # noqa: BLE001 - Live path must not fail the land check.
             logging.getLogger(__name__).warning("observation store write skipped: %s", exc)
             payload["timestamps"] = {"error": "store_write_skipped"}
+    if hotspots_payload.get("timing"):
+        payload["firms_timing"] = hotspots_payload.get("timing")
     return payload
 
 

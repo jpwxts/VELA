@@ -39,7 +39,7 @@ from vela.observation_store import ObservationStore, _connect as store_connect
 from vela.settings import DATA_DIR
 
 STORE_PATH = DATA_DIR / "observations" / "philippines_hotspot_forecasts.sqlite"
-PUBLIC_LABEL = "Chance satellites record a hotspot in this square."
+PUBLIC_LABEL = "Chance satellites record a hotspot in this square in the next 24 hours."
 # Dry-season months that dominate Maguindanao v2.1 training (Feb/Mar) plus sparse Aug.
 TRAIN_DISTRIBUTION_MONTHS = {2, 3, 8}
 HIGH_PROB_EXPERIMENTAL_THRESHOLD = 0.9

@@ -407,3 +407,55 @@ def test_land_check_reads_weather_and_satellite_heat_at_the_same_time(tmp_path, 
     assert met == {"weather_saw_heat": True, "heat_saw_weather": True}
     assert payload["forecast"]["ok"] is True
     assert payload["forecast"]["days"][0]["fire_danger"]["fwi"] == 10.0
+
+
+def test_land_check_answers_with_the_heat_when_the_weather_is_slow(tmp_path, monkeypatch):
+    import threading
+    import time
+
+    pytest = __import__("pytest")
+    pytest.importorskip("fastapi")
+    from app import main
+
+    release = threading.Event()
+
+    def getter(url, params):
+        if "open-meteo" in url:
+            release.wait(timeout=10)  # a weather service that is not answering
+        return 503, b""
+
+    class FakeFirms:
+        key = "k"
+
+        def hotspots(self, west, south, east, north, day, platforms):
+            return {
+                "configured": True,
+                "date": day,
+                "bbox": {"west": west, "south": south, "east": east, "north": north},
+                "total_count": 0,
+                "combined": {"coverage": "unknown"},
+                "results": [],
+            }
+
+    monkeypatch.setattr(main, "request_bytes", getter)
+    monkeypatch.setattr(main, "FIRMS", FakeFirms())
+    monkeypatch.setattr(main, "ARCHIVE", ForecastArchive(tmp_path / "forecasts.sqlite"))
+    monkeypatch.setattr(main, "LAND_CHECK_WEATHER_WAIT_SECONDS", 0.3)
+
+    started = time.perf_counter()
+    try:
+        payload = main.check_land(
+            main.CheckLandRequest(
+                coordinates=[[-9.2, 38.6], [-9.0, 38.6], [-9.0, 38.8], [-9.2, 38.8]],
+                date="2026-11-10",
+            )
+        )
+        elapsed = time.perf_counter() - started
+    finally:
+        release.set()
+
+    assert elapsed < 3
+    assert payload["forecast"]["ok"] is False
+    assert payload["forecast"]["days"] == []
+    assert "weather" in payload["forecast"]["message"].lower()
+    assert payload["heat"] is not None
