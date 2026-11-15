@@ -5,6 +5,7 @@ from vela import preparedness
 
 def test_weather_cache_deduplicates_success_and_never_caches_failure(monkeypatch, tmp_path):
     monkeypatch.setattr(preparedness, 'DATA_DIR', tmp_path)
+    monkeypatch.setattr(preparedness, 'WRITABLE_DATA_DIR', tmp_path)
     calls = []
     def get(url, **kwargs):
         calls.append(url)
