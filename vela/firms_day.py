@@ -6,6 +6,7 @@ repeat retrievals without dropping distinct pixels or passes.
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
@@ -196,30 +197,33 @@ def fetch_firms_for_ph_day(
     west, south, east, north = polygon_bbox(ring)
     query_box = (west - pad, south - pad, east + pad, north + pad)
     platforms = platforms or list(DEFAULT_PLATFORMS)
-    payloads = []
-    for utc_day in utc_dates_for_ph_day(day):
+
+    def fetch(utc_day: str) -> dict:
         try:
-            payloads.append(firms_client.hotspots(*query_box, utc_day, platforms))
+            return firms_client.hotspots(*query_box, utc_day, platforms)
         except Exception as exc:  # noqa: BLE001
-            payloads.append(
-                {
-                    "configured": bool(getattr(firms_client, "key", None)),
-                    "date": utc_day,
-                    "total_count": 0,
-                    "combined": {"coverage": "unknown"},
-                    "results": [
-                        {
-                            "platform": platform,
-                            "status": "request_failed",
-                            "coverage": "unknown",
-                            "count": 0,
-                            "hotspots": [],
-                            "text": f"{platform}: request failed ({exc.__class__.__name__})",
-                        }
-                        for platform in platforms
-                    ],
-                }
-            )
+            return {
+                "configured": bool(getattr(firms_client, "key", None)),
+                "date": utc_day,
+                "total_count": 0,
+                "combined": {"coverage": "unknown"},
+                "results": [
+                    {
+                        "platform": platform,
+                        "status": "request_failed",
+                        "coverage": "unknown",
+                        "count": 0,
+                        "hotspots": [],
+                        "text": f"{platform}: request failed ({exc.__class__.__name__})",
+                    }
+                    for platform in platforms
+                ],
+            }
+
+    # The UTC days are independent requests: fetch them together, keep their order.
+    utc_days = utc_dates_for_ph_day(day)
+    with ThreadPoolExecutor(max_workers=len(utc_days), thread_name_prefix="firms-day") as pool:
+        payloads = list(pool.map(fetch, utc_days))
     merged = merge_hotspot_payloads(payloads, observation_date=day.isoformat())
     return filter_payload_to_ph_day(merged, day.isoformat())
 

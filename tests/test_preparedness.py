@@ -233,3 +233,177 @@ def test_day_outlook_endpoint_validates_the_point_and_returns_local_slots(monkey
     assert calls[0][1]["timezone"] == "auto"
     assert calls[0][1]["wind_speed_unit"] == "kmh"
     assert client.get("/api/day-outlook?lat=91&lon=122.5").status_code == 422
+
+
+def _geotiff(center: float) -> bytes:
+    """A 3x3 float GeoTIFF whose middle sample is `center`."""
+
+    blob = struct.pack("<9f", 0, 0, 0, 0, center, 0, 0, 0, 0)
+    payload = bytearray(b"II*\x00" + struct.pack("<I", 8))
+    entries = [
+        (256, 3, 1, 3),
+        (257, 3, 1, 3),
+        (258, 3, 1, 32),
+        (259, 3, 1, 1),
+        (277, 3, 1, 1),
+        (339, 3, 1, 3),
+        (273, 4, 1, 200),
+        (279, 4, 1, len(blob)),
+    ]
+    payload += struct.pack("<H", len(entries))
+    for tag in entries:
+        payload += struct.pack("<HHII", *tag)
+    payload.extend(b"\x00" * (200 - len(payload)))
+    payload.extend(blob)
+    return bytes(payload)
+
+
+def test_fire_danger_layers_are_fetched_side_by_side_and_land_on_their_own_day():
+    import threading
+    import time
+
+    from vela.preparedness import FWI_LAYER
+
+    lock = threading.Lock()
+    active = [0]
+    peak = [0]
+
+    def getter(url, params):
+        if "open-meteo" in url:
+            return 200, json.dumps(_weather_payload()).encode("utf-8")
+        with lock:
+            active[0] += 1
+            peak[0] = max(peak[0], active[0])
+        time.sleep(0.03)
+        with lock:
+            active[0] -= 1
+        day = int(params["TIME"][-2:])
+        return 200, _geotiff(day if params["LAYERS"] == FWI_LAYER else 50 + day)
+
+    forecast = build_forecast(-9.2, 38.6, -9.0, 38.8, getter, {"validation": {}})
+
+    assert peak[0] > 1
+    assert len(forecast["days"]) == 7
+    for day in forecast["days"]:
+        number = int(day["valid_date"][-2:])
+        assert day["fire_danger"]["status"] == "measured"
+        assert day["fire_danger"]["fwi"] == number
+        assert day["fire_danger"]["ranking"] == 50 + number
+
+
+def test_a_forecast_already_issued_for_this_window_skips_the_fire_danger_requests(tmp_path):
+    from vela.preparedness import issue_forecast
+
+    archive = ForecastArchive(tmp_path / "forecasts.sqlite")
+    calls = []
+
+    def getter(url, params):
+        calls.append(url)
+        if "open-meteo" in url:
+            return 200, json.dumps(_weather_payload()).encode("utf-8")
+        return 200, _geotiff(12.5)
+
+    first = issue_forecast(archive, build_forecast(0, 0, 1, 1, getter, {}, existing=archive.get))
+    assert sum("open-meteo" not in url for url in calls) == 14
+
+    calls.clear()
+    second = issue_forecast(archive, build_forecast(0, 0, 1, 1, getter, {}, existing=archive.get))
+
+    assert len(calls) == 1 and "open-meteo" in calls[0]
+    assert second == first
+    assert second["days"][0]["fire_danger"]["fwi"] == 12.5
+
+
+def test_recent_weather_and_fire_danger_answers_are_reused(monkeypatch):
+    import httpx
+
+    from vela import preparedness
+    from vela.network import TtlCache
+
+    calls = []
+    replies = {}
+
+    def fake_get(url, *, params=None, **_kwargs):
+        calls.append((url, dict(params or {})))
+        status, body = replies[url]
+        return httpx.Response(status, content=body, request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(preparedness, "retrying_get", fake_get)
+    monkeypatch.setattr(preparedness, "_RESPONSES", TtlCache())
+    weather, gwis, other = preparedness.OPEN_METEO, preparedness.GWIS_WMS, "https://provider.example/data"
+
+    replies[weather] = (200, b"{}")
+    assert preparedness.request_bytes(weather, {"latitude": 1}) == (200, b"{}")
+    assert preparedness.request_bytes(weather, {"latitude": 1}) == (200, b"{}")
+    assert len(calls) == 1
+    preparedness.request_bytes(weather, {"latitude": 2})
+    assert len(calls) == 2
+
+    # A fire-danger answer is reused only when it is a real GeoTIFF.
+    replies[gwis] = (200, _geotiff(3.0))
+    preparedness.request_bytes(gwis, {"TIME": "2026-11-10"})
+    preparedness.request_bytes(gwis, {"TIME": "2026-11-10"})
+    assert len(calls) == 3
+    replies[gwis] = (200, b"<ServiceException>busy</ServiceException>")
+    preparedness.request_bytes(gwis, {"TIME": "2026-11-11"})
+    preparedness.request_bytes(gwis, {"TIME": "2026-11-11"})
+    assert len(calls) == 5
+
+    # Failures and other providers are always asked again.
+    replies[weather] = (503, b"")
+    preparedness.request_bytes(weather, {"latitude": 3})
+    preparedness.request_bytes(weather, {"latitude": 3})
+    assert len(calls) == 7
+    replies[other] = (200, b"x")
+    preparedness.request_bytes(other)
+    preparedness.request_bytes(other)
+    assert len(calls) == 9
+
+
+def test_land_check_reads_weather_and_satellite_heat_at_the_same_time(tmp_path, monkeypatch):
+    import threading
+
+    pytest = __import__("pytest")
+    pytest.importorskip("fastapi")
+    from app import main
+
+    weather_started = threading.Event()
+    heat_started = threading.Event()
+    met = {}
+
+    def getter(url, params):
+        if "open-meteo" in url:
+            weather_started.set()
+            met["weather_saw_heat"] = heat_started.wait(timeout=5)
+            return 200, json.dumps(_weather_payload()).encode("utf-8")
+        return 200, _geotiff(10.0)
+
+    class FakeFirms:
+        key = "k"
+
+        def hotspots(self, west, south, east, north, day, platforms):
+            heat_started.set()
+            met["heat_saw_weather"] = weather_started.wait(timeout=5)
+            return {
+                "configured": True,
+                "date": day,
+                "bbox": {"west": west, "south": south, "east": east, "north": north},
+                "total_count": 0,
+                "combined": {"coverage": "unknown"},
+                "results": [],
+            }
+
+    monkeypatch.setattr(main, "request_bytes", getter)
+    monkeypatch.setattr(main, "FIRMS", FakeFirms())
+    monkeypatch.setattr(main, "ARCHIVE", ForecastArchive(tmp_path / "forecasts.sqlite"))
+
+    payload = main.check_land(
+        main.CheckLandRequest(
+            coordinates=[[-9.2, 38.6], [-9.0, 38.6], [-9.0, 38.8], [-9.2, 38.8]],
+            date="2026-11-10",
+        )
+    )
+
+    assert met == {"weather_saw_heat": True, "heat_saw_weather": True}
+    assert payload["forecast"]["ok"] is True
+    assert payload["forecast"]["days"][0]["fire_danger"]["fwi"] == 10.0

@@ -8,6 +8,7 @@ import io
 import json
 import logging
 import re
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
 
 from app.db import ResponseCache
@@ -261,9 +262,18 @@ class FirmsClient:
                 choices[platform] = (None, None)
                 continue
             choices[platform] = choose_processing(observed, availability, *PRODUCTS[platform])
-        fetched = {}
-        for product, processing in {(product, processing) for product, processing in choices.values() if product}:
-            fetched[(product, processing)] = self._fetch_product(product, processing, (west, south, east, north), day)
+        # Each satellite product is its own request to NASA; send them together.
+        wanted = sorted({(product, processing) for product, processing in choices.values() if product})
+
+        def fetch(item):
+            return self._fetch_product(item[0], item[1], (west, south, east, north), day)
+
+        if len(wanted) > 1:
+            with ThreadPoolExecutor(max_workers=len(wanted), thread_name_prefix="firms") as pool:
+                answers = list(pool.map(fetch, wanted))
+        else:
+            answers = [fetch(item) for item in wanted]
+        fetched = dict(zip(wanted, answers))
         results = []
         total = 0
         reported_unknown = set()

@@ -1370,3 +1370,91 @@ def test_frozen_selection_scores_the_same_weeks_and_leaves_the_final_test_alone(
     )
     assert selected["chosen_model"] == "raw_viirs"
     assert selected["temporal_test"] is None
+
+
+def test_satellite_products_are_fetched_side_by_side_in_a_stable_order(tmp_path):
+    import threading
+    import time
+
+    lock = threading.Lock()
+    active = [0]
+    peak = [0]
+
+    def getter(url: str):
+        if "data_availability" in url:
+            return 200, AVAILABILITY
+        with lock:
+            active[0] += 1
+            peak[0] = max(peak[0], active[0])
+        time.sleep(0.05)
+        with lock:
+            active[0] -= 1
+        if "/MODIS_NRT/" in url:
+            return 200, HEADER + "-15.0,-50.0,320,1,1,2025-06-01,0540,Aqua,MODIS,80,6.1NRT,300,12.5,D\n"
+        return 200, HEADER
+
+    result = _client(tmp_path, getter).hotspots(
+        -50.5, -15.5, -49.5, -14.5, "2025-06-01", ["NOAA-21", "Aqua", "NOAA-20"]
+    )
+
+    assert peak[0] > 1
+    assert [row["platform"] for row in result["results"]] == ["Aqua", "NOAA-20", "NOAA-21"]
+    assert [row["status"] for row in result["results"]] == ["ok", "no_hotspots", "no_hotspots"]
+    assert result["total_count"] == 1
+
+
+def test_one_failed_product_does_not_hide_the_others(tmp_path):
+    def getter(url: str):
+        if "data_availability" in url:
+            return 200, AVAILABILITY
+        if "/VIIRS_NOAA20_NRT/" in url:
+            raise OSError("offline")
+        return 200, HEADER
+
+    result = _client(tmp_path, getter).hotspots(-50.5, -15.5, -49.5, -14.5, "2025-06-01", ["Aqua", "NOAA-20"])
+
+    assert [row["status"] for row in result["results"]] == ["no_hotspots", "request_failed"]
+
+
+def test_both_utc_days_of_a_philippine_day_are_fetched_side_by_side():
+    import threading
+    import time
+
+    from vela.firms_day import fetch_firms_for_ph_day
+
+    lock = threading.Lock()
+    active = [0]
+    peak = [0]
+    asked = []
+
+    class FakeFirms:
+        key = "k"
+
+        def hotspots(self, west, south, east, north, day, platforms):
+            with lock:
+                asked.append(day)
+                active[0] += 1
+                peak[0] = max(peak[0], active[0])
+            time.sleep(0.05)
+            with lock:
+                active[0] -= 1
+            if day == "2026-11-13":
+                raise OSError("offline")
+            return {
+                "configured": True,
+                "date": day,
+                "total_count": 0,
+                "combined": {"coverage": "unknown"},
+                "results": [
+                    {"platform": name, "status": "no_hotspots", "coverage": "unknown", "count": 0, "hotspots": []}
+                    for name in platforms
+                ],
+            }
+
+    ring = [[124.0, 7.0], [124.2, 7.0], [124.2, 7.2], [124.0, 7.2], [124.0, 7.0]]
+    payload = fetch_firms_for_ph_day(FakeFirms(), ring, "2026-11-14", ["Aqua"])
+
+    assert sorted(asked) == ["2026-11-13", "2026-11-14"]
+    assert peak[0] == 2
+    # The failed UTC day is reported, not dropped, and the other day still counts.
+    assert payload["results"]

@@ -3,18 +3,24 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from vela.forecast_store import ForecastArchive
 from vela.geotiff import read_center_value
-from vela.network import retrying_get
+from vela.network import TtlCache, retrying_get
 from vela.settings import DATA_DIR
 
 OPEN_METEO = "https://api.open-meteo.com/v1/forecast"
 GWIS_WMS = "https://maps.effis.emergency.copernicus.eu/gwis"
 FWI_LAYER = "ecmwf.fwi"
 RANKING_LAYER = "ecmwf.ranking"
+# One forecast reads two GWIS layers for each of seven days. They are independent
+# small requests, so they are sent together instead of one after another.
+GWIS_WORKERS = 8
 FWI_SOURCE = (
     "Copernicus Emergency Management Service, GWIS. "
     "ECMWF Fire Weather Index from WMS layer ecmwf.fwi."
@@ -368,7 +374,22 @@ def gwis_request(layer: str, latitude: float, longitude: float, valid_date: str)
     }
 
 
-def build_forecast(west: float, south: float, east: float, north: float, getter, report: dict | None = None) -> dict:
+def build_forecast(
+    west: float,
+    south: float,
+    east: float,
+    north: float,
+    getter,
+    report: dict | None = None,
+    existing: Callable[[str], dict | None] | None = None,
+) -> dict:
+    """Weather plus GWIS fire danger for the centre of a selection.
+
+    `existing` looks up an already issued forecast by issue id (the archive's `get`).
+    An issued forecast is kept as first recorded, so when one exists for this
+    selection and window it is returned and the fire-danger requests are not made.
+    """
+
     latitude, longitude = forecast_point(west, south, east, north)
     performance = verification_status(report)
     url, params = weather_request(latitude, longitude)
@@ -386,11 +407,17 @@ def build_forecast(west: float, south: float, east: float, north: float, getter,
         return _failed(latitude, longitude, performance, parsed.get("message") or "Weather details are missing.")
     point_lat = parsed.get("latitude") if isinstance(parsed.get("latitude"), (int, float)) else latitude
     point_lon = parsed.get("longitude") if isinstance(parsed.get("longitude"), (int, float)) else longitude
-    for day in parsed["days"]:
-        day["fire_danger"] = _fire_danger(getter, float(point_lat), float(point_lon), day["valid_date"])
     window = f"{parsed['days'][0]['valid_date']}:{parsed['days'][-1]['valid_date']}"
     key = region_key(west, south, east, north)
     issue_id = f"gwis-ecmwf|{key}|{window}"
+    if existing is not None:
+        issued = existing(issue_id)
+        if issued is not None:
+            issued["ok"] = True
+            return issued
+    dates = [day["valid_date"] for day in parsed["days"]]
+    for day, danger in zip(parsed["days"], _fire_danger_by_day(getter, float(point_lat), float(point_lon), dates)):
+        day["fire_danger"] = danger
     return {
         "ok": True,
         "issue_id": issue_id,
@@ -422,9 +449,21 @@ def issue_forecast(archive: ForecastArchive, forecast: dict) -> dict:
     return stored
 
 
-def _fire_danger(getter, latitude: float, longitude: float, valid_date: str) -> dict:
-    fwi = _layer_value(getter, FWI_LAYER, latitude, longitude, valid_date)
-    ranking = _layer_value(getter, RANKING_LAYER, latitude, longitude, valid_date)
+def _fire_danger_by_day(getter, latitude: float, longitude: float, dates: list[str]) -> list[dict]:
+    """Fire danger for each date, in order. All layer requests run side by side."""
+
+    jobs = [(layer, valid_date) for valid_date in dates for layer in (FWI_LAYER, RANKING_LAYER)]
+    if not jobs:
+        return []
+    with ThreadPoolExecutor(max_workers=min(len(jobs), GWIS_WORKERS), thread_name_prefix="gwis") as pool:
+        values = list(pool.map(lambda job: _layer_value(getter, job[0], latitude, longitude, job[1]), jobs))
+    return [
+        _fire_danger(values[2 * index], values[2 * index + 1], valid_date)
+        for index, valid_date in enumerate(dates)
+    ]
+
+
+def _fire_danger(fwi: float | None, ranking: float | None, valid_date: str) -> dict:
     if fwi is None or not 0 <= fwi <= 200:
         return {
             "status": "unavailable",
@@ -517,9 +556,36 @@ def regional_fwi_reference(west: float, south: float, east: float, north: float)
     return None
 
 
+# Answers that can be reused for a short while, by provider host: the page asks for the
+# same weather several times within one look at a place, and GWIS layers change daily.
+_RESPONSES = TtlCache(max_items=512)
+_REUSE_SECONDS = {
+    urlsplit(OPEN_METEO).netloc: 5 * 60.0,
+    urlsplit(GWIS_WMS).netloc: 60 * 60.0,
+}
+_GWIS_HOST = urlsplit(GWIS_WMS).netloc
+_TIFF_MAGIC = (b"II*\x00", b"MM\x00*")
+
+
 def request_bytes(url: str, params: dict | None = None) -> tuple[int, bytes]:
-    response = retrying_get(url, params=params, timeout=40.0)
-    return response.status_code, response.content
+    def load() -> tuple[int, bytes]:
+        response = retrying_get(url, params=params, timeout=40.0)
+        return response.status_code, response.content
+
+    host = urlsplit(url).netloc
+    reuse_seconds = _REUSE_SECONDS.get(host)
+    if reuse_seconds is None:
+        return load()
+
+    def worth_keeping(result: tuple[int, bytes]) -> bool:
+        status, body = result
+        if status != 200:
+            return False
+        # GWIS can answer 200 with an error document; only a real GeoTIFF is reused.
+        return host != _GWIS_HOST or body[:4] in _TIFF_MAGIC
+
+    key = (url, tuple(sorted((str(name), str(value)) for name, value in (params or {}).items())))
+    return _RESPONSES.get_or_load(key, reuse_seconds, load, keep=worth_keeping)
 
 
 def _measure(label: str, field: dict, unit: str, quiet_zero: bool = False) -> str:

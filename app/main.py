@@ -6,6 +6,8 @@ import csv
 import io
 import logging
 import os
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -81,9 +83,36 @@ ARCHIVE = ForecastArchive(DATA_DIR / "preparedness" / "forecasts.sqlite")
 OBSERVATION_PLATFORMS = ["Aqua", "Terra", "Suomi-NPP", "NOAA-20", "NOAA-21"]
 
 
+def _warm_up() -> None:
+    """Load what the first requests would otherwise wait for.
+
+    The model files pull in scikit-learn (about 3 s) and the Mindanao grid squares take
+    about 4 s to work out. Both stay in memory afterwards, so doing it here, off the
+    request path, means the first visitor after a start does not pay for it.
+    """
+
+    from vela import hotspot_forecast_serve as hotspot
+    from vela.serving import load_model
+
+    steps = (
+        load_model,
+        hotspot._study_set,
+        hotspot._eval_set,
+        hotspot._coverage_days_cached,
+        lambda: hotspot._load_model_bundle(hotspot.load_selection() or {}),
+        hotspot._load_board_entries,
+    )
+    for step in steps:
+        try:
+            step()
+        except Exception:  # noqa: BLE001 - a failed step just loads on first use instead
+            logging.getLogger("vela.warmup").info("A warm-up step failed; it will load on first use.")
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     print("\nVela is running. Open http://127.0.0.1:8000\n", flush=True)
+    threading.Thread(target=_warm_up, name="warm-up", daemon=True).start()
     yield
 
 
@@ -739,7 +768,9 @@ def area_context(
             "median_activity_rate": median,
         }
 
-    forecast = build_forecast(west, south, east, north, request_bytes, load_model_report())
+    forecast = build_forecast(
+        west, south, east, north, request_bytes, load_model_report(), existing=ARCHIVE.get
+    )
     if forecast.get("ok"):
         forecast = issue_forecast(ARCHIVE, forecast)
     outlook = annotate_forecast_days(forecast)
@@ -778,9 +809,18 @@ def check_land(body: CheckLandRequest):
     # Expand the FIRMS query slightly so "nearby" detections just outside the fence are returned.
     pad = 0.05
     query_box = (west - pad, south - pad, east + pad, north + pad)
-    forecast = build_forecast(west, south, east, north, request_bytes, load_model_report())
-    if forecast.get("ok"):
-        forecast = issue_forecast(ARCHIVE, forecast)
+
+    def read_forecast() -> dict:
+        forecast = build_forecast(
+            west, south, east, north, request_bytes, load_model_report(), existing=ARCHIVE.get
+        )
+        return issue_forecast(ARCHIVE, forecast) if forecast.get("ok") else forecast
+
+    # Weather and satellite heat come from different providers and do not depend on
+    # each other: the forecast is read on a second thread while this one reads the heat.
+    forecast_pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="forecast")
+    forecast_job = forecast_pool.submit(read_forecast)
+    forecast_pool.shutdown(wait=False)
 
     observation_date = body.date
     if not observation_date:
@@ -810,6 +850,7 @@ def check_land(body: CheckLandRequest):
             "results": [],
         }
 
+    forecast = forecast_job.result()
     payload = build_land_check(
         ring=ring,
         forecast=forecast,
@@ -1294,7 +1335,9 @@ def models():
 def preparedness(west: float, south: float, east: float, north: float):
     from vela.land_check import annotate_forecast_days
 
-    forecast = build_forecast(west, south, east, north, request_bytes, load_model_report())
+    forecast = build_forecast(
+        west, south, east, north, request_bytes, load_model_report(), existing=ARCHIVE.get
+    )
     if forecast.get("ok"):
         forecast = issue_forecast(ARCHIVE, forecast)
     forecast["performance"] = forecast.get("performance") or {}
