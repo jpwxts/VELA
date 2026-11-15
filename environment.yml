@@ -1,0 +1,23 @@
+name: vela
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pyhdf
+  - hdf4
+  - netcdf4
+  - h5py
+  - numpy
+  - pandas
+  - pyarrow
+  - scikit-learn
+  - fastapi
+  - uvicorn
+  - python-dotenv
+  - earthaccess
+  - pyproj
+  - shapely
+  - httpx
+  - joblib
+  - pytest
+  - pip
