@@ -588,10 +588,13 @@ function renderLandCheck(payload) {
 
   const heat = payload.heat || {};
   document.querySelector("#heat-block").hidden = false;
-  document.querySelector("#heat-lead").textContent = heat.lead || "";
+  const heatSats = [...new Set((heat.inside || []).map((row) => row.platform).filter(Boolean))];
+  document.querySelector("#heat-lead").textContent = heatSats.length
+    ? `${heat.lead || "Satellites detected heat inside your boundary."} Detected by ${joinPlatformNames(heatSats)}.`
+    : (heat.lead || "");
   document.querySelector("#heat-feeds").innerHTML = renderFeedBreakdown(heat.feeds || []);
   document.querySelector("#heat-inside").innerHTML = renderHeatGroup(
-    "Inside your boundary",
+    heatSats.length ? `Inside your boundary · ${joinPlatformNames(heatSats)}` : "Inside your boundary",
     heat.inside || []
   );
   document.querySelector("#heat-nearby").innerHTML = renderHeatGroup(

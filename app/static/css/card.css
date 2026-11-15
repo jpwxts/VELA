@@ -152,6 +152,7 @@ h5,
   font-variant-numeric: lining-nums;
 }
 .reading-label + .reading-value { margin-top: 4px; }
+.reading-sub { margin-top: 4px; font-size: 0.875rem; }
 
 .fact {
   display: grid;

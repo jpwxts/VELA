@@ -118,7 +118,87 @@ function setLandSummaryLoading() {
   const value = document.querySelector("#activity-value");
   value.textContent = "Loading…";
   value.classList.add("is-words");
+  value.classList.remove("is-found");
   document.querySelector("#activity-note").hidden = true;
+  renderActivitySatellites([]);
+}
+
+function philippinePassLabel(stamp) {
+  if (!stamp || !Number.isFinite(Date.parse(stamp))) return "Pass time unavailable";
+  return new Intl.DateTimeFormat("en-PH", {
+    timeZone: "Asia/Manila",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(new Date(stamp)) + " PH";
+}
+
+function heatDetectionRows(heat) {
+  const source = heat || state.lastLandCheck?.heat || {};
+  const readings = source.inside || [];
+  const byPlatform = new Map();
+  readings.forEach((row) => {
+    const platform = row.platform || "Satellite";
+    if (!byPlatform.has(platform)) {
+      byPlatform.set(platform, { platform, count: 0, latest: null, times: [] });
+    }
+    const entry = byPlatform.get(platform);
+    entry.count += 1;
+    const local = row.acq_time_ph
+      ? `${row.acq_date_ph || row.acq_date || ""} ${row.acq_time_ph} PH`
+      : (typeof formatDetectionLocalTime === "function" ? formatDetectionLocalTime(row) : "");
+    if (local) entry.times.push(local);
+    let time = String(row.acq_time || row.acq_time_raw || "");
+    if (/^\d{4}$/.test(time)) time = `${time.slice(0, 2)}:${time.slice(2)}`;
+    const stamp = row.acq_date && time ? `${row.acq_date}T${time}:00Z` : null;
+    if (stamp && Number.isFinite(Date.parse(stamp))
+      && (!entry.latest || Date.parse(stamp) > Date.parse(entry.latest))) {
+      entry.latest = stamp;
+    }
+  });
+  return [...byPlatform.values()].sort((a, b) => a.platform.localeCompare(b.platform));
+}
+
+function renderActivitySatellites(rows, options = {}) {
+  const host = document.querySelector("#activity-satellites");
+  const lead = document.querySelector("#activity-satellites-lead");
+  const chips = document.querySelector("#activity-satellite-chips");
+  const summary = document.querySelector("#activity-satellite-summary");
+  const list = document.querySelector("#activity-satellite-list");
+  if (!host || !lead || !chips || !summary || !list) return;
+  if (!rows.length) {
+    host.hidden = true;
+    chips.innerHTML = "";
+    list.innerHTML = "";
+    return;
+  }
+  host.hidden = false;
+  const total = rows.reduce((sum, row) => sum + Number(row.count || 0), 0);
+  const names = joinPlatformNames(rows.map((row) => row.platform));
+  lead.textContent = options.lead
+    || (total
+      ? `Detected by ${names}`
+      : `Satellites in this search · ${names}`);
+  chips.innerHTML = rows.map((row) => `
+    <span class="satellite-chip" role="listitem">
+      ${escapeHtml(row.platform)}
+      ${row.count ? `<span class="chip-count">${row.count}</span>` : ""}
+    </span>`).join("");
+  summary.textContent = total
+    ? `NASA satellites that detected heat (${rows.length})`
+    : `NASA satellites checked (${rows.length})`;
+  list.innerHTML = rows.map((row) => {
+    const when = row.latest
+      ? philippinePassLabel(row.latest)
+      : (row.times?.[0] || "Pass time unavailable");
+    const count = row.count
+      ? `${row.count} reading${row.count === 1 ? "" : "s"}`
+      : "Listed in this search";
+    return `<li><strong>${escapeHtml(row.platform)}</strong> · ${escapeHtml(count)} · latest ${escapeHtml(when)}</li>`;
+  }).join("");
 }
 
 function applyLandActivity(activity) {
@@ -126,32 +206,46 @@ function applyLandActivity(activity) {
   const label = document.querySelector("#activity-label");
   const value = document.querySelector("#activity-value");
   const note = document.querySelector("#activity-note");
-  const published = activity?.activity_rate != null
+  const rate = activity?.activity_rate;
+  const published = rate != null
     && (activity.activity_status === "complete" || activity.activity_status === "partial");
+  const found = published && Number(rate) > 0;
+  const heatRows = heatDetectionRows();
   label.textContent = "Burning activity";
-  value.classList.toggle("is-words", !published);
-  note.hidden = !published;
+  value.classList.toggle("is-words", !found);
+  value.classList.toggle("is-found", found);
+  note.hidden = false;
   note.textContent = "";
-  if (published) {
+  renderActivitySatellites(heatRows, {
+    lead: heatRows.length
+      ? `NASA heat detections · ${joinPlatformNames(heatRows.map((row) => row.platform))}`
+      : "",
+  });
+
+  if (found) {
     const weekly = activity.week_start && activity.week_end;
+    const estimateSats = (activity.satellites || []).filter(Boolean);
     label.textContent += `${target.noun === "square" ? " in this square" : ""}`
       + (weekly ? ` · ${formatWeekRange(activity.week_start, activity.week_end)}` : "");
-    value.textContent = `${(activity.activity_rate * 100).toFixed(1)}%`;
+    value.textContent = `${(rate * 100).toFixed(1)}%`;
     note.textContent =
-      (activity.activity_status === "partial" ? "Partial estimate: some observations lacked usable coverage. " : "")
-      + `How often this ${target.noun}’s grid squares showed burning activity `
-      + (weekly ? "that week" : `on ${formatObservationDay(dayInput.value)}`)
-      + ". It is not a wildfire probability.";
+      (activity.activity_status === "partial" ? "Partial estimate. " : "")
+      + (estimateSats.length ? `Estimate uses ${joinPlatformNames(estimateSats)}. ` : "")
+      + (heatRows.length ? `Heat also seen by ${joinPlatformNames(heatRows.map((row) => row.platform))}. ` : "")
+      + `Share of this ${target.noun}’s grid squares with burning activity`
+      + (weekly ? " that week" : ` on ${formatObservationDay(dayInput.value)}`)
+      + ". Not a wildfire probability.";
   } else if (activity?.status === "request_failed") {
-    value.textContent = "Unavailable";
-    note.hidden = false;
-    note.textContent = activity.explanation;
+    value.textContent = "No burning activity found";
+    note.textContent = activity.explanation || "The burning-activity request failed.";
   } else if (activity?.activity_status === "future" || activity?.status === "future") {
     value.textContent = "Not observed yet";
-    note.hidden = false;
     note.textContent = "This day has not happened yet in the Philippines.";
   } else {
-    value.textContent = "Not processed yet";
+    value.textContent = "No burning activity found";
+    note.textContent = heatRows.length
+      ? `No coverage-backed burning-activity estimate for this ${target.noun} yet. NASA heat was still detected by ${joinPlatformNames(heatRows.map((row) => row.platform))}.`
+      : `No burning activity was found for this ${target.noun} on ${formatObservationDay(dayInput.value)}.`;
   }
 }
 

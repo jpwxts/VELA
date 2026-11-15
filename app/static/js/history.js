@@ -755,7 +755,7 @@ function renderDaySummary() {
   } else if (state.box) {
     countNode.textContent = record?.heat_status === "readings"
       ? `Satellite heat · ${record.heat_count || 0}`
-      : "No estimate";
+      : "No burning activity found";
     noteNode.textContent = historyStatusWords(record?.activity_status, record);
   } else {
     countNode.textContent = "No land selected";
@@ -780,11 +780,17 @@ function renderFutureDays() {
   const tz = forecastTimezone(forecast);
   note.textContent =
     "Fire-weather danger near the center of your selection. It describes weather, not a wildfire probability.";
-  list.innerHTML = days.map((day) => `
-    <li><button type="button" class="future-day" data-forecast-day="${escapeHtml(day.valid_date)}">
+  list.innerHTML = days.map((day) => {
+    const percent = typeof fireDangerPercent === "function" ? fireDangerPercent(day) : null;
+    const fire = day.fire_danger || {};
+    const label = percent != null
+      ? `${percent}%`
+      : (fire.fwi != null ? `FWI ${Number(fire.fwi).toFixed(1)}` : "Not rated");
+    return `<li><button type="button" class="future-day" data-forecast-day="${escapeHtml(day.valid_date)}">
       <span>${escapeHtml(formatShortForecastDay(day.valid_date, tz))}</span>
-      <strong>${escapeHtml(day.danger_level || "Not rated")}</strong>
-    </button></li>`).join("");
+      <strong>${escapeHtml(label)}</strong>
+    </button></li>`;
+  }).join("");
 }
 
 document.querySelectorAll("[data-history]").forEach((button) => {

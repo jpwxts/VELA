@@ -89,9 +89,76 @@
   letter-spacing: -0.02em;
   font-variant-numeric: lining-nums;
 }
-/* Words in place of a figure ("No estimate yet") are set smaller so they do not shout. */
-.activity-value.is-words { font-size: 1.75rem; line-height: 1.2; letter-spacing: -0.01em; }
-.activity-value + .quiet { margin-top: 6px; }
+/* Words in place of a figure are set smaller so they do not shout. */
+.activity-value.is-words { font-size: 1.55rem; line-height: 1.25; letter-spacing: -0.01em; color: var(--ink-soft); }
+.activity-value.is-found { color: var(--ember); }
+.activity-value + .quiet,
+.activity-satellites + .quiet { margin-top: 8px; }
+
+.activity-satellites {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--ember) 6%, var(--field));
+}
+.activity-satellites-lead {
+  margin: 0;
+  font: 600 0.8125rem/1.35 var(--font-ui);
+  color: var(--ink);
+}
+.satellite-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.satellite-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ember) 35%, var(--line-strong));
+  background: var(--card);
+  color: var(--ink);
+  font: 600 0.8125rem/1.2 var(--font-ui);
+}
+.satellite-chip .chip-count {
+  color: var(--ember);
+  font: 600 0.75rem/1 var(--font-data);
+  font-variant-numeric: tabular-nums;
+}
+.satellite-detect-list {
+  margin: 0;
+  border-top: 1px dashed var(--line-strong);
+  padding-top: 8px;
+}
+.satellite-detect-list > summary {
+  cursor: pointer;
+  padding: 4px 0;
+  font: 600 0.8125rem/1.35 var(--font-ui);
+  color: var(--ink-soft);
+  list-style: none;
+}
+.satellite-detect-list > summary::-webkit-details-marker { display: none; }
+.satellite-detect-list > summary::after {
+  content: "▾";
+  float: right;
+  color: var(--ink-faint);
+}
+.satellite-detect-list[open] > summary::after { content: "▴"; }
+.satellite-detect-items {
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  font-size: 0.875rem;
+  color: var(--ink-soft);
+}
+.satellite-detect-items strong { color: var(--ink); font-weight: 600; }
 
 .hours h4 { margin-bottom: 10px; }
 .hours-frame { position: relative; }

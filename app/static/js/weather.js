@@ -39,12 +39,24 @@ function gustKmhField(day) {
   return { status: ms.status, value: Number((Number(ms.value) * 3.6).toFixed(1)) };
 }
 
+/** Local historical FWI ranking as a whole-number percent (not a wildfire chance). */
+function fireDangerPercent(day) {
+  const fire = day?.fire_danger || {};
+  const ranking = fire.ranking;
+  if (ranking == null || !Number.isFinite(Number(ranking))) return null;
+  const value = Number(ranking);
+  if (value < 0 || value > 100) return null;
+  return Math.round(value);
+}
+
 function dayCardSummary(day) {
-  if (day.danger_level) return day.danger_level;
+  const percent = fireDangerPercent(day);
+  if (percent != null) return `${percent}%`;
   const fire = day.fire_danger || {};
   if (fire.status === "unavailable" || fire.status === "missing" || fire.fwi == null) {
     return "FWI unavailable";
   }
+  if (fire.fwi != null) return `FWI ${Number(fire.fwi).toFixed(1)}`;
   const temp = day.temperature_max_c || {};
   if (temp.status !== "missing" && temp.value != null) {
     return `${Number(temp.value).toFixed(0)}°C`;
@@ -172,7 +184,8 @@ function renderOutlook(forecast, selectors) {
     )}</span><span class="day-level">${escapeHtml(summary + peak)}</span>`;
     if (!valuesAvailable) button.disabled = true;
     if (day.valid_date === forecast.attention_day) button.classList.add("peak");
-    if (!day.danger_level) button.classList.add("fwi-missing");
+    const fire = day.fire_danger || {};
+    if (fireDangerPercent(day) == null && fire.fwi == null) button.classList.add("fwi-missing");
     button.addEventListener("click", () => showOutlookDay(day, forecast, selectors));
     daysHost.append(button);
   });
@@ -232,23 +245,34 @@ function showOutlookDay(day, forecast, selectors) {
   const tz = forecastTimezone(forecast);
   const fire = day.fire_danger || {};
   const fwiAvailable = fire.status === "measured" && fire.fwi != null;
+  const percent = fireDangerPercent(day);
   const fwiText = fwiAvailable
-    ? `${Number(fire.fwi).toFixed(1)} (GWIS class: ${day.danger_level || "unclassified"})`
-    : "Fire-danger rating unavailable for this day";
+    ? `${Number(fire.fwi).toFixed(1)}${day.danger_level ? ` · GWIS class ${day.danger_level}` : ""}`
+    : "Fire Weather Index unavailable for this day";
   const rankingText =
-    fire.ranking == null
+    percent == null
       ? "not supplied for this day"
-      : `${Number(fire.ranking).toFixed(1)} on the local historical percentile scale (not a wildfire probability)`;
+      : `${percent}% on the local historical FWI ranking (not a wildfire probability)`;
   const wind = windKmhField(day);
   const gust = gustKmhField(day);
   const direction = day.wind_direction_text || null;
   const recent = forecast?.recent_rain || {};
-  const ratingNote = day.danger_level
-    ? "The rating describes weather that could affect a vegetation fire if one starts. It is not a wildfire probability."
-    : "No fire-danger rating was published for this day.";
+  const reading = percent != null
+    ? `${percent}%`
+    : (fwiAvailable ? `FWI ${Number(fire.fwi).toFixed(1)}` : "Not rated");
+  const ratingNote = percent != null
+    ? "Local historical Fire Weather Index ranking for this day. Higher means more severe fire weather than usual here. It is not a wildfire probability."
+    : fwiAvailable
+      ? "Fire Weather Index is shown because the local historical ranking was not published for this day. It is not a wildfire probability."
+      : "No fire-weather ranking was published for this day.";
   detail.innerHTML = `
     <p class="reading-label">${escapeHtml(formatShortForecastDay(day.valid_date, tz))} · Fire-weather danger</p>
-    <p class="reading-value">${escapeHtml(day.danger_level || "Not rated")}</p>
+    <p class="reading-value">${escapeHtml(reading)}</p>
+    <p class="quiet reading-sub">${
+      percent != null
+        ? `Local historical FWI ranking${day.danger_level ? ` · GWIS class was ${escapeHtml(day.danger_level)}` : ""}`
+        : (day.danger_level ? `GWIS class ${escapeHtml(day.danger_level)}` : "")
+    }</p>
     <dl class="stat-grid">
       <div><dt>Temperature</dt><dd>${statText(day.temperature_max_c, "°C")}</dd></div>
       <div><dt>Humidity</dt><dd>${statText(day.relative_humidity_min_percent, "%")}</dd></div>

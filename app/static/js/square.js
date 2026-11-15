@@ -236,23 +236,30 @@ function revealCellDetail(bounds, marks = [], heat = null) {
   trackHotspotSearch("outlook", loadDayOutlook);
 }
 
-// "Heat seen" / "No heat reported"; satellites are named only when the visitor chose their own set.
+// Always name the NASA satellites that saw heat in this square.
 function setSquareHeat(heat) {
   const line = document.querySelector("#square-heat");
   if (!heat) {
     line.hidden = true;
     return;
   }
-  const chosen = selectedPlatforms();
-  const custom = chosen.length !== DEFAULT_PLATFORMS.length
-    || chosen.some((name) => !DEFAULT_PLATFORMS.includes(name));
   const names = [...new Set(heat.platforms || [])];
-  const words = { seen: "Heat seen", none: "No heat reported", failed: "Heat check failed" };
-  let text = words[heat.state] || "Checking for heat…";
-  if (heat.state === "seen" && custom && names.length) text += ` by ${joinPlatformNames(names)}`;
-  line.textContent = text;
+  const words = {
+    seen: names.length ? `Heat seen by ${joinPlatformNames(names)}` : "Heat seen",
+    none: "No heat reported",
+    failed: "Heat check failed",
+  };
+  line.textContent = words[heat.state] || "Checking for heat…";
   line.classList.toggle("seen", heat.state === "seen");
   line.hidden = false;
+  if (heat.state === "seen" && typeof renderActivitySatellites === "function") {
+    const rows = (heat.readings || []).length
+      ? (typeof heatDetectionRows === "function"
+        ? heatDetectionRows({ inside: heat.readings, platforms_inside: names })
+        : names.map((platform) => ({ platform, count: 0, times: [] })))
+      : names.map((platform) => ({ platform, count: 0, times: [] }));
+    if (rows.length) renderActivitySatellites(rows);
+  }
 }
 
 function squareAround(lat, lon) {
