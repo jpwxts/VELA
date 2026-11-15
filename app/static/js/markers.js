@@ -111,6 +111,15 @@ function clearProbabilitySurface(forget = false) {
   if (forget) state.probabilityOverlay = null;
   const legend = document.querySelector("#probability-legend");
   if (legend) legend.hidden = true;
+  setProbabilityNote("");
+}
+
+// The legend line under the switch: why no shading is drawn, or nothing.
+function setProbabilityNote(text) {
+  const note = document.querySelector("#probability-note");
+  if (!note) return;
+  note.textContent = text;
+  note.hidden = !text;
 }
 
 function resetProbabilityOverlay() {
@@ -121,8 +130,22 @@ function resetProbabilityOverlay() {
 
 function renderProbabilityOverlay(payload = state.probabilityOverlay) {
   clearProbabilitySurface();
-  const cells = payload?.status === "ok" ? (payload.cells || []) : [];
-  if (!cells.length || !payload.extent) return;
+  if (!state.showProbability || !payload) return;
+  const cells = payload.status === "ok" ? (payload.cells || []) : [];
+  if (!cells.length || !payload.extent) {
+    setProbabilityNote(payload.reason ? `Not shown: ${payload.reason}` : "");
+    return;
+  }
+  // Every square at the same value says nothing about where, so nothing is drawn.
+  const percents = new Set(cells.map((cell) => cell.probability_percent));
+  if (cells.length > 1 && percents.size === 1) {
+    const experimental = cells.some((cell) => cell.experimental);
+    setProbabilityNote(
+      `Not shown: every square here comes out at ${cells[0].probability_percent}%`
+      + `${experimental ? " (experimental)" : ""}, so the shading would not show where the chance is higher.`
+    );
+    return;
+  }
   const opacity = state.basemap === "satellite" ? 0.48 : 0.62;
   const canvas = probabilityCanvas(cells);
   if (state.polygon && state.polygon.length >= 4) clipToLand(canvas, payload.extent, state.polygon);
@@ -147,6 +170,8 @@ async function loadProbabilityOverlay(issueDate) {
   if (!state.polygon || state.polygon.length < 4) return;
   const requestId = ++state.probabilityRequestId;
   clearProbabilitySurface(true);
+  // Off by default: the server is only asked while the legend switch is on.
+  if (!state.showProbability) return;
   const finishSearch = beginHotspotSearch("probability");
   try {
     const response = await fetch("/api/hotspot-forecast/overlay", {
@@ -483,6 +508,17 @@ function showMemberPoints(area, options = {}) {
     },
   }));
 }
+
+document.querySelector("#show-probability")?.addEventListener("change", (event) => {
+  state.showProbability = event.target.checked;
+  if (!state.showProbability) {
+    // Keep the loaded values, so turning it back on needs no new request.
+    clearProbabilitySurface();
+    return;
+  }
+  if (state.probabilityOverlay) renderProbabilityOverlay();
+  else if (state.lastLandCheck) loadProbabilityOverlay(state.lastLandCheck.observation_date || dayInput.value);
+});
 
 document.querySelector("#basemap-satellite")?.addEventListener("change", (event) => {
   state.basemap = event.target.checked ? "satellite" : "atlas";

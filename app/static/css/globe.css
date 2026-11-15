@@ -242,6 +242,8 @@
 .legend ul { display: grid; gap: 7px; padding: 0 12px 10px; }
 .legend li { display: flex; align-items: center; gap: 10px; }
 .legend .check { padding: 7px 12px; border-top: 1px solid var(--line); }
+/* Why the hotspot-chance shading is not drawn (all squares equal, or not covered). */
+.legend-note { padding: 0 12px 9px 36px; font-size: 0.75rem; line-height: 1.45; color: var(--ink-soft); }
 .legend-credits {
   padding: 9px 12px 10px;
   border-top: 1px solid var(--line);

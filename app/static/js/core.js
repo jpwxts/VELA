@@ -14,6 +14,8 @@ const state = {
   forecastMarker: null,
   showForecastPoint: true,
   areaLayers: [],
+  // Hotspot-chance shading: off until the visitor turns it on in the legend.
+  showProbability: false,
   probabilityLayer: null,
   probabilityOverlay: null,
   probabilityRequestId: 0,
