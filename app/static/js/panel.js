@@ -27,11 +27,6 @@ function switchPanelTab(name) {
     node.hidden = node.id !== `pane-${tabName}`;
   });
   syncLandPicture();
-  if (tabName !== "forecast") clearProbabilitySurface();
-  if (tabName === "forecast") {
-    if (state.summarySquare?.cellId) loadHotspotForecast(state.summarySquare.cellId);
-    else loadProbabilityOverlay();
-  }
   document.querySelector(".card-body")?.scrollTo({ top: 0 });
   if (tabName === "weather") loadWeatherOutlook();
   if (tabName === "weekly") setHistoryView(state.historyView);
@@ -80,11 +75,6 @@ function mapBadge(text, className) {
 
 // Short name for the card title, with the wider region as a breadcrumb above it.
 function selectionTitleParts() {
-  if (state.summarySquare?.cellId) return {title: `Square ${state.summarySquare.cellId}`, trail: ["Selected 5 km satellite grid square"]};
-  if (!state.summarySquare && state.boundaryPreset) return {
-    title: state.boundaryPreset === "mindanao" ? "All Mindanao" : "All Philippines",
-    trail: ["Philippines", "Complete island-group boundary"],
-  };
   const place = state.lastPlace;
   if (place && (place.primary || place.label)) {
     const pieces = String(place.label || "").split(",").map((part) => part.trim()).filter(Boolean);
@@ -116,7 +106,7 @@ function updateSelectionBanner() {
     const shape = state.polygon ? `${corners} corners` : "Search boundary";
     const saved = state.savedExample ? "Saved example · " : "";
     boundary.innerHTML =
-      `${saved}${state.summarySquare ? "Selected 5 km square" : "Selected land"} · ${escapeHtml(formatObservationDay(dayInput.value))}<br>`
+      `${saved}${escapeHtml(shape)} · ${escapeHtml(formatObservationDay(dayInput.value))}<br>`
       + `<span class="stamp coords">`
       + [`W ${west}`, `S ${south}`, `E ${east}`, `N ${north}`].map((pair) => `<span>${pair}</span>`).join(" ")
       + `</span>`;

@@ -242,6 +242,8 @@
 .legend ul { display: grid; gap: 7px; padding: 0 12px 10px; }
 .legend li { display: flex; align-items: center; gap: 10px; }
 .legend .check { padding: 7px 12px; border-top: 1px solid var(--line); }
+/* Why the hotspot-chance shading is not drawn (all squares equal, or not covered). */
+.legend-note { padding: 0 12px 9px 36px; font-size: 0.75rem; line-height: 1.45; color: var(--ink-soft); }
 .legend-credits {
   padding: 9px 12px 10px;
   border-top: 1px solid var(--line);
@@ -277,16 +279,3 @@
   border-radius: 3px;
   background: linear-gradient(90deg, #29275f 0%, #256b83 25%, #26917e 50%, #89ba58 75%, #f2d247 100%);
 }
-
-/* Solid coral is observed evidence; hollow teal is a genuinely issued forecast. */
-.forecast-marker { pointer-events: auto; cursor: pointer; border: 2px solid var(--teal); background: var(--field); color: var(--teal); border-radius: 50%; min-width: 34px; min-height: 34px; padding: 4px; font: 600 0.75rem var(--font-data); box-shadow: 0 0 0 3px var(--field); }
-.forecast-marker:hover, .forecast-marker:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
-.forecast-marker.has-observed { background: transparent; min-width: 38px; min-height: 38px; box-shadow: none; }
-.forecast-marker.has-observed > span { position: absolute; top: calc(100% + 5px); left: 50%; transform: translateX(-50%); background: var(--field); border: 1px solid var(--teal); border-radius: 3px; padding: 2px 4px; white-space: nowrap; }
-.swatch.swatch-probability { background: transparent; border: 2px solid var(--teal); border-radius: 50%; }
-.swatch.swatch-missing { background: transparent; border: 1px dashed var(--ink-faint); }
-.swatch.swatch-reading { background: var(--ember); }
-.swatch-reading::before { background: var(--ember); }
-.swatch-probability { width: 22px; height: 16px; }
-.swatch-probability::before { width: 10px; height: 10px; background: transparent; border: 2px solid var(--teal); border-radius: 50%; }
-.swatch-point::before { border-color: var(--ink-faint); }

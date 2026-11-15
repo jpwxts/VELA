@@ -216,13 +216,3 @@
 .future-day:hover { border-color: var(--teal); background: var(--teal-wash); }
 .future-day span:first-child { font-variant-numeric: tabular-nums; }
 .future-day strong { font: 500 1.0625rem/1.2 var(--font-display); }
-
-.cal-day { min-height: 100px; align-content: start; gap: 3px; }
-.cal-day .cal-evidence { display: block; text-align: left; font: 500 .5625rem/1.35 var(--font-data); white-space: normal; }
-.cal-evidence.observed { color: var(--ember); }
-.cal-evidence.predicted { color: var(--teal); border-left: 1px solid var(--teal); padding-left: 3px; }
-.cal-evidence.missing { color: var(--ink-faint); }
-.history-swatch.forecast-issued { border: 2px solid var(--teal); border-radius: 50%; background: transparent; }
-.history-chart-value.heat { fill: var(--ember); }
-.history-chart-value.hotspot { fill: transparent; stroke: var(--teal); stroke-width: 2; }
-.history-chart-missing { fill: transparent; stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 2 2; }

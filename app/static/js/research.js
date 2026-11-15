@@ -127,11 +127,11 @@ async function loadHotspotAnalytics() {
     const archived = analytics.v1_archived_experiment || {};
     const holdout = current.holdout || {};
     const claimable = holdout.claimable_ex_v22_reserve || holdout.metrics;
-    const candidate = payload?.comparison;
-    const prior = payload?.national_prior;
     summary.textContent =
       current.winner
-        ? `Research winner: ${candidate.winner.name} · validation F1 ${Number(candidate.winner.validation_metrics.f1).toFixed(4)} (n=${candidate.row_counts.validation}); full-test F1 ${Number(candidate.holdout.metrics.f1).toFixed(4)} (n=${candidate.row_counts.test}). Run ${candidate.data_version}. National estimates are experimental; the displayed square identifies its actual model.`
+        ? `Selected coverage-backed model: ${current.winner.name} (threshold ${current.winner.threshold}). `
+          + `Validation n=${current.row_counts?.validation_n ?? current.row_counts?.validation ?? "—"}. `
+          + `Promotion claims use claimable holdout excluding the sealed v2.2 reserve.`
         : (payload?.comparison?.reason || "Hotspot-forecast model performance unavailable.");
     if (board) {
       board.innerHTML = _renderModelBoard(
@@ -146,7 +146,6 @@ async function loadHotspotAnalytics() {
     const highNote = highAudit.serving_policy?.limitation_for_research
       || "Scores ≥90% and months outside the dry-season training distribution are labeled experimental.";
     v2.innerHTML = [
-      prior ? `<p><strong>National historical fallback</strong> · ${escapeHtml(prior.model_name)} · ${prior.numerator}/${prior.denominator} = ${(prior.probability*100).toFixed(1)}%. Validation F1 ${prior.splits.validation.f1.toFixed(4)} (n=${prior.splits.validation.n}); test F1 ${prior.splits.test.f1.toFixed(4)} (n=${prior.splits.test.n}) at threshold ${prior.threshold}. Run ${escapeHtml(prior.run_id)}.</p><p class="quiet">Used when seven days of measured coverage or a compatible seasonal input is missing. This fixed training rate cannot distinguish local risk. It is not nationally calibrated; an empty satellite search is never filled with assumed detections. The HGB is used only with complete measured inputs in its evaluated seasonal distribution. Both paths are experimental.</p>` : "",
       `<p><strong>Selected model holdout (claimable)</strong></p>`,
       `<p>${_metricLine("Identical claimable rows", claimable)}</p>`,
       seasonal != null ? `<p class="quiet">Seasonal baseline Brier on identical rows: ${_fmtNum(seasonal)}</p>` : "",

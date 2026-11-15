@@ -47,33 +47,7 @@ initializeHistoryPicker();
 updateDayWords();
 const bootFixture = new URLSearchParams(location.search).get("fixture");
 
-const bootExample = new URLSearchParams(location.search).get("example");
-
-if (["activity-pilot", "activity-zero", "activity-missing"].includes(bootExample)) {
-  loadStatus().then(() => {
-    syncMapMode("history");
-    dayInput.value = bootExample === "activity-zero" ? "2024-03-09" : bootExample === "activity-missing" ? "2024-03-02" : "2024-03-11";
-    updateDayWords({skipCheck:true});
-    setPolygonFromBox([123.6,6.3,124.7,7.4], "Maguindanao activity pilot");
-    checkLand({date:dayInput.value,forceDate:true});
-  });
-} else if (bootExample === "mindanao") {
-  loadStatus().then(() => loadPhilippinesPublicExample({region: "mindanao", day: "2026-11-07"}));
-} else if (bootExample === "manila") {
-  loadStatus().then(() => {
-    syncMapMode("live");
-    setPolygonFromBox([120.97,14.58,121.02,14.63], "Manila demonstration boundary");
-    checkLand();
-  });
-} else if (bootExample === "maguindanao-plot") {
-  loadStatus().then(() => {
-    syncMapMode("history");
-    dayInput.value = "2026-11-07";
-    updateDayWords({skipCheck: true});
-    setPolygonFromBox([123.95727, 6.78538, 124.10909, 6.92485], "Maguindanao demonstration boundary");
-    checkLand({date: "2026-11-07", forceDate: true});
-  });
-} else if (bootFixture === "click_regression" || bootFixture === "two_satellites") {
+if (bootFixture === "click_regression" || bootFixture === "two_satellites") {
   loadClickFixture(bootFixture);
 } else if (bootFixture === "check_land_demo") {
   loadCompetitionDemo();

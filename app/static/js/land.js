@@ -6,8 +6,7 @@ const hotspotSearches = new Map();
 function syncHotspotSearchProgress() {
   const loading = hotspotSearches.size > 0;
   document.querySelector("#hotspot-search-progress").hidden = !loading;
-  // The activity answer card; optional so a markup change cannot stop a land check.
-  document.querySelector("#land-summary .activity-answer")?.setAttribute("aria-busy", String(loading));
+  document.querySelector("#land-summary .activity").setAttribute("aria-busy", String(loading));
 }
 
 function beginHotspotSearch(scope) {
@@ -127,8 +126,6 @@ async function loadStatus() {
   } catch (_error) {
     return;
   }
-  state.predictionPolicy = payload.prediction || null;
-  renderPredictionExplanation(state.lastHotspotForecast);
   if (payload.live?.ph_today) state.phToday = payload.live.ph_today;
   if (payload.live?.timestamps) state.liveTimestamps = payload.live.timestamps;
   renderLiveTimestamps({ timestamps: state.liveTimestamps });
@@ -227,7 +224,6 @@ function setPolygonFromBox(box, label) {
 }
 
 function setPolygon(coordinates, label) {
-  state.boundaryPreset = null;
   const ring = coordinates.map(([lon, lat]) => [Number(lon), Number(lat)]);
   if (ring.length && (ring[0][0] !== ring[ring.length - 1][0] || ring[0][1] !== ring[ring.length - 1][1])) {
     ring.push([...ring[0]]);
@@ -246,7 +242,6 @@ function setPolygon(coordinates, label) {
     Math.max(...lons),
     Math.max(...lats),
   ].map((value) => Number(value.toFixed(4)));
-  state.landAbort?.abort();
   // Invalidate any in-flight outlook / check for the previous plot.
   state.weatherRequestId += 1;
   state.landRequestId += 1;
@@ -321,7 +316,6 @@ function clearForecastMarker() {
 }
 
 function clearLand() {
-  clearActivityMap();
   state.historyRequestId += 1;
   state.monthHistory = null;
   state.historyKey = null;
@@ -456,7 +450,6 @@ function setDefaultPlatforms() {
 }
 
 function resetLandResult() {
-  clearActivityMap();
   clearHotspotSearches();
   resetProbabilityOverlay();
   document.querySelector("#fixture-banner").hidden = true;
@@ -499,19 +492,14 @@ async function checkLand(options = {}) {
   }
   const date = dayInput.value;
   document.querySelector("#year").value = date.slice(0, 4);
-  state.landAbort?.abort();
-  state.landAbort = new AbortController();
-  const signal = state.landAbort.signal;
   const requestId = ++state.landRequestId;
   ++state.requestId;
   // Keep previous heat markers until the new payload paints — never blank the map mid-flight.
   resetLandResult();
   state.forecast = null;
-  renderWeatherSummary({status: "loading"});
   refreshLandSummary();
   state.landLabel = options.label || state.landLabel || "Your land";
   state.checkingDay = date;
-  renderObservedAnswer({status: "loading"}, {date});
   setChecking(true);
   document.querySelector("#area-label").textContent =
     `Checking satellite heat for ${formatObservationDay(date)}…`;
@@ -521,51 +509,32 @@ async function checkLand(options = {}) {
   renderDaySummary();
   openLandPanel({ tab: state.panelTab || "where", focus: false });
   const finishSearch = beginHotspotSearch("land");
-  // Start the model independently; a slow satellite provider cannot block it.
-  if (state.panelTab === "forecast" && typeof loadProbabilityOverlay === "function") loadProbabilityOverlay();
   try {
     const body = {
       coordinates: state.polygon,
-      include_weather: false,
-      include_activity: false,
-      boundary_preset: state.boundaryPreset || null,
       platforms,
       label: options.label || "Your land",
     };
     if (!livePhilippine) body.date = options.date || date;
-    // Independent request: weather never gates painting heat or coverage.
-    const [west, south, east, north] = state.box;
-    const weatherPromise = fetch(`/api/preparedness?west=${west}&south=${south}&east=${east}&north=${north}`, {
-      signal: AbortSignal.any([signal, AbortSignal.timeout(25000)]),
-    }).then(async response => {
-      if (!response.ok) throw new Error("Weather unavailable");
-      return response.json();
-    }).catch(() => ({ok: false, days: [], headline: "Fire-weather danger unavailable", headline_explanation: "Weather request failed or timed out. Satellite heat is checked independently."}));
-    weatherPromise.then(forecast => {
-      if (requestId !== state.landRequestId || signal.aborted) return;
-      state.forecast = forecast;
-      if (state.lastLandCheck) state.lastLandCheck.forecast = forecast;
-      renderOutlook(forecast, weatherSelectors());
-    });
     const response = await fetch("/api/check-land", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-      signal: AbortSignal.any([signal, AbortSignal.timeout(45000)]),
     });
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.detail || "Land check failed");
     // Rapid redraw: drop older responses so they cannot replace the current plot.
     if (requestId !== state.landRequestId) return;
-    payload.forecast = state.forecast || payload.forecast;
-    renderLandCheck(payload, {forecastStarted:true});
+    renderLandCheck(payload);
   } catch (error) {
     if (requestId !== state.landRequestId) return;
     state.checkingDay = null;
     setChecking(false);
     document.querySelector("#area-label").textContent =
       "The land check failed. Check your connection, then choose Check my land again.";
-    document.querySelector("#observed-heat-summary").textContent = "Satellite heat search failed or timed out. Weather loads independently.";
+    document.querySelector("#weather-headline").textContent = "The land check failed.";
+    document.querySelector("#weather-explanation").textContent = "Check your connection and try again.";
+    document.querySelector("#weather-status").textContent = "Retry with Check my land.";
     if (!state.summarySquare) {
       applyLandActivity({ status: "request_failed", explanation: "The land check failed. Check your connection and try again." });
     }
@@ -580,7 +549,7 @@ function setResultLead(text) {
   if (node) node.textContent = text;
 }
 
-function renderLandCheck(payload, options = {}) {
+function renderLandCheck(payload) {
   state.lastLandCheck = payload;
   state.forecast = payload.forecast || null;
   state.checkingDay = null;
@@ -612,7 +581,7 @@ function renderLandCheck(payload, options = {}) {
     state.forecastMarker = globe.addPoint(point.latitude, point.longitude, {
       radius: 5,
       fill: "#fffdf8",
-      stroke: "#8e9993",
+      stroke: CELL_STROKE,
       weight: 2.5,
       tooltip: point.label || "Weather near the center of your selection.",
     });
@@ -626,9 +595,6 @@ function renderLandCheck(payload, options = {}) {
   const heat = payload.heat || {};
   document.querySelector("#heat-block").hidden = false;
   document.querySelector("#heat-lead").textContent = heat.lead || "";
-  const summary = document.querySelector("#observed-heat-summary");
-  if (summary) summary.textContent = heat.lead || "";
-  if (!state.summarySquare) renderObservedAnswer(heat, {saved: Boolean(payload.saved), date: payload.observation_date});
   document.querySelector("#heat-feeds").innerHTML = renderFeedBreakdown(heat.feeds || []);
   document.querySelector("#heat-inside").innerHTML = renderHeatGroup(
     "Inside your boundary",
@@ -692,15 +658,12 @@ function renderLandCheck(payload, options = {}) {
     beginPlaceLookup({ mode: "center", lat: center.lat, lon: center.lon });
   }
   // Update the compact burning-activity card from the same land check.
-  // Activity is supplied only by the independent coverage-backed store request.
+  applyLandSummaryFromCheck(payload);
   renderLiveTimestamps(payload);
   openLandPanel({ tab: state.panelTab || "where", focus: false });
   updateSelectionBanner();
   drawLandCutout(synthetic.hotspot_areas.areas || []);
-  if (state.panelTab === "forecast") {
-    if (!options.forecastStarted) loadProbabilityOverlay(payload.observation_date || dayInput.value);
-    else if (state.probabilityOverlay) renderProbabilityOverlay(state.probabilityOverlay);
-  }
+  loadProbabilityOverlay(payload.observation_date || dayInput.value);
 }
 
 function renderFeedBreakdown(feeds) {
@@ -737,7 +700,7 @@ function renderStatuses(results) {
     card.className = `badge ${result.status}`;
     const platform = result.platform || "Request";
     card.innerHTML = `<strong>${platform}: ${STATUS_TEXT[result.status] || result.status}</strong>
-      <small>${result.count > 0 ? `${result.count} readings` : "No readings returned"} · coverage ${result.coverage || "unknown"}${result.product ? ` · ${result.product}` : ""}</small>
+      <small>${result.count || 0} detections · coverage ${result.coverage || "unknown"}${result.product ? ` · ${result.product}` : ""}</small>
       ${result.message ? `<p>${escapeHtml(result.message)}</p>` : ""}`;
     node.append(card);
   });
