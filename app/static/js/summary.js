@@ -151,12 +151,7 @@ function applyLandActivity(activity) {
     note.hidden = false;
     note.textContent = "This day has not happened yet in the Philippines.";
   } else {
-    // Say why there is no figure: it needs processed coverage, which heat points cannot replace.
     value.textContent = "Not processed yet";
-    note.hidden = false;
-    note.textContent = `Burning activity is measured from processed NASA satellite coverage, which shows where `
-      + `the satellites had a clear view. None is processed for this ${target.noun} and date on this computer yet; `
-      + "heat points alone cannot measure it.";
   }
 }
 

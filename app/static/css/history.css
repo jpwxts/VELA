@@ -68,8 +68,6 @@
 .history-chart-bar[role="button"]:hover .history-chart-hit { fill: var(--teal-wash); fill-opacity: 0.4; }
 .history-chart-bar:focus-visible { outline: none; }
 .history-chart-bar:focus-visible .history-chart-hit { stroke: var(--teal); stroke-width: 1; }
-#history-chart-table { overflow-x: auto; }
-#history-chart-table td { white-space: normal; }
 
 .cal-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .cal-title { font: 700 1.0625rem/1 var(--font-ui); letter-spacing: 0; }

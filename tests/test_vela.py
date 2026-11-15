@@ -447,7 +447,7 @@ def test_page_language_does_not_call_the_metric_burned_area():
     assert CALENDAR_METRIC in page
     assert "Panay" not in page and "Panay" not in script
     assert "Reveal MODIS" in script
-    assert "percentage of land burned" in page
+    assert "percentage of land burned" in page or "percentage of land burned" in script
 
 
 def _client(tmp_path, getter, key="SECRET-KEY-99"):

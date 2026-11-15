@@ -529,14 +529,11 @@ function renderObservationCalendar() {
   if (activityStat) activityStat.hidden = forecastMode;
   status.textContent = state.historyLoading ? "Loading burning activity…"
     : state.historyError ? "History could not be loaded. Please try again."
-    : forecastMode
-      ? `${hotspotPublished} ${hotspotPublished === 1 ? "day" : "days"} with hotspot forecasts for square ${state.hotspotMonthCellId}`
-        + (upcomingCount ? ` · ${upcomingCount} upcoming` : "")
-        + `. Chart plots hotspot chance when burning activity is unprocessed`
-        + ` (activity estimates: ${published} / ${daysInMonth}).`
+    : forecastMode ? ""
     : !state.box ? "Select land to see its burning history."
     : published ? `${published} of ${daysInMonth} days have usable estimates. Select a day for details.`
     : `No burning-activity estimates for ${title.textContent}.`;
+  status.hidden = !status.textContent;
   document.querySelector("#history-retry").hidden = !state.historyError;
   // Never put a single-day forecast percent under “Month's activity”.
   document.querySelector("#history-month-rate").textContent = forecastMode
@@ -550,10 +547,7 @@ function renderObservationCalendar() {
   const firstObservation = payload?.first_observation;
   document.querySelector("#history-availability").textContent = firstObservation
     ? `Stored observations for this land: ${formatObservationDay(firstObservation)} – ${formatObservationDay(payload.last_observation)}.`
-    : (state.hotspotMonthCellId
-      ? `Hotspot forecast calendar for square ${state.hotspotMonthCellId}; future Philippine dates show Upcoming, not a percentage.`
-        + (published ? "" : " Burning-activity estimates for this square exist in earlier months (e.g. March 2024) when coverage was processed.")
-      : "");
+    : "";
   renderHistoryChart();
   renderDaySummary();
 }
@@ -653,10 +647,11 @@ function renderHistoryChart() {
   const description = document.querySelector("#history-chart-description");
   if (description) {
     description.textContent = series.kind === "hotspot"
-      ? "Bars are the chance satellites record a hotspot. Burning activity is a separate metric and stays blank until processed."
+      ? ""
       : series.kind === "heat"
         ? "Bars are heat-reading counts. Empty activity cells mean the estimate pipeline has not processed this land/date yet."
         : "Percentages use observed grid squares with usable estimates. Empty periods have no estimate.";
+    description.hidden = !description.textContent;
   }
   const left = 34;
   const bottom = 154;
@@ -708,35 +703,6 @@ function renderHistoryChart() {
     parts.push(`<text class="history-chart-empty" x="184" y="91" text-anchor="middle">${escapeHtml(series.empty)}</text>`);
   }
   svg.innerHTML = parts.join("");
-  const showForecastCols = !annual && Boolean(state.hotspotMonthCellId);
-  document.querySelector("#history-chart-table").innerHTML = `<table class="member-table"><caption class="visually-hidden">${escapeHtml(series.title)} values</caption>
-    <thead><tr>
-      <th>${annual ? "Month" : "Day"}</th>
-      <th>Burning activity</th>
-      <th>Heat readings</th>
-      ${showForecastCols ? "<th>Hotspot chance</th><th>Models</th>" : ""}
-      <th>Status</th>
-    </tr></thead>
-    <tbody>${rows.map((row, index) => {
-      const iso = annual ? null : row.date;
-      const hotspot = iso ? historyHotspotForDay(iso) : null;
-      const heatText = row.heat_status === "readings"
-        ? String(row.heat_count || 0)
-        : row.heat_status === "checked_empty" ? "0" : "—";
-      const chanceText = hotspot?.probability_percent != null
-        ? `${hotspot.probability_percent}%`
-        : (hotspot?.calendar_state === "upcoming" ? "Upcoming" : "—");
-      const models = (hotspot?.model_board?.models || [])
-        .map((model) => `${model.name} ${model.probability_percent}%`)
-        .join(" · ") || "—";
-      return `<tr>
-        <td>${annual ? escapeHtml(monthLabel(`${row.month}-01`)) : index + 1}</td>
-        <td>${historyPercent(row.activity_rate)}</td>
-        <td>${heatText}</td>
-        ${showForecastCols ? `<td>${chanceText}</td><td>${escapeHtml(models)}</td>` : ""}
-        <td>${escapeHtml(historyStatusWords(row.activity_status, row))}</td>
-      </tr>`;
-    }).join("")}</tbody></table>`;
 }
 
 function openForecastDay(iso) {

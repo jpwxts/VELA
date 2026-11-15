@@ -295,26 +295,6 @@ function setPanelMode(mode) {
   }
 }
 
-// How a next-24-hour estimate was made, in plain words.
-function forecastMethodLine(issue) {
-  const parts = [issue?.experimental === false ? "" : "Experimental"];
-  if (issue?.method?.kind === "historical_prior") {
-    parts.push("historical base rate, the same for every square");
-  } else if (issue?.model_version) {
-    const f1 = Number(issue?.evaluation?.test?.f1);
-    parts.push(`trained model${Number.isFinite(f1) && f1 > 0 ? ` (test F1 ${f1.toFixed(2)})` : ""}`);
-  }
-  const until = formatManilaTime(issue?.valid_interval?.end_manila);
-  if (until) parts.push(`valid until ${until}`);
-  return parts.filter(Boolean).join(" · ");
-}
-
-// Why the trained model was not used, when the base rate stood in for it.
-function forecastWhyLine(issue) {
-  if (issue?.method?.kind !== "historical_prior") return "";
-  return " The trained model needs seven days of measured satellite coverage here, which this computer does not have yet.";
-}
-
 function renderHotspotForecast(payload) {
   const value = document.querySelector("#hotspot-forecast-value");
   const meta = document.querySelector("#hotspot-forecast-meta");
@@ -324,7 +304,7 @@ function renderHotspotForecast(payload) {
   if (payload?.status === "issued" && payload.probability_percent != null) {
     value.textContent = `${payload.probability_percent}%`;
     value.classList.remove("is-words");
-    meta.textContent = `${forecastMethodLine(payload)}.${forecastWhyLine(payload)}`;
+    meta.textContent = "";
   } else if (payload?.calendar_state === "unsupported_location" || payload?.status === "unsupported") {
     value.textContent = "Not available here";
     value.classList.add("is-words");
@@ -371,10 +351,9 @@ function renderLandForecast(overlay = state.probabilityOverlay) {
       ? "Chance in each square of your land in the next 24 hours."
       : "Range across the squares of your land in the next 24 hours.";
   }
-  const issue = overlay.representative_issue || {};
   const expected = `About ${Math.round(Number(summary.expected_heat_squares) || 0)} of ${summary.forecast_squares} squares`
     + `${summary.partial ? " in this sample of your land" : ""} are expected to show heat.`;
-  meta.textContent = `${expected} ${forecastMethodLine(issue)}.${forecastWhyLine(issue)}`;
+  meta.textContent = expected;
   meta.hidden = false;
 }
 
