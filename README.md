@@ -629,3 +629,24 @@ Repository: [github.com/jpwxts/VELA](https://github.com/jpwxts/VELA)
 - Keep secrets in `.env` and Earthdata `.netrc` only.  
 - `data/` large products and keys are gitignored.  
 - Preparedness email briefs send only after review, and only if SMTP settings are configured.
+
+## Activity-first workspace (live redesign)
+
+Selecting land now places the selected Philippine date, coverage-backed activity percentage,
+active-contribution numerator and usable-square-day denominator beside the map. Daily,
+weekly and monthly charts read `/api/history/month` totals directly; they never average
+percentages. Missing coverage stays a gap and measured zero remains visible. Tap a chart
+period to select its first day on the map, or use the date picker. Satellite pass lists,
+forecast, weather and methods remain reachable in supporting disclosures.
+
+The activity and history requests run concurrently, independently of weather, with aborted
+superseded requests and selection/date guards. No model, source value or unit is changed
+by the layout. The map remains interactive on desktop; on narrow screens the answer is
+in a scrollable sheet with the map visible above it.
+
+Local examples: `/?example=activity-pilot` (11 March 2024: 21/309 = 6.8%),
+`/?example=activity-zero` (9 March: 0/276), and `/?example=activity-missing`
+(2 March: no eligible activity denominator). These request real stored rows.
+
+Checks: `python -m pytest -q` and `node --test tests/test_activity_workspace.cjs`.
+Design references: [desktop and mobile](docs/design/index.html).

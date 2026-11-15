@@ -21,6 +21,7 @@ function refreshLandSummary() {
   document.querySelector("#land-secondary-content").hidden = hasLand;
   syncLandPicture();
   if (!hasLand) return;
+  loadActivityWorkspace();
   drawLandCutout(state.lastLandCheck?.heat?.hotspot_areas?.areas || []);
   if (state.lastLandCheck) applyLandSummaryFromCheck(state.lastLandCheck);
   else trackHotspotSearch("activity", loadWeeklyActivity);
@@ -257,6 +258,7 @@ function applyLandSummaryFromCheck(payload) {
 }
 
 async function loadWeeklyActivity() {
+  if (state.summarySquare) loadActivityWorkspace();
   const label = document.querySelector("#activity-label");
   const value = document.querySelector("#activity-value");
   const note = document.querySelector("#activity-note");

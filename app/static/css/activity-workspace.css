@@ -1,0 +1,37 @@
+/* Activity workspace: land stays on the map, answer and trend share the first view. */
+:root { --card-width: min(580px, 52vw); }
+.card-head { padding:20px 60px 18px 26px; }
+.card-title { font-size:1.65rem; }
+.card-body { padding:20px 24px; }
+.workspace-preview { margin:0 0 16px; color:var(--ink-soft); font-size:.875rem; }
+.workspace-preview summary,.workspace-support summary,.workspace-methods summary { cursor:pointer; padding:12px 0; }
+.activity-workspace { display:grid; gap:24px; }
+.activity-hero { padding:22px; border:1px solid var(--line); border-top:3px solid var(--teal); border-radius:12px; background:var(--field); }
+.workspace-kicker { font:600 .7rem var(--font-ui); text-transform:uppercase; letter-spacing:.12em; color:var(--teal); margin-bottom:12px; }
+.activity-hero h3 {font:600 1.45rem var(--font-ui);}
+#workspace-date {margin:8px 0;color:var(--ink-soft);}
+#workspace-value {display:block;font:600 clamp(3.5rem,6vw,5rem)/1.15 var(--font-display);margin:14px 0;letter-spacing:-.04em;}
+#workspace-value.unavailable {font:600 1.65rem/1.25 var(--font-ui);letter-spacing:0;}
+#workspace-ratio {font-weight:600;font-size:1.05rem;margin-bottom:12px;}
+.activity-hero>p:not(.workspace-kicker) {line-height:1.5;}
+#workspace-source {margin-top:12px;}
+.workspace-date-control {font-size:.8rem;display:flex;align-items:center;gap:12px;}
+.workspace-date-control input {max-width:180px;padding:5px;border:1px solid var(--line);border-radius:5px;background:var(--card);color:var(--ink);color-scheme:dark;}
+.workspace-chart-head {display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.workspace-chart-head h3 {font:600 1.25rem var(--font-ui);}
+.workspace-chart-head label {font-size:.8rem;color:var(--ink-soft);}
+.workspace-chart-head select {background:var(--card);color:var(--ink);border:1px solid var(--line);padding:8px;border-radius:6px;}
+#workspace-chart {width:100%;display:block;margin-top:18px;overflow:visible;}
+#workspace-chart text {fill:var(--ink-soft);font:13px var(--font-ui);}
+#workspace-chart g {cursor:pointer;}
+#workspace-chart g:focus {outline:2px solid var(--teal);}
+.workspace-key {font-size:.8rem;color:var(--ink-soft);margin:6px 0;}
+.workspace-key span {color:var(--teal);}
+#workspace-point {font-size:.85rem;min-height:2.7em;margin-top:10px;}
+.workspace-methods,.workspace-support {border-top:1px solid var(--line);font-size:.9rem;}
+#workspace-products {overflow-wrap:anywhere;font-size:.8rem;color:var(--ink-soft);}
+.workspace-support {margin-top:12px;}
+.workspace-support>.activity {border:0;padding:8px 0;}
+.workspace-support .activity-value {font-size:2rem;}
+@media(min-width:1400px){:root{--card-width:680px;} .activity-hero{padding:26px;} #workspace-chart{min-height:220px;}}
+@media(max-width:860px){.card{max-height:68%;} .card-body{padding:14px 18px 24px;} .card-head{padding:16px 52px 12px 18px;} .card-title{font-size:1.3rem;} .activity-hero{padding:16px;} .activity-workspace{gap:18px;} #workspace-value{font-size:3.5rem;} .workspace-chart-head h3{font-size:1.1rem;} .workspace-preview{margin-bottom:8px;} }

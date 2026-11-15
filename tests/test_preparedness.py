@@ -319,7 +319,7 @@ def test_fire_danger_error_documents_are_not_kept_in_the_weather_cache(monkeypat
 
     from vela import preparedness
 
-    monkeypatch.setattr(preparedness, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(preparedness, "WRITABLE_DATA_DIR", tmp_path)
     calls = []
     replies = {}
 

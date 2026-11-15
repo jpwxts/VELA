@@ -47,7 +47,16 @@ initializeHistoryPicker();
 updateDayWords();
 const bootFixture = new URLSearchParams(location.search).get("fixture");
 
-if (bootFixture === "click_regression" || bootFixture === "two_satellites") {
+const activityExample = new URLSearchParams(location.search).get("example");
+if (["activity-pilot", "activity-zero", "activity-missing"].includes(activityExample)) {
+  loadStatus().then(() => {
+    syncMapMode("history");
+    dayInput.value=activityExample==="activity-zero"?"2024-03-09":activityExample==="activity-missing"?"2024-03-02":"2024-03-11";
+    updateDayWords({skipCheck:true});
+    setPolygonFromBox([123.6,6.3,124.7,7.4],"Maguindanao activity pilot");
+    checkLand({date:dayInput.value,forceDate:true});
+  });
+} else if (bootFixture === "click_regression" || bootFixture === "two_satellites") {
   loadClickFixture(bootFixture);
 } else if (bootFixture === "check_land_demo") {
   loadCompetitionDemo();

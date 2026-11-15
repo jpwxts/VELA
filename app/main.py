@@ -1297,9 +1297,21 @@ def activity_selection(body: CheckLandRequest):
     from vela.land_check import normalize_ring
     from vela.observation_store import philippine_today
     from vela.boundaries import geometry_from_preset
-    ring = normalize_ring(body.coordinates)
+    from datetime import date
+    from shapely.geometry import Polygon
+    import math
+    try:
+        day = date.fromisoformat(body.date or philippine_today().isoformat()).isoformat()
+        if any(len(p) != 2 or not all(math.isfinite(v) for v in p) or abs(p[0]) > 180 or abs(p[1]) > 90 for p in body.coordinates):
+            raise ValueError("Invalid coordinates")
+        ring = normalize_ring(body.coordinates)
+        polygon = Polygon(ring)
+        if not polygon.is_valid or polygon.area < 1e-12:
+            raise ValueError("Invalid boundary")
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail="Choose a valid date and a non-empty longitude/latitude boundary.")
     geometry = geometry_from_preset(body.boundary_preset) if body.boundary_preset else None
-    return selection(ring, body.date or philippine_today().isoformat(), geometry)
+    return selection(ring, day, geometry)
 
 
 @app.get("/api/activity/version")

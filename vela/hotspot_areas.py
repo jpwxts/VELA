@@ -63,7 +63,7 @@ def group_hotspot_areas(payload: dict) -> dict:
     day = str(payload.get("date") or "")
     groups: dict[tuple[str, str], list[dict]] = defaultdict(list)
     for spot in records:
-        observation_day = str(spot.get("acq_date") or day)
+        observation_day = str(payload.get("ph_day") or spot.get("acq_date") or day)
         x_index, y_index = indices(float(spot["lon"]), float(spot["lat"]))
         cell_id = cell_identifier(int(x_index), int(y_index))
         groups[(cell_id, observation_day)].append(spot)
@@ -105,7 +105,7 @@ def group_hotspot_areas(payload: dict) -> dict:
             {
                 "cell_id": cell_id,
                 "observation_day": observation_day,
-                "observation_day_convention": OBSERVATION_DAY_LABEL,
+                "observation_day_convention": "Philippine calendar day (Asia/Manila)." if payload.get("ph_day") else OBSERVATION_DAY_LABEL,
                 "center_lat": lat,
                 "center_lon": lon,
                 "bounds": {"west": west, "south": south, "east": east, "north": north},
@@ -123,7 +123,7 @@ def group_hotspot_areas(payload: dict) -> dict:
 
     satellites = sorted({str(spot.get("platform") or "Unrecognized") for spot in records})
     return {
-        "observation_day_convention": OBSERVATION_DAY_LABEL,
+        "observation_day_convention": "Philippine calendar day (Asia/Manila)." if payload.get("ph_day") else OBSERVATION_DAY_LABEL,
         "grid": "5 km equal-area cells",
         "area_count": len(areas),
         "detection_count": len(records),
