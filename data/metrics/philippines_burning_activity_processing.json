@@ -1,0 +1,401 @@
+{
+  "processed_at_utc": "2026-11-15T02:01:39.687431+00:00",
+  "bbox": {
+    "west": 123.6,
+    "south": 6.3,
+    "east": 124.7,
+    "north": 7.4
+  },
+  "cached_pairs_reprocessed": 32,
+  "bytes_transferred": 0,
+  "bytes_reused": 905329883,
+  "pass_rows": 16696,
+  "considered_cell_days": 16547,
+  "usable_square_days": 2458,
+  "aqua_active_square_days": 35,
+  "aqua_zero_square_days": 2423,
+  "suomi_calibrated_square_days": 0,
+  "suomi_missing_inputs": "No Philippine VNP14IMG/VNP03IMG native mask/geolocation feature rows are processed. FIRMS points cannot replace them.",
+  "frozen_harmonization_model": "random_forest",
+  "frozen_model_sha256": "c2609ef9c399f3196cf4931edd19cdfd48795af70a9e78099aedd46b13df7306",
+  "model_use": "Eligible Aqua supplies observed 0/1 under the frozen platform-selection rule; no model inference is needed for these rows. Suomi model was not applied without native features.",
+  "processed_dates": [
+    "2023-02-19",
+    "2023-02-23",
+    "2023-02-28",
+    "2023-03-05",
+    "2023-03-07",
+    "2023-03-09",
+    "2023-03-10",
+    "2023-03-14",
+    "2024-02-18",
+    "2024-02-23",
+    "2024-02-25",
+    "2024-02-28",
+    "2024-03-01",
+    "2024-03-04",
+    "2024-03-06",
+    "2024-03-08",
+    "2024-03-09",
+    "2024-03-11",
+    "2024-03-13"
+  ],
+  "processed_cells": 320,
+  "per_date": [
+    {
+      "ph_date": "2023-02-19",
+      "numerator": 1.0,
+      "denominator": 182
+    },
+    {
+      "ph_date": "2023-02-23",
+      "numerator": 0.0,
+      "denominator": 26
+    },
+    {
+      "ph_date": "2023-02-28",
+      "numerator": 0.0,
+      "denominator": 165
+    },
+    {
+      "ph_date": "2023-03-05",
+      "numerator": 4.0,
+      "denominator": 258
+    },
+    {
+      "ph_date": "2023-03-07",
+      "numerator": 2.0,
+      "denominator": 110
+    },
+    {
+      "ph_date": "2023-03-09",
+      "numerator": 0.0,
+      "denominator": 55
+    },
+    {
+      "ph_date": "2023-03-10",
+      "numerator": 0.0,
+      "denominator": 180
+    },
+    {
+      "ph_date": "2023-03-14",
+      "numerator": 0.0,
+      "denominator": 57
+    },
+    {
+      "ph_date": "2024-02-18",
+      "numerator": 0.0,
+      "denominator": 59
+    },
+    {
+      "ph_date": "2024-02-23",
+      "numerator": 0.0,
+      "denominator": 127
+    },
+    {
+      "ph_date": "2024-02-25",
+      "numerator": 0.0,
+      "denominator": 16
+    },
+    {
+      "ph_date": "2024-02-28",
+      "numerator": 0.0,
+      "denominator": 14
+    },
+    {
+      "ph_date": "2024-03-01",
+      "numerator": 0.0,
+      "denominator": 21
+    },
+    {
+      "ph_date": "2024-03-04",
+      "numerator": 4.0,
+      "denominator": 272
+    },
+    {
+      "ph_date": "2024-03-06",
+      "numerator": 0.0,
+      "denominator": 171
+    },
+    {
+      "ph_date": "2024-03-08",
+      "numerator": 3.0,
+      "denominator": 42
+    },
+    {
+      "ph_date": "2024-03-09",
+      "numerator": 0.0,
+      "denominator": 276
+    },
+    {
+      "ph_date": "2024-03-11",
+      "numerator": 21.0,
+      "denominator": 309
+    },
+    {
+      "ph_date": "2024-03-13",
+      "numerator": 0.0,
+      "denominator": 118
+    }
+  ],
+  "sources": [
+    {
+      "fire_file": "MYD14.A2023047.0450.061.2023047132716.hdf",
+      "geo_file": "MYD03.A2023047.0450.061.2023047164944.hdf",
+      "pass_time_utc": "2023-02-16T04:50:00+00:00",
+      "bytes_reused": 28048471,
+      "fire_sha256": "186301ba9be74dcba5a0ca844ef842ad35cd467e0ae9584b3437db06c18035f2",
+      "geo_sha256": "0872f953d6b3f2a529d180f83c238d5462726c7a029562f2f2685ef765b70e77"
+    },
+    {
+      "fire_file": "MYD14.A2023049.0435.061.2023050014226.hdf",
+      "geo_file": "MYD03.A2023049.0435.061.2023049225043.hdf",
+      "pass_time_utc": "2023-02-18T04:35:00+00:00",
+      "bytes_reused": 29113437,
+      "fire_sha256": "e0d6f21f7400901a33b10bcb24a9175124800f0611cc2b21caef9e933212caff",
+      "geo_sha256": "f4595cadd20b2caa70e852c67c00f490d0c38bd076ae36d2c4b007ad7b21bbd0"
+    },
+    {
+      "fire_file": "MYD14.A2023050.0520.061.2023051021403.hdf",
+      "geo_file": "MYD03.A2023050.0520.061.2023051010003.hdf",
+      "pass_time_utc": "2023-02-19T05:20:00+00:00",
+      "bytes_reused": 29290086,
+      "fire_sha256": "16cb27dc991b617d2ce78a6e8b76a3cec4ce7f4a07bd4a4a331132d9da0ed7fa",
+      "geo_sha256": "bf2ced47f3a54a6144e03d8ebb96e1013198372f67c951af467c832e701f497d"
+    },
+    {
+      "fire_file": "MYD14.A2023054.0450.061.2023055082655.hdf",
+      "geo_file": "MYD03.A2023054.0450.061.2023054221011.hdf",
+      "pass_time_utc": "2023-02-23T04:50:00+00:00",
+      "bytes_reused": 28763317,
+      "fire_sha256": "78e5fab952cb81cdce181167bf7f6d3c05530a84afec84e281cee7f7ca04d54c",
+      "geo_sha256": "6d64bf932ada0cb2af74626921547164c29d2415a5d4f0f7cc93e352de6062d3"
+    },
+    {
+      "fire_file": "MYD14.A2023054.0455.061.2023055084837.hdf",
+      "geo_file": "MYD03.A2023054.0455.061.2023054232049.hdf",
+      "pass_time_utc": "2023-02-23T04:55:00+00:00",
+      "bytes_reused": 27983453,
+      "fire_sha256": "78ef639f484b1818403a1fff08e7e25729e5817a832c6b1768365eab42b03b58",
+      "geo_sha256": "ffdbcac0ec7b5fca50a2805c7f11f4eca926b9b1982bd1786e37eb4f42eb8049"
+    },
+    {
+      "fire_file": "MYD14.A2023056.0440.061.2023057012054.hdf",
+      "geo_file": "MYD03.A2023056.0440.061.2023056233054.hdf",
+      "pass_time_utc": "2023-02-25T04:40:00+00:00",
+      "bytes_reused": 26875692,
+      "fire_sha256": "8e4d4b3f7333a6a0e0ef072d6fadd039e40e8c02165de8b3e335abb663fe1403",
+      "geo_sha256": "a34a9c3c30907cc52ba939c1a13c3ddf829ac6f2b7594f29b4a2490d23feaef3"
+    },
+    {
+      "fire_file": "MYD14.A2023059.0510.061.2023059110413.hdf",
+      "geo_file": "MYD03.A2023059.0510.061.2023059151944.hdf",
+      "pass_time_utc": "2023-02-28T05:10:00+00:00",
+      "bytes_reused": 28761656,
+      "fire_sha256": "fcf205f4a71067beb386a2fc30955ab574871baa58b49d1a451b2b755be2346c",
+      "geo_sha256": "7994ac7d4f917614677b00f6a5488edca3bdac124898185513d823ed8fc1414b"
+    },
+    {
+      "fire_file": "MYD14.A2023061.0455.061.2023061111625.hdf",
+      "geo_file": "MYD03.A2023061.0455.061.2023061154832.hdf",
+      "pass_time_utc": "2023-03-02T04:55:00+00:00",
+      "bytes_reused": 27838655,
+      "fire_sha256": "124c29cd32bf05dba1de7099c8e32ee38f21028e4c71bc3ad3e5b1f05fd1aa94",
+      "geo_sha256": "06016daa5c756d637780c4a68c28450ae7e13bc0d977a4e63d0ab9bb03094981"
+    },
+    {
+      "fire_file": "MYD14.A2023063.0440.061.2023063110358.hdf",
+      "geo_file": "MYD03.A2023063.0440.061.2023063153506.hdf",
+      "pass_time_utc": "2023-03-04T04:40:00+00:00",
+      "bytes_reused": 27647430,
+      "fire_sha256": "c01a94af3dd172dbbb9433195713ce7d3a0793e60cbbda66bb271f28b2f3c9f6",
+      "geo_sha256": "e2756683b7f3b1e932bb2280ae5056dcef69036e2e84a84dd527bbaa2d561f2c"
+    },
+    {
+      "fire_file": "MYD14.A2023064.0525.061.2023064151209.hdf",
+      "geo_file": "MYD03.A2023064.0525.061.2023064200034.hdf",
+      "pass_time_utc": "2023-03-05T05:25:00+00:00",
+      "bytes_reused": 29023819,
+      "fire_sha256": "864e2787a18c9c51c1a61642b605104ce47e592c47a6ed2ee6e3a6a810d804dc",
+      "geo_sha256": "8a1f692d5a1c0ed730408ca7c390b4db7079ba97d1ccf2bf00e11228379a44af"
+    },
+    {
+      "fire_file": "MYD14.A2023066.0510.061.2023067125830.hdf",
+      "geo_file": "MYD03.A2023066.0510.061.2023067143329.hdf",
+      "pass_time_utc": "2023-03-07T05:10:00+00:00",
+      "bytes_reused": 28658035,
+      "fire_sha256": "185c2936a5d09e52ee687216315c7d11a1e2fea843b85a396098463466efc2b5",
+      "geo_sha256": "1d78d293b94d68a2945497d6c2ad32fe309f50de9d4c65f171c2124c03882cb4"
+    },
+    {
+      "fire_file": "MYD14.A2023068.0455.061.2023068112209.hdf",
+      "geo_file": "MYD03.A2023068.0455.061.2023068154558.hdf",
+      "pass_time_utc": "2023-03-09T04:55:00+00:00",
+      "bytes_reused": 28477936,
+      "fire_sha256": "95ebde5c79c029e03fc7d8b0438f84a92637166480522543a4fbce3ba6a0ebbb",
+      "geo_sha256": "8b4bcc7b2ef885f181371bcd77950595a78cc3dff845e6e4a80afb6f25074787"
+    },
+    {
+      "fire_file": "MYD14.A2023069.0540.061.2023069154635.hdf",
+      "geo_file": "MYD03.A2023069.0540.061.2023069170841.hdf",
+      "pass_time_utc": "2023-03-10T05:40:00+00:00",
+      "bytes_reused": 29232842,
+      "fire_sha256": "8ce38a9341769123f8b40ccad51c924f178540cf7eec1aae600da4b53695cf17",
+      "geo_sha256": "1d8baf7ba4af835e34e163daf1c11bced8ec0272f40cf20d5053e632d1c36375"
+    },
+    {
+      "fire_file": "MYD14.A2023070.0440.061.2023070110427.hdf",
+      "geo_file": "MYD03.A2023070.0440.061.2023070152217.hdf",
+      "pass_time_utc": "2023-03-11T04:40:00+00:00",
+      "bytes_reused": 28964560,
+      "fire_sha256": "4d79db5da09bac9023dadcbd53d50d885668a99e9b05199c421e19eb9e692334",
+      "geo_sha256": "21dc0525823f8bb7eb44e646ab9bebaa060a57b93ebea697423b13cbd25042a8"
+    },
+    {
+      "fire_file": "MYD14.A2023070.0445.061.2023070110605.hdf",
+      "geo_file": "MYD03.A2023070.0445.061.2023070153021.hdf",
+      "pass_time_utc": "2023-03-11T04:45:00+00:00",
+      "bytes_reused": 27462727,
+      "fire_sha256": "01445928850b272f47b4f45705f81c2010853cdc46aeb262405eac0f795331a4",
+      "geo_sha256": "1d729243e9a552a8e202ddb0cf5a542553e415d22463613f08307c34452a5a21"
+    },
+    {
+      "fire_file": "MYD14.A2023073.0510.061.2023073161012.hdf",
+      "geo_file": "MYD03.A2023073.0510.061.2023073193508.hdf",
+      "pass_time_utc": "2023-03-14T05:10:00+00:00",
+      "bytes_reused": 29132381,
+      "fire_sha256": "d8ebf54e2194944847464735282812308a2e1ba58d6bcc736ce99b25da9bf1ee",
+      "geo_sha256": "f8fe11ff83d9376257118e03111219276183d2b472751b39cd93b824357413d8"
+    },
+    {
+      "fire_file": "MYD14.A2023229.0450.061.2023229204804.hdf",
+      "geo_file": "MYD03.A2023229.0450.061.2023230002100.hdf",
+      "pass_time_utc": "2023-08-17T04:50:00+00:00",
+      "bytes_reused": 26320650,
+      "fire_sha256": "34b12aeac60b5d0dfe9fa5d2a156b35fbd6a9401fed22ed47ec5078d0f1b5939",
+      "geo_sha256": "9b5ffa3fd086599a5fcd97a3754e7557be59aa7e08ec862b4825b36eab5b8fdb"
+    },
+    {
+      "fire_file": "MYD14.A2024049.0515.061.2024050151739.hdf",
+      "geo_file": "MYD03.A2024049.0515.061.2024050185455.hdf",
+      "pass_time_utc": "2024-02-18T05:15:00+00:00",
+      "bytes_reused": 27917635,
+      "fire_sha256": "71fa449ad371e96506ae7032803976cd1f4db2b17d00aa2ccf6ad9aa5ab883bb",
+      "geo_sha256": "b7e1932d19c71dcb3c5d18a065b659056c0143908376cf630ff74d795facc424"
+    },
+    {
+      "fire_file": "MYD14.A2024051.0500.061.2024051104358.hdf",
+      "geo_file": "MYD03.A2024051.0500.061.2024051152315.hdf",
+      "pass_time_utc": "2024-02-20T05:00:00+00:00",
+      "bytes_reused": 26877275,
+      "fire_sha256": "6c2d9b6df4f9aa0b7d5d125fcfc7e571bbaa3b4004fd0a850d72b8c5a847820f",
+      "geo_sha256": "82077642bb1cce21edf0ed6b5ea308671a95b44fa501b037f725cad6b26f1f1a"
+    },
+    {
+      "fire_file": "MYD14.A2024054.0525.061.2024055093315.hdf",
+      "geo_file": "MYD03.A2024054.0525.061.2024055032245.hdf",
+      "pass_time_utc": "2024-02-23T05:25:00+00:00",
+      "bytes_reused": 28385039,
+      "fire_sha256": "789fde3ba228477a932ce3a9f86e814ef0ba299652586fc48bcbfc83067a93cb",
+      "geo_sha256": "100ec62d8a223f65d1a7bfc3f9f3aaabe7ea81a76d395f0612eec1d405759c40"
+    },
+    {
+      "fire_file": "MYD14.A2024056.0510.061.2024056122830.hdf",
+      "geo_file": "MYD03.A2024056.0510.061.2024056153828.hdf",
+      "pass_time_utc": "2024-02-25T05:10:00+00:00",
+      "bytes_reused": 27542692,
+      "fire_sha256": "78cfe10cf95652e447c146dc016c2804ff42d912d8dfa0ed5203b6acddd9b45b",
+      "geo_sha256": "7d08b3ffb62673e859763c368cd2fefa90563eca2aacb5d15945fa43ec6a5907"
+    },
+    {
+      "fire_file": "MYD14.A2024059.0535.061.2024059160257.hdf",
+      "geo_file": "MYD03.A2024059.0535.061.2024059203217.hdf",
+      "pass_time_utc": "2024-02-28T05:35:00+00:00",
+      "bytes_reused": 28934816,
+      "fire_sha256": "ec1a8e21480f11653ab0d6cc22d542be9cc909f853aca2d4786f4d8357ae3bbd",
+      "geo_sha256": "92a8aaca114e49304cc0fb111cd2e0d35b5195addb9eec3be5f14cdadfdfa207"
+    },
+    {
+      "fire_file": "MYD14.A2024061.0520.061.2024061113147.hdf",
+      "geo_file": "MYD03.A2024061.0520.061.2024061161424.hdf",
+      "pass_time_utc": "2024-03-01T05:20:00+00:00",
+      "bytes_reused": 27895653,
+      "fire_sha256": "2ef064874df7f3c94e15e6033f3aced38fb2c3daffb026af7938e97520c9ebea",
+      "geo_sha256": "9d24461777b760f22b47549739ce9e2153d464b947c2a41aef3e941df490be9e"
+    },
+    {
+      "fire_file": "MYD14.A2024063.0500.061.2024063112133.hdf",
+      "geo_file": "MYD03.A2024063.0500.061.2024063155519.hdf",
+      "pass_time_utc": "2024-03-03T05:00:00+00:00",
+      "bytes_reused": 28682150,
+      "fire_sha256": "a1d751e500003816ee3a8158bcd4f3f19407db7374ca761454eacb9b8528c737",
+      "geo_sha256": "e3ea6e87c357b97a3f314cb50a59f457d7940e1ef9b7c7fc082cac24739f6282"
+    },
+    {
+      "fire_file": "MYD14.A2024063.0505.061.2024063111908.hdf",
+      "geo_file": "MYD03.A2024063.0505.061.2024063155727.hdf",
+      "pass_time_utc": "2024-03-03T05:05:00+00:00",
+      "bytes_reused": 27398872,
+      "fire_sha256": "8a166dccda98d0e25d4541898da5d6243ad15693a9a9fd1d28273bbd6e668181",
+      "geo_sha256": "157743b98b643b17ba109e0dc2d06ccb22ffcfd1b9ecae84fcf8a85b5ff7b2c3"
+    },
+    {
+      "fire_file": "MYD14.A2024064.0545.061.2024064121856.hdf",
+      "geo_file": "MYD03.A2024064.0545.061.2024064155855.hdf",
+      "pass_time_utc": "2024-03-04T05:45:00+00:00",
+      "bytes_reused": 28869496,
+      "fire_sha256": "af41605692621b96754f478a7886155515d57ace3b530179264683ec2f831a03",
+      "geo_sha256": "216621f1bc1ca533b1f435398cc74fe68cf52f9ac03b837fdfdfe0a17a0f68b9"
+    },
+    {
+      "fire_file": "MYD14.A2024066.0530.061.2024066120151.hdf",
+      "geo_file": "MYD03.A2024066.0530.061.2024066160505.hdf",
+      "pass_time_utc": "2024-03-06T05:30:00+00:00",
+      "bytes_reused": 28595662,
+      "fire_sha256": "739f3342fb2e5ae9c45a015fb583757c5291ace80bd0aeb0d9756420b684dfee",
+      "geo_sha256": "b2da5d16d91a4b6056b999053fbee5f991f3ba33abcebe5b44794f2c5cfdadac"
+    },
+    {
+      "fire_file": "MYD14.A2024068.0510.061.2024068113957.hdf",
+      "geo_file": "MYD03.A2024068.0510.061.2024068155821.hdf",
+      "pass_time_utc": "2024-03-08T05:10:00+00:00",
+      "bytes_reused": 28507479,
+      "fire_sha256": "6a07f856c8fc64e8f1407e0072a39fbea81de30172248cc3a6d885cb50c95fbe",
+      "geo_sha256": "40f6efbb2012a2398acbde0d5faff514ebcc9d589b39904f30bcd498981bad2b"
+    },
+    {
+      "fire_file": "MYD14.A2024069.0555.061.2024069122156.hdf",
+      "geo_file": "MYD03.A2024069.0555.061.2024069153437.hdf",
+      "pass_time_utc": "2024-03-09T05:55:00+00:00",
+      "bytes_reused": 28974169,
+      "fire_sha256": "73eeecc1491d448480e5a197bc9ffc4c24246aa0ca1c6a730406c893879b2efa",
+      "geo_sha256": "0435ab906a86b4adb1f610363c47817287e04d50bb5ae82ebeaea449446e2ba1"
+    },
+    {
+      "fire_file": "MYD14.A2024070.0455.061.2024070233621.hdf",
+      "geo_file": "MYD03.A2024070.0455.061.2024071030954.hdf",
+      "pass_time_utc": "2024-03-10T04:55:00+00:00",
+      "bytes_reused": 27447864,
+      "fire_sha256": "888b42c99d3c1131f15b7e5528c0346383139b0965e78af1cf018cff7c678ff6",
+      "geo_sha256": "84cefb8caf24ed2eb1e762871b1ed0b94d310de6629d6533fca9f77425337309"
+    },
+    {
+      "fire_file": "MYD14.A2024071.0535.061.2024071134111.hdf",
+      "geo_file": "MYD03.A2024071.0535.061.2024071152741.hdf",
+      "pass_time_utc": "2024-03-11T05:35:00+00:00",
+      "bytes_reused": 29156508,
+      "fire_sha256": "b8a2b4f4509f88a6edb1f6b315b2229705ea55f6c9c862954122d41d87fcfdb4",
+      "geo_sha256": "2c39a230ef8e16cc54102dc78ee2c60ee233b5e04c63d9a628bc67940d020940"
+    },
+    {
+      "fire_file": "MYD14.A2024073.0520.061.2024073120038.hdf",
+      "geo_file": "MYD03.A2024073.0520.061.2024073151927.hdf",
+      "pass_time_utc": "2024-03-13T05:20:00+00:00",
+      "bytes_reused": 28549426,
+      "fire_sha256": "1d3e6a374184fe3dc4de414abeb7169633fdd3a67985fa21851517633a53cc02",
+      "geo_sha256": "8f06b2fc2b723cbb087633ca4479b4102bd3d64c6691f31be754418af28bf623"
+    }
+  ],
+  "failures": [],
+  "package_sha256": "0f76937064553400931167fb1cb45f94fc1fca2fc97d62531e5c88b5dfb7453d"
+}

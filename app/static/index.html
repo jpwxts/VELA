@@ -44,9 +44,12 @@
           <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4.500" width="14" height="12" rx="1.500"/><path d="M3 8.500h14M7 2.800v3M13 2.800v3"/></svg>
           <span>History</span>
         </button>
+        <button type="button" class="panel-tab" role="tab" id="tab-forecast" data-panel-tab="forecast" data-tip="Heat forecast" aria-selected="false" aria-controls="pane-forecast" tabindex="-1">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l3 2"/></svg><span>Forecast</span>
+        </button>
         <button type="button" class="panel-tab" role="tab" id="tab-weather" data-panel-tab="weather" data-tip="Weather outlook" aria-selected="false" aria-controls="pane-weather" tabindex="-1">
           <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.200"/><path d="M10 2.500v2M10 15.500v2M2.500 10h2M15.500 10h2M4.700 4.700l1.400 1.400M13.900 13.900l1.400 1.400M4.700 15.300l1.400-1.400M13.900 6.100l1.400-1.400"/></svg>
-          <span>Weather outlook</span>
+          <span>Weather</span>
         </button>
         <button type="button" class="panel-tab" role="tab" id="tab-research" data-panel-tab="research" data-tip="Research" aria-selected="false" aria-controls="pane-research" tabindex="-1">
           <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 5.500h12M4 10h12M4 14.500h8"/></svg>
@@ -81,15 +84,16 @@
       <section id="legend-panel" class="legend" aria-labelledby="legend-title" hidden>
         <h2 id="legend-title" class="legend-title">Map legend</h2>
         <ul>
-          <li><span class="swatch swatch-heat" aria-hidden="true"></span>Heat seen by one satellite</li>
-          <li><span class="swatch swatch-heat multi" aria-hidden="true"></span>Heat seen by 2+ satellites</li>
-          <li><span class="swatch swatch-reading" aria-hidden="true"></span>Individual satellite reading</li>
+          <li><span class="swatch swatch-heat" aria-hidden="true"></span>Observed satellite heat · solid coral</li>
+          <li><span class="swatch swatch-heat multi" aria-hidden="true"></span>Observed heat from 2+ satellites</li>
+          <li><span class="swatch swatch-reading" aria-hidden="true"></span>Satellite reading · solid coral</li>
           <li><span class="swatch swatch-point" aria-hidden="true"></span>Weather forecast point</li>
           <li><span class="swatch swatch-land" aria-hidden="true"></span>Your land boundary</li>
           <li><span class="swatch swatch-cell" aria-hidden="true"></span>Selected 5 km square</li>
-          <li id="probability-legend" hidden><span class="swatch swatch-probability" aria-hidden="true"></span><span id="probability-legend-text">Chance satellites record a hotspot · 0–100%</span></li>
+          <li id="probability-legend"><span class="swatch swatch-probability" aria-hidden="true"></span><span id="probability-legend-text">Issued satellite heat prediction · outline</span></li>
+          <li><span class="swatch swatch-missing" aria-hidden="true"></span>No usable estimate · dashed</li>
         </ul>
-        <label class="check"><input type="checkbox" id="toggle-forecast-point" checked> Show forecast point</label>
+        <label class="check"><input type="checkbox" id="toggle-forecast-point"> Show weather sampling point</label>
         <label class="check"><input type="checkbox" id="show-individuals"> Show individual detections</label>
         <label class="check"><input type="checkbox" id="basemap-satellite"> Satellite imagery</label>
         <p class="legend-credits">Map data: Esri, © OpenStreetMap contributors, Natural Earth. Imagery: Esri, Maxar, Earthstar Geographics. Terrain: Esri. Globe: CesiumJS.</p>
@@ -114,6 +118,7 @@
           </div>
 
           <!-- The picture of the land or square stays above every tab. -->
+          <details class="selection-preview"><summary>Selection preview</summary>
           <section id="land-picture" class="land-picture" aria-label="Picture of the selection" hidden>
             <button type="button" id="cell-back" class="link-button back-link" hidden>Back to land</button>
             <canvas id="land-cutout" class="cutout" width="672" height="340" role="img" aria-label="The selected land, cut out of the map"></canvas>
@@ -127,43 +132,54 @@
             <p id="picture-note" class="quiet picture-note" hidden>This tab covers the whole land, not only this square.</p>
           </section>
 
-          <!-- Burn activity -->
-          <section id="pane-where" class="panel-pane" role="tabpanel" aria-labelledby="tab-where">
-            <h3 class="pane-title visually-hidden">Burn activity</h3>
-            <section class="pane-block" aria-live="polite"><h4>Satellite heat observed</h4><p id="observed-heat-summary">Select land to check satellite readings.</p></section>
-            <section class="pane-block" aria-live="polite">
-              <h4>Fire-weather danger</h4>
-              <p id="land-weather-value">Check land to load dated weather.</p>
-              <p id="land-weather-meaning" class="quiet">Weather conditions that could affect a vegetation fire if one starts; separate from satellite heat and wildfire probability.</p>
-            </section>
-            <section id="land-summary" class="land-summary" aria-label="Summary of the selected land" hidden>
-              <div class="activity" aria-live="polite">
-                <p id="activity-label" class="activity-label">Burning activity</p>
-                <p id="activity-value" class="activity-value"></p>
-                <p id="square-heat" class="square-heat" hidden></p>
-                <p id="activity-note" class="quiet"></p>
-              </div>
+          </details>
 
-              <section id="hotspot-forecast-block" class="sub-block" aria-live="polite">
-                <h4 class="block-heading">Chance of satellite-detected heat in the next 24 hours</h4>
-                <p id="hotspot-forecast-label" class="reading-label">Chance satellites record a hotspot in this square in the next 24 hours.</p>
-                <p id="hotspot-forecast-value" class="reading-value is-words">Checking…</p>
-                <p id="hotspot-forecast-meta" class="quiet"></p>
+          <!-- The two primary answers -->
+          <section id="pane-where" class="panel-pane" role="tabpanel" aria-labelledby="tab-where">
+            <h3 class="pane-title visually-hidden">Burning activity and prediction</h3>
+            <section id="land-summary" class="land-summary" aria-label="Summary of the selected land" hidden>
+              <section class="answer-card activity-answer" aria-labelledby="activity-heading" aria-live="polite">
+                <p class="answer-kicker">Selected land · selected date</p>
+                <h3 id="activity-heading">Estimated burning activity</h3>
+                <p id="activity-label" class="reading-label">Checking coverage-backed contributions</p>
+                <p id="activity-value" class="activity-value is-words">Loading activity…</p>
+                <p id="activity-ratio" class="activity-ratio"></p>
+                <p class="activity-definition">Share of adequately observed 5 km squares showing burning activity.</p>
+                <p id="activity-note" class="quiet"></p>
+                <p id="activity-provenance" class="quiet"></p>
+                <span id="coverage-toggle" hidden></span><p id="square-heat" hidden></p>
+                <button type="button" id="activity-retry" class="filter-button" hidden>Retry activity</button>
+                <details class="estimate-why"><summary>How we estimate this</summary>
+                  <p id="activity-methods" class="quiet">Each usable square-day contributes once. Eligible Aqua supplies an observed 0 or 1; otherwise the frozen model may supply a calibrated Suomi-NPP contribution when its native inputs exist. Missing coverage stays missing.</p>
+                </details>
+              </section>
+              <section class="answer-card observed-answer" aria-labelledby="observed-headline" aria-live="polite">
+                <p class="answer-kicker">Observed satellite heat</p>
+                <h3 id="observed-headline">Checking satellite heat…</h3>
+                <div class="observed-total"><strong id="observed-square-count">—</strong><span id="observed-square-label">5 km squares with detected heat</span></div>
+                <p id="observed-heat-summary">Waiting for satellite readings.</p>
+                <p id="observed-latest" class="observation-pass"></p>
+                <p id="observation-scope" class="quiet"></p>
+                <p class="evidence-note">A satellite heat detection is evidence of heat, not confirmation of a wildfire.</p>
               </section>
 
-              <div class="hours">
-                <h4 id="hours-title">Today at this land</h4>
-                <div class="hours-frame">
-                  <button type="button" id="hours-prev" class="hours-nav prev" aria-label="Earlier hours">
-                    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 5 7 10l5 5"/></svg>
-                  </button>
-                  <ol id="hours-strip" class="hours-strip" tabindex="0" aria-labelledby="hours-title"></ol>
-                  <button type="button" id="hours-next" class="hours-nav next" aria-label="Later hours">
-                    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5"/></svg>
-                  </button>
+              <p id="weather-badge" class="weather-badge">Fire weather: checking</p>
+              <details class="conditions-card">
+                <summary>Conditions that may affect fire</summary>
+                <h4>Fire-weather danger</h4>
+                <p id="land-weather-value">Loading dated fire-weather danger…</p>
+                <p id="land-weather-meaning" class="quiet">Weather may affect a vegetation fire if one starts. It is separate from the satellite heat forecast.</p>
+                <dl id="condition-values" class="condition-values"></dl>
+                <div class="hours">
+                  <h4 id="hours-title">Today at this land</h4>
+                  <div class="hours-frame">
+                    <button type="button" id="hours-prev" class="hours-nav prev" aria-label="Earlier hours"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 5 7 10l5 5"/></svg></button>
+                    <ol id="hours-strip" class="hours-strip" tabindex="0" aria-labelledby="hours-title"></ol>
+                    <button type="button" id="hours-next" class="hours-nav next" aria-label="Later hours"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5"/></svg></button>
+                  </div>
+                  <p id="hours-note" class="quiet"></p>
                 </div>
-                <p id="hours-note" class="quiet"></p>
-              </div>
+              </details>
             </section>
 
             <div id="land-secondary-content">
@@ -335,6 +351,27 @@
           </section>
 
           <!-- History -->
+          <section id="pane-forecast" class="panel-pane" role="tabpanel" aria-labelledby="tab-forecast" hidden>
+            <h3 class="pane-title">Heat forecast</h3>
+            <p class="quiet">A separate next-24-hour prediction. This percentage is not burning activity.</p>
+              <section id="hotspot-forecast-block" class="answer-card prediction-answer" aria-labelledby="prediction-heading" aria-live="polite">
+                <p class="answer-kicker">Chance of satellite-detected heat</p>
+                <h3 id="prediction-heading">Satellite heat in the next 24 hours</h3>
+                <p id="hotspot-forecast-label" class="reading-label">For the selected 5 km square</p>
+                <p id="hotspot-forecast-value" class="reading-value is-words">Computing estimate…</p>
+                <p id="prediction-release" class="experimental-footnote" title="Not a calibrated wildfire probability. National transfer and historical-prior fallback are experimental.">Experimental estimate ⓘ</p>
+                <p id="hotspot-forecast-meta" class="quiet"></p>
+                <button type="button" id="prediction-retry" class="filter-button" hidden>Retry estimate</button>
+                <p id="polygon-prediction-summary" class="quiet"></p>
+                <details class="estimate-why">
+                  <summary>How is this estimated?</summary>
+                  <p id="model-f1" class="model-f1"></p>
+                  <ul id="forecast-why"><li>Checking model target, coverage and validation.</li></ul>
+                </details>
+              </section>
+
+          </section>
+
           <section id="pane-weekly" class="panel-pane" role="tabpanel" aria-labelledby="tab-weekly" hidden>
             <h3 class="pane-title">History</h3>
             <div class="segmented" role="group" aria-label="Time range">
@@ -370,11 +407,11 @@
               <ul id="history-activity-key" class="history-key" aria-label="Burning activity calendar legend">
                 <li><span class="history-swatch active" aria-hidden="true"></span>Estimated burning activity</li>
                 <li><span class="history-swatch zero" aria-hidden="true"></span>Usable zero estimate</li>
-                <li><span class="history-swatch missing" aria-hidden="true"></span>Satellite heat readings / unchecked / gap</li>
+                <li><span class="history-swatch missing" aria-hidden="true"></span>No usable estimate · gap</li>
               </ul>
               <ul id="history-forecast-key" class="history-key" aria-label="Hotspot forecast calendar legend" hidden>
-                <li><span class="history-swatch forecast-issued" aria-hidden="true"></span>Issued / reconstructed heat chance</li>
-                <li><span class="history-swatch forecast-reconstructed" aria-hidden="true"></span>Historical reconstruction</li>
+                <li><span class="history-swatch forecast-issued" aria-hidden="true"></span>Genuinely issued heat forecast</li>
+                <li><span class="history-swatch forecast-reconstructed" aria-hidden="true"></span>No forecast issued</li>
                 <li><span class="history-swatch forecast-upcoming" aria-hidden="true"></span>Upcoming</li>
                 <li><span class="history-swatch missing" aria-hidden="true"></span>Insufficient inputs / gap</li>
               </ul>
@@ -396,13 +433,14 @@
                   <label class="visually-hidden" for="history-chart-range">Chart time range</label>
                   <label for="history-chart-metric">Chart measure</label>
                   <select id="history-chart-metric">
-                    <option value="heat">Satellite heat readings</option>
-                    <option value="activity">Estimated burning activity</option>
-                    <option value="hotspot">Next-24-hour satellite heat forecast</option>
+                    <option value="activity">Burning activity</option>
+                    <option value="heat">Observed heat areas</option>
+                    <option value="hotspot">Heat forecast — issued estimates</option>
                   </select>
                   <select id="history-chart-range">
-                    <option value="month">This month</option>
-                    <option value="year">This year</option>
+                    <option value="month">Daily · selected month</option>
+                    <option value="week">Weekly · selected year</option>
+                    <option value="year">Monthly · selected year</option>
                   </select>
                 </div>
                 <p id="history-chart-caption" class="quiet"></p>
@@ -412,6 +450,11 @@
                   <summary>View chart values</summary>
                   <div id="history-chart-table"></div>
                 </details>
+              </section>
+              <section class="heat-companion" aria-labelledby="heat-companion-title">
+                <h4 id="heat-companion-title">Satellite heat readings</h4>
+                <p id="heat-companion-caption" class="quiet"></p>
+                <svg id="heat-companion-chart" viewBox="0 0 336 120" role="group" aria-label="Satellite heat readings by Philippine day"></svg>
               </section>
               <p id="history-availability" class="stamp"></p>
               <p class="quiet">Activity uses local observation dates and is not the percentage of land burned. Partial periods use only the grid squares with usable estimates.</p>
@@ -556,6 +599,7 @@
   <script src="/static/js/format.js"></script>
   <script src="/static/js/panel.js"></script>
   <script src="/static/js/place.js"></script>
+  <script src="/static/js/answers.js"></script>
   <script src="/static/js/land.js"></script>
   <script src="/static/js/weather.js"></script>
   <script src="/static/js/markers.js"></script>
@@ -565,6 +609,7 @@
   <script src="/static/js/picture.js"></script>
   <script src="/static/js/research.js"></script>
   <script src="/static/js/examples.js"></script>
+  <script src="/static/js/activity.js"></script>
   <script src="/static/js/main.js"></script>
 </body>
 </html>

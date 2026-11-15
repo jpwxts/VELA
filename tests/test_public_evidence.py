@@ -108,3 +108,34 @@ def test_named_mindanao_scope_reaches_both_land_and_history(monkeypatch, tmp_pat
         'coordinates':RING,'year':2026,'month':11,'boundary_preset':'mindanao'})
     assert response.status_code == 200
     assert captured[0]['type'] == 'MultiPolygon'
+
+
+def test_fast_heat_response_does_not_process_coverage(monkeypatch, tmp_path):
+    from vela.observation_store import ObservationStore
+    isolated = ObservationStore(tmp_path / 'observations.sqlite')
+    monkeypatch.setattr('vela.observation_store.ObservationStore', lambda: isolated)
+    monkeypatch.setattr('vela.firms_day.fetch_firms_for_ph_day', lambda *args, **kwargs: {'results':[]})
+    def forbidden(*args, **kwargs):
+        raise AssertionError('coverage processing gated heat')
+    monkeypatch.setattr('vela.history.build_monthly_history', forbidden)
+    response = TestClient(main.app).post('/api/check-land', json={
+        'coordinates':RING, 'date':'2026-11-07', 'include_weather':False, 'include_activity':False})
+    assert response.status_code == 200
+    assert response.json()['activity']['status'] == 'loading'
+
+
+def test_policy_does_not_promote_hotspot_as_wildfire():
+    policy = TestClient(main.app).get('/api/status').json()['prediction']
+    assert policy['wildfire_validated'] is False
+    assert policy['calibrated'] is False
+    assert policy['approved'] is False
+    assert 'Satellite-detected heat' in policy['target']
+
+
+def test_point_prediction_does_not_query_heat_or_weather(monkeypatch):
+    monkeypatch.setattr(main, 'build_forecast', lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError('weather called')))
+    response = TestClient(main.app).get('/api/hotspot-forecast/point?lat=6.85779&lon=124.05852&issue_date=2026-11-07')
+    assert response.status_code == 200
+    assert response.json()['cell_id'] == '2393:174'
+    assert response.json()['probability_percent'] is None
+    assert TestClient(main.app).get('/api/hotspot-forecast/point?lat=91&lon=124').status_code == 422

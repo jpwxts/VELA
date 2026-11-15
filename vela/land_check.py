@@ -585,7 +585,7 @@ def feed_breakdown(hotspot_payload: dict, inside_rows: list[dict]) -> list[dict]
                     "platform": platform,
                     "status": "zero",
                     "count": 0,
-                    "text": f"{platform} · 0 detections inside the boundary",
+                    "text": f"{platform} · no readings returned inside the boundary",
                 }
             )
         else:
@@ -747,6 +747,7 @@ def build_land_check(
     observation_date: str | None = None,
     fixture: dict | None = None,
     geometry: dict | None = None,
+    include_activity: bool = True,
 ) -> dict:
     closed = normalize_ring(ring)
     west, south, east, north = polygon_bbox(closed)
@@ -778,12 +779,16 @@ def build_land_check(
     from vela.observation_store import philippine_today
 
     selected_day = date.fromisoformat(observation_date or philippine_today().isoformat())
-    history = build_monthly_history(closed, selected_day.year, selected_day.month, today=philippine_today(), geometry=geometry)
-    activity = next((row for row in history["days"] if row["date"] == selected_day.isoformat()), {})
-    if activity.get("activity_rate") is None:
-        activity = {**activity, "status": "unavailable",
-                    "missing_input": "Eligible Aqua fire-mask/geolocation or calibrated Suomi-NPP cell-day contributions",
-                    "explanation": "No eligible coverage-based contribution for this boundary and Philippine date."}
+    if include_activity:
+        history = build_monthly_history(closed, selected_day.year, selected_day.month, today=philippine_today(), geometry=geometry)
+        activity = next((row for row in history["days"] if row["date"] == selected_day.isoformat()), {})
+        if activity.get("activity_rate") is None:
+            activity = {**activity, "status": "unavailable",
+                        "missing_input": "Eligible Aqua fire-mask/geolocation or calibrated Suomi-NPP cell-day contributions",
+                        "explanation": "No eligible coverage-based contribution for this boundary and Philippine date."}
+    else:
+        activity = {"status": "loading", "activity_rate": None, "activity_status": "loading",
+                    "explanation": "Coverage-based activity is checked independently."}
     reliability = reliability_block()
     return {
         "ok": True,

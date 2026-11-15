@@ -5,6 +5,16 @@ function renderWeatherSummary(forecast) {
   value.textContent = day
     ? `${day.danger_level || "Unavailable"} · valid ${day.valid_date} · near the land boundary’s center`
     : forecast?.status === "loading" ? "Loading dated fire-weather danger…" : "Fire-weather danger unavailable";
+  const badge = document.getElementById("weather-badge");
+  if (badge) badge.textContent = day ? `Fire weather: ${day.danger_level || "Unavailable"} · ${day.valid_date}` : "Fire weather: unavailable";
+  const values = document.getElementById("condition-values");
+  if (values) values.innerHTML = [
+    ["Temperature", day?.temperature_max_c?.value, "°C"],
+    ["Humidity", day?.relative_humidity_min_percent?.value, "%"],
+    ["Wind", day?.wind_speed_max_m_s?.value, "m/s"],
+    ["Rain", day?.forecast_rain_mm?.value, "mm"],
+  ].map(([label, number, unit]) => `<div><dt>${label}</dt><dd>${number == null ? "Unavailable" : `${Number(number).toFixed(1)} ${unit}`}</dd></div>`).join("");
+
 }
 
 // Weather outlook tab and the forecast point on the globe.

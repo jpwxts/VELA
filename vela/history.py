@@ -86,7 +86,12 @@ def attach_heat_overlay(
         heat = heat_map.get(iso) or {}
         count = int(heat.get("count") or heat.get("detection_count") or 0)
         queried = bool(heat.get("queried") or iso in checked or iso in heat_map)
-        if count > 0:
+        day["heat_area_count"] = heat.get("area_count")
+        day["heat_coverage"] = heat.get("coverage") or "unknown"
+        if day.get("activity_status") == "future":
+            day["heat_status"] = "not_checked"
+            day["heat_count"] = 0
+        elif count > 0:
             day["heat_status"] = "readings"
             day["heat_count"] = count
             day["heat_source"] = heat.get("source")
@@ -101,52 +106,10 @@ def attach_heat_overlay(
     return {**payload, "days": days}
 
 
-def _fill_mindanao_store_activity(month_days: list[dict], ring: list[list[float]], geometry: dict | None = None) -> None:
-    """Fill missing day activity from coverage/FIRMS store backfill inside the ring."""
-
-    try:
-        from vela.grid import center as cell_center
-        from vela.land_check import point_in_ring
-        from vela.observation_store import ObservationStore, _connect
-
-        store = ObservationStore()
-        for entry in month_days:
-            if entry.get("activity_rate") is not None:
-                continue
-            day = entry["date"]
-            with _connect(store.path) as connection:
-                cell_rows = connection.execute(
-                    "SELECT cell_id, activity_value, platform, method FROM activity_cell_days WHERE ph_date = ? "
-                    "AND ((platform = 'Aqua' AND method = 'observed Aqua activity') "
-                    "OR (platform = 'Suomi-NPP' AND method = 'calibrated VIIRS estimate'))",
-                    (day,),
-                ).fetchall()
-            inside = []
-            for crow in cell_rows:
-                try:
-                    x_text, y_text = str(crow["cell_id"]).split(":", 1)
-                    lon, lat = cell_center(int(x_text), int(y_text))
-                except Exception:
-                    continue
-                from vela.boundaries import point_in_geometry
-                if point_in_geometry(lon, lat, geometry) if geometry else point_in_ring(lon, lat, ring):
-                    inside.append(crow)
-            if not inside:
-                continue
-            vals = [float(r["activity_value"]) for r in inside if r["activity_value"] is not None]
-            if not vals:
-                continue
-            entry["activity_rate"] = sum(vals) / len(vals)
-            entry["activity_status"] = "partial"
-            entry["eligible_cell_days"] = len(inside)
-            entry["estimated_cell_days"] = len(vals)
-            entry["activity_denominator"] = float(len(vals))
-            entry["clear_zero"] = entry["activity_rate"] == 0
-            entry["activity_source"] = "eligible_aqua_suomi_store"
-            entry["method_counts"] = {method: sum(row["method"] == method for row in inside)
-                                      for method in {row["method"] for row in inside}}
-    except Exception:
-        return
+def _fill_mindanao_store_activity(days, ring, geometry=None):
+    """Use only eligible Aqua/calibrated Suomi rows; fill before all period totals."""
+    from vela.activity_store import fill_history
+    return fill_history(days, ring, geometry)
 
 
 def build_monthly_history(ring: list[list[float]], year: int, month: int, *, today: date | None = None, geometry: dict | None = None) -> dict:
@@ -225,6 +188,9 @@ def build_monthly_history(ring: list[list[float]], year: int, month: int, *, tod
         })
         day += timedelta(days=1)
 
+    from vela.activity_store import aggregate_days
+    data_version = _fill_mindanao_store_activity(all_days, ring, geometry)
+    stored_dates = sorted(set(stored_dates) | {entry["date"] for entry in all_days if entry.get("activity_rate") is not None})
     months = []
     for number in range(1, 13):
         key = f"{year}-{number:02d}"
@@ -245,6 +211,7 @@ def build_monthly_history(ring: list[list[float]], year: int, month: int, *, tod
         elif any(entry["activity_status"] == "insufficient" for entry in days):
             status = "insufficient"
         months.append({
+            **aggregate_days(days),
             "month": key,
             "activity_rate": rate,
             "activity_status": status,
@@ -254,20 +221,19 @@ def build_monthly_history(ring: list[list[float]], year: int, month: int, *, tod
         })
     selected = months[month - 1]
     month_days = [entry for entry in all_days if entry["date"].startswith(f"{year}-{month:02d}")]
-    _fill_mindanao_store_activity(month_days, ring, geometry)
-    published = [entry for entry in month_days if entry["activity_rate"] is not None]
-    if published and selected.get("activity_rate") is None:
-        denominator = sum(entry.get("activity_denominator") or 0 for entry in published)
-        if denominator:
-            selected = dict(selected)
-            selected["activity_rate"] = (
-                sum((entry["activity_rate"] * (entry.get("activity_denominator") or 0)) for entry in published)
-                / denominator
-            )
-            selected["activity_status"] = "partial"
-            selected["days_with_estimates"] = len(published)
-            selected["activity_denominator"] = denominator
+    grouped_weeks = defaultdict(list)
+    for entry in all_days:
+        stamp = date.fromisoformat(entry['date'])
+        monday = stamp - timedelta(days=stamp.weekday())
+        grouped_weeks[monday.isoformat()].append(entry)
+    weekly_periods = [{**aggregate_days(entries), 'week_start': monday,
+                       'week_end': (date.fromisoformat(monday)+timedelta(days=6)).isoformat(),
+                       'period_start': entries[0]['date'], 'period_end': entries[-1]['date']}
+                      for monday, entries in sorted(grouped_weeks.items())]
     return {
+        "data_version": data_version,
+        "weeks": weekly_periods,
+        "processed_dates": stored_dates,
         "year": year,
         "month": month,
         "status": "ok" if selected["activity_rate"] is not None else selected["activity_status"],

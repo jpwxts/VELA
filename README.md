@@ -13,33 +13,39 @@ You draw or search for a plot of land, pick a date, and explore four questions i
 
 Vela keeps **satellite heat**, **fire-danger weather**, **weekly activity estimates**, and **official wildfire reports** as separate answers. It never turns FWI, hotspot counts, MODIS confidence, or the harmonization model into a wildfire probability.
 
-## Current public behavior — 15 November 2026
+## Current national experimental forecast — 15 November 2026
 
-The selected-land panel leads with **Satellite heat observed**: returned reading count, 5 km square count, contributing satellites and latest Philippine-time pass. A completed empty search says no readings were returned and states whether clear-view coverage is known. Failed/unavailable feeds are listed separately. Missing coverage never means no fire.
+The selected-land panel leads with **Satellite heat in the next 24 hours**, followed by observed 5 km areas, satellite reading counts, contributing satellites, and the latest Philippine-time observation. A small **dated** fire-weather badge provides separate context. **How is this estimated?** identifies the actual displayed model, input provenance, missing inputs, scope, and that model’s measured F1. Weather is never substituted for the heat probability.
 
-**Next-24-hour satellite heat percentages are currently suspended**, including archived 1%/99% examples. The selected HGB research candidate (`3c1e4896964db152`) has neither representative seasonal coverage nor validated public probability calibration. Its high holdout band consists of August positives without negatives. The old 1% example used a different, flawed-negative Extra Trees model. Candidate selection and calibration approval are separate gates. No validated wildfire-onset probability is published.
+**All Philippine land squares can receive an experimental estimate.** The frozen HGB is considered only with seven days of measured local fire-mask/geolocation coverage, compatible February/March/August seasonality, and complete finite frozen features. When those inputs are missing, Vela uses the existing historical-rate artifact: **119 qualifying positive training square-days / 589 eligible training square-days = 20.2037%** (displayed **20.2%**). This fallback is a transferred covered-day base rate: it does **not** distinguish local risk and is **not nationally calibrated**. It invents no local detections, weather, or clear-view coverage. All national outputs are labeled **Experimental estimate**; countries outside the Philippine boundary remain unsupported.
 
-**Fire-weather danger** remains a separate, dated GWIS FWI measure near the selection center, with Open-Meteo weather context. Low fire-weather danger can coexist with observed satellite heat. Historical heat selection does not turn the current weather outlook into historical weather.
+| Audited model / evaluation run | Validation F1 / n | Full-test F1 / n | Classification threshold |
+| --- | ---: | ---: | ---: |
+| HGB research winner `hist_gradient_boosting`, hash `3c1e4896964db152`, run `84ea3804575e7d36` | 0.606222 / 1,001 | 0.589008 / 1,808 | 0.1 |
+| Displayed missing-input fallback `regional_seasonal_detection_rate`, hash `c09197a5c9d9819e`, run `ph_national_prior_audit_v1` | 0.000000 / 1,001 | 0.000000 / 1,808 | 0.5 |
 
-**Estimated burning activity** requires eligible Aqua fire-mask/geolocation observations or calibrated Suomi-NPP cell-day contributions. It uses the sum of contributions divided by contributing eligible square-days, with partial status and contribution counts. Land/square summaries and History use the same selected polygon/day calculation. NOAA-20/21 FIRMS points alone cannot create this estimate. There are no eligible operational contributions for the 7 November 2026 demonstration date.
+The fallback’s constant probability predicts no positives at threshold 0.5, hence F1=0. It must never borrow the HGB score. Both targets concern **at least one qualifying MODIS/VIIRS satellite heat detection in a 5 km square during 24 hours**, with negatives supported by measured coverage. Neither is a wildfire-onset model. The full-test figures above are recorded audit figures on existing, already-inspected splits, **not** new national validation or promotion claims. The HGB’s original 524-row “claimable” subset has different metrics and is kept separately in Research.
 
-History has three explicit chart choices: **Satellite heat readings**, **Estimated burning activity**, and **Next-24-hour satellite heat forecast**. Counts use Philippine days. Missing activity coverage is a gap; a completed zero-reading search can show 0 readings without implying 0% burning activity. Forecasts are individual-square products only, and public GETs never generate retrospective or full-month predictions. An eventual approved issue must match the versioned candidate and have been created by the start of its forecast window. Square probabilities are never averaged into a land-wide wildfire chance.
+**The 1% versus 99% issue was mixed model generations plus unsupported extrapolation.** The old 1% used flawed-negative v1 Extra Trees; 99% used v2.1 HGB. Both nominal Nov 7 issues were actually created Nov 14. November is outside the evaluated seasonal distribution; high August bands lack negative examples. Those research archives are preserved and excluded from the new national issued-forecast archive. The calibrated/public-production approval gate remains false.
 
-The saved **7 November UTC** Mindanao snapshot has **12 readings / 11 squares / 3 satellites**: **11 readings on 7 November PH and one on 8 November PH at 01:11**. It is an archive, not a live NASA pull or a complete Philippine-day search. Both disputed cells (`2393:174`, `2397:180`) have one NOAA-21 reading at **12:33 PH**; those later observations were not midnight model inputs.
+**Polygon summary:** the headline gives the range of individual square estimates. Outlined markers open each square’s percentage, actual issue time, rolling 24-hour window, observations, satellites, and methods. The separate sum, Σp, is an **expected count of heat-positive squares in the displayed set**, never the chance of any heat or wildfire anywhere in the polygon. Large selections show at most 256 spatially sampled squares and explicitly report the partial denominator; draw a smaller boundary for every square. No polygon event probability is published.
 
-Heat and weather now use independent browser requests. Heat uses `POST /api/check-land` with `include_weather:false`; weather fills through `/api/preparedness`. Weather successes have a dated, request-keyed <=1h server cache and concurrent daily GWIS reads; failures are uncached. Superseded land requests are aborted, obsolete month/square responses are ignored, and duplicate pending square-month requests are suppressed. Source refresh, observation acquisition, weather valid dates and model issue times remain distinct.
+**History has three views:** observed heat areas by Philippine day (solid coral), genuinely issued next-24-hour estimates (outlined teal), and coverage-backed burning activity (eligible numerator / square-day denominator). Unknown observations are gaps/dashed marks; zero requires usable coverage. Future days cannot be observed activity. Historical/month requests read actual archived issues and never generate retrospective forecasts.
 
-Verification: Python and Node tests cover evidence boundaries, scope/time guards, empty vs failed searches, and heat rendering while weather is pending. **Browser control failed, so the draw/click/month/chart/Live flow and visual layout remain unverified.** Network-enabled API samples gave heat-only land checks **6.63s first call**, **88.52ms warm median** (n=3 overall; existing caches retained). These are sample measurements, not production latency percentiles or a matched before/after live speedup. See the [full audit, timing tables and remaining blockers](docs/verification/README.md).
+**Independent loading:** the browser requests heat with `include_weather:false, include_activity:false`, while weather, forecasts, and coverage run separately. Superseded requests are aborted or ignored. Successful weather is cached ≤1h with valid-date keys; failed results are not cached. Forecast issues are immutable within an hour and keyed to the observation-store watermark plus artifact hashes, so new observations invalidate reuse. Recent FIRMS dates retain short refreshable caches; no incomplete day is frozen as final.
 
-Demo review: open the saved Philippines example → **All Mindanao** → inspect the UTC snapshot totals and PH pass dates → click each disputed square (percentages unavailable, observed readings retained) → History → select each chart measure and change month → Return to Live → draw `(123.95727,6.78538)` to `(124.10909,6.92485)` and check heat independently of weather. Also inspect a failed feed, completed empty search, unsupported square and future day. These are manual review steps, not a claim that the browser sequence was completed.
+Measured API samples (n=5, existing provider/store caches retained): heat **6.616s first / 20.81ms warm median**; square forecast **4.485s first / 4.47ms warm median**; nine-square layer **33.88ms / 8.19ms**. Manila’s first request after the model was warm took **15.20ms**, then **3.57ms**. Weather varied **33.56s first / 8.11s repeat median**, illustrating why it must not gate heat. These are local API timings, not browser paint or population latency percentiles. See [verification and limits](docs/verification/national-prediction.md) and [raw timings](docs/verification/national-prediction-timings.json).
 
 ```bash
 python -m pytest -q
 node --test tests/test_public_ui.cjs
-python -m scripts.measure_public_experience --output /tmp/vela-timings.json
+python -m scripts.evaluate_national_prior
+python -m scripts.measure_public_experience --samples 5 --output /tmp/vela-timings.json
 ```
 
-The model-development notes and earlier dated demo reports below preserve historical experiments. Statements about displaying experimental percentages are superseded by the current publication suspension described above. No models were retrained or test labels used for tuning in this change. OmniRoute was inspected as an AI gateway and is not a satellite-data source.
+Browser entry points: `/?example=mindanao` (saved Nov 7 UTC snapshot), `/?example=maguindanao-plot` (selected historical polygon), and `/?example=manila` (live selected land outside evaluated geography). Saved UTC snapshots display their actual PH pass dates; they are not live observations. The Nov 7 Mindanao snapshot contains **12 readings / 11 areas / 3 satellites**, including one observation at Nov 8 01:11 PH. The Maguindanao polygon contains **2 readings / 2 areas**. The headline prediction always has its own **current actual issue time**, independent of the selected historical observation day.
+
+The development notes below preserve earlier experiments. Their geography restrictions, midnight issue protocol, and old experimental percentages describe those historical research versions; the current national experimental path is `vela/ph_prediction.py`. No classifier was retrained, held-out labels were not used for tuning, and no new national accuracy or calibration is claimed.
 
 ### Live is the default (Philippines)
 
@@ -67,7 +73,7 @@ Requires `FIRMS_MAP_KEY` in `.env`. Persistent store: `data/observations/philipp
 ### Land-check data flow (hotspots)
 
 1. Visitor draws a polygon (or opens **All Mindanao** / a saved example).
-2. `POST /api/check-land` loads **weather** and **FIRMS** concurrently.
+2. `POST /api/check-land` returns **FIRMS heat** with weather and activity disabled; independent browser requests fill weather, forecasts, and coverage.
 3. Philippine plots query the **smallest padded bbox**, split into ≤8° tiles when needed, for the two UTC dates that cover Asia/Manila today.
 4. Supported MODIS/VIIRS products fetch **concurrently** (bounded workers), with ResponseCache by product+UTC day+tile and reuse of `data/observations/philippines.sqlite` when rows already exist.
 5. Points are filtered to the Manila calendar day, then clipped to the **actual polygon** (inside vs nearby). Distinct satellite pixels/passes are kept; exact duplicates are dropped.
@@ -124,7 +130,7 @@ This product is **separate** from Aqua–Suomi harmonization and from the Philip
 | Flawed v1 archive | `data/metrics/philippines_hotspot_model_comparison_v1_flawed_negatives.json` |
 | API | `GET /api/hotspot-forecast`, `/replay`, `/metrics`, `/month` |
 
-**Eligibility (square, month, map, replay).** Study geography = all Mindanao land. **Percentages** only inside Maguindanao v2.1 evaluated box; other Mindanao cells → coverage/readings only; outside Mindanao → unsupported. Philippine issue date ≤ today (else **Upcoming**, no percent). Past/today responses include `model_board` (all classifiers + baselines) plus claimable holdout Acc/Brier as evaluation context — never as that day’s accuracy. Scores ≥90% or OOD months are labeled **experimental**. History never puts a forecast percent under “Month's activity.”
+**Historical v2.1 research eligibility (superseded for the national experimental UI).** Study geography = all Mindanao land. **Percentages** only inside Maguindanao v2.1 evaluated box; other Mindanao cells → coverage/readings only; outside Mindanao → unsupported. Philippine issue date ≤ today (else **Upcoming**, no percent). Past/today responses include `model_board` (all classifiers + baselines) plus claimable holdout Acc/Brier as evaluation context — never as that day’s accuracy. Scores ≥90% or OOD months are labeled **experimental**. History never puts a forecast percent under “Month's activity.”
 
 **4-hour Mindanao FIRMS.** `python -m scripts.refresh_mindanao_firms --once` or `--loop --interval-minutes 240`. Install: `scripts/install_mindanao_firms_refresh.sh`. Status stamp appears on metrics + square UI.
 
@@ -146,7 +152,7 @@ This product is **separate** from Aqua–Suomi harmonization and from the Philip
 
 **Analytics.** Research tab shows v2.1 six-model board, high-% experimental limitations, and **“Archived experiment — coverage labels revised”** for the six v1 models. Preserved `2393:174` 1% replay keeps v1 `extra_trees` and distinguishes recorded creation time from the Manila midnight issue slot.
 
-**Tamatalon calendar fix.** Cell `2399:175` on 2026-11-14 can still show a high Live % (OOD November seasonality; see diagnosis JSON) marked experimental; **15–30 Nov show Upcoming**, not issued percents. June contrast for the same sparse cell is ~3%.
+**Historical Tamatalon diagnosis (not current public percentages).** Cell `2399:175` on 2026-11-14 can still show a high Live % (OOD November seasonality; see diagnosis JSON) marked experimental; **15–30 Nov show Upcoming**, not issued percents. June contrast for the same sparse cell is ~3%.
 
 ```bash
 conda activate vela

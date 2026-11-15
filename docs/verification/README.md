@@ -1,5 +1,7 @@
 # Public evidence audit — 15 November 2026 (Asia/Manila)
 
+**Historical audit:** the numerical reproduction and calibration findings below remain valid. The later user-authorized national experimental path, its separate fallback evaluation, and current UI supersede the publication-suspension behavior described here. See [national-prediction.md](national-prediction.md).
+
 Base independently fetched from GitHub: `dc73925f16ff460d33f65712ee2834be4307e442` on `main`. Local tracked files initially matched; the user's untracked `Untitled` was left alone. No training or holdout artifacts were replaced. OmniRoute's local README identifies an AI gateway; it supplies no satellite observations or fire-mask coverage and was not integrated.
 
 ## Trace and root cause

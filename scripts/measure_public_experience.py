@@ -12,6 +12,8 @@ from statistics import median
 import numpy as np
 from fastapi.testclient import TestClient
 from app.main import app
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 
 def main():
@@ -20,12 +22,15 @@ def main():
     parser.add_argument('--samples', type=int, default=3)
     parser.add_argument('--combined', action='store_true')
     args = parser.parse_args()
+    today = datetime.now(ZoneInfo('Asia/Manila')).date().isoformat()
     ring = [[123.95727,6.78538],[124.10909,6.78538],[124.10909,6.92485],[123.95727,6.92485]]
     box = 'west=123.95727&south=6.78538&east=124.10909&north=6.92485'
     cases = [
-        ('land', 'post', '/api/check-land', {'coordinates':ring, 'date':'2026-11-07', 'include_weather':args.combined}),
+        ('land', 'post', '/api/check-land', {'coordinates':ring, 'date':'2026-11-07', 'include_weather':args.combined, 'include_activity':args.combined}),
         ('weather', 'get', '/api/preparedness?' + box, None),
-        ('forecast', 'get', '/api/hotspot-forecast?cell_id=2397:180&issue_date=2026-11-07', None),
+        ('forecast', 'get', f'/api/hotspot-forecast?cell_id=2397:180&issue_date={today}', None),
+        ('forecast_manila', 'get', f'/api/hotspot-forecast?cell_id=2334:368&issue_date={today}', None),
+        ('forecast_layer', 'post', '/api/hotspot-forecast/overlay', {'coordinates':ring,'issue_date':today}),
         ('history', 'post', '/api/history/month', {'coordinates':ring, 'year':2026, 'month':11}),
         ('chart', 'get', '/api/calendar?' + box + '&year=2026', None),
     ]
@@ -45,6 +50,10 @@ def main():
             if name == 'land':
                 results['feed_statuses'] = {r['platform']:r['status'] for r in payload['heat']['feeds']}
                 results.setdefault('firms_ms', []).append(payload.get('firms_timing',{}).get('elapsed_ms'))
+                results['observed_readings'] = payload['heat']['inside_count']
+                results['observed_areas'] = payload['heat']['hotspot_areas']['area_count']
+            if name.startswith('forecast'):
+                results.setdefault('forecasts',{})[name] = {key:payload.get(key) for key in ['status','model_version','model_hash','probability_percent','evaluation','summary']}
         results['samples'][name] = {'ms':samples, 'first_ms':samples[0], 'warm_median_ms':median(samples[1:] or samples), 'p50_ms':float(np.percentile(samples,50)), 'p95_ms':float(np.percentile(samples,95))}
         print(name, results['samples'][name], flush=True)
     Path(args.output).write_text(json.dumps(results,indent=2)+'\n')

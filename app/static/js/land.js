@@ -126,6 +126,8 @@ async function loadStatus() {
   } catch (_error) {
     return;
   }
+  state.predictionPolicy = payload.prediction || null;
+  renderPredictionExplanation(state.lastHotspotForecast);
   if (payload.live?.ph_today) state.phToday = payload.live.ph_today;
   if (payload.live?.timestamps) state.liveTimestamps = payload.live.timestamps;
   renderLiveTimestamps({ timestamps: state.liveTimestamps });
@@ -318,6 +320,7 @@ function clearForecastMarker() {
 }
 
 function clearLand() {
+  clearActivityMap();
   state.historyRequestId += 1;
   state.monthHistory = null;
   state.historyKey = null;
@@ -452,6 +455,7 @@ function setDefaultPlatforms() {
 }
 
 function resetLandResult() {
+  clearActivityMap();
   clearHotspotSearches();
   resetProbabilityOverlay();
   document.querySelector("#fixture-banner").hidden = true;
@@ -506,6 +510,7 @@ async function checkLand(options = {}) {
   refreshLandSummary();
   state.landLabel = options.label || state.landLabel || "Your land";
   state.checkingDay = date;
+  renderObservedAnswer({status: "loading"}, {date});
   setChecking(true);
   document.querySelector("#area-label").textContent =
     `Checking satellite heat for ${formatObservationDay(date)}…`;
@@ -515,10 +520,13 @@ async function checkLand(options = {}) {
   renderDaySummary();
   openLandPanel({ tab: state.panelTab || "where", focus: false });
   const finishSearch = beginHotspotSearch("land");
+  // Start the model independently; a slow satellite provider cannot block it.
+  if (state.panelTab === "forecast" && typeof loadProbabilityOverlay === "function") loadProbabilityOverlay();
   try {
     const body = {
       coordinates: state.polygon,
       include_weather: false,
+      include_activity: false,
       boundary_preset: state.boundaryPreset || null,
       platforms,
       label: options.label || "Your land",
@@ -549,7 +557,7 @@ async function checkLand(options = {}) {
     // Rapid redraw: drop older responses so they cannot replace the current plot.
     if (requestId !== state.landRequestId) return;
     payload.forecast = state.forecast || payload.forecast;
-    renderLandCheck(payload);
+    renderLandCheck(payload, {forecastStarted:true});
   } catch (error) {
     if (requestId !== state.landRequestId) return;
     state.checkingDay = null;
@@ -571,7 +579,7 @@ function setResultLead(text) {
   if (node) node.textContent = text;
 }
 
-function renderLandCheck(payload) {
+function renderLandCheck(payload, options = {}) {
   state.lastLandCheck = payload;
   state.forecast = payload.forecast || null;
   state.checkingDay = null;
@@ -603,7 +611,7 @@ function renderLandCheck(payload) {
     state.forecastMarker = globe.addPoint(point.latitude, point.longitude, {
       radius: 5,
       fill: "#fffdf8",
-      stroke: CELL_STROKE,
+      stroke: "#8e9993",
       weight: 2.5,
       tooltip: point.label || "Weather near the center of your selection.",
     });
@@ -619,6 +627,7 @@ function renderLandCheck(payload) {
   document.querySelector("#heat-lead").textContent = heat.lead || "";
   const summary = document.querySelector("#observed-heat-summary");
   if (summary) summary.textContent = heat.lead || "";
+  if (!state.summarySquare) renderObservedAnswer(heat, {saved: Boolean(payload.saved), date: payload.observation_date});
   document.querySelector("#heat-feeds").innerHTML = renderFeedBreakdown(heat.feeds || []);
   document.querySelector("#heat-inside").innerHTML = renderHeatGroup(
     "Inside your boundary",
@@ -682,12 +691,15 @@ function renderLandCheck(payload) {
     beginPlaceLookup({ mode: "center", lat: center.lat, lon: center.lon });
   }
   // Update the compact burning-activity card from the same land check.
-  applyLandSummaryFromCheck(payload);
+  // Activity is supplied only by the independent coverage-backed store request.
   renderLiveTimestamps(payload);
   openLandPanel({ tab: state.panelTab || "where", focus: false });
   updateSelectionBanner();
   drawLandCutout(synthetic.hotspot_areas.areas || []);
-  loadProbabilityOverlay(payload.observation_date || dayInput.value);
+  if (state.panelTab === "forecast") {
+    if (!options.forecastStarted) loadProbabilityOverlay(payload.observation_date || dayInput.value);
+    else if (state.probabilityOverlay) renderProbabilityOverlay(state.probabilityOverlay);
+  }
 }
 
 function renderFeedBreakdown(feeds) {
@@ -724,7 +736,7 @@ function renderStatuses(results) {
     card.className = `badge ${result.status}`;
     const platform = result.platform || "Request";
     card.innerHTML = `<strong>${platform}: ${STATUS_TEXT[result.status] || result.status}</strong>
-      <small>${result.count || 0} detections · coverage ${result.coverage || "unknown"}${result.product ? ` · ${result.product}` : ""}</small>
+      <small>${result.count > 0 ? `${result.count} readings` : "No readings returned"} · coverage ${result.coverage || "unknown"}${result.product ? ` · ${result.product}` : ""}</small>
       ${result.message ? `<p>${escapeHtml(result.message)}</p>` : ""}`;
     node.append(card);
   });

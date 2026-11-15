@@ -1,0 +1,49 @@
+{
+  "note": "Alternating same-process API sample comparison, n=8 per path. Existing NASA/store caches retained. Not browser paint or provider-cache-cold timing. Only include_activity differs.",
+  "reading_counts": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+  ],
+  "with_inline_coverage": {
+    "ms": [
+      411.92,
+      129.76,
+      86.32,
+      76.2,
+      62.69,
+      121.61,
+      104.61,
+      82.51
+    ],
+    "p50_ms": 95.465,
+    "p95_ms": 313.1639999999999
+  },
+  "independent_heat": {
+    "ms": [
+      23.71,
+      26.81,
+      28.22,
+      30.23,
+      27.07,
+      69.72,
+      33.27,
+      23.74
+    ],
+    "p50_ms": 27.645,
+    "p95_ms": 56.96249999999998
+  }
+}
