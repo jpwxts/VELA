@@ -142,3 +142,5 @@
 {"at_utc": "2026-11-15T04:14:52.818716+00:00", "step": "process", "when_utc": "2026-11-10T06:40:00+00:00", "ok": true, "reason": null, "study_rows": 3422, "seconds": 256.4}
 {"at_utc": "2026-11-15T04:19:32.583375+00:00", "step": "process", "when_utc": "2026-11-09T07:45:00+00:00", "ok": true, "reason": null, "study_rows": 80, "seconds": 279.8}
 {"at_utc": "2026-11-15T04:23:15.242856+00:00", "step": "process", "when_utc": "2026-11-09T07:40:00+00:00", "ok": true, "reason": null, "study_rows": 7490, "seconds": 222.7}
+{"at_utc": "2026-11-15T04:28:12.773928+00:00", "step": "process", "when_utc": "2026-11-08T07:05:00+00:00", "ok": true, "reason": null, "study_rows": 7265, "seconds": 297.5}
+{"at_utc": "2026-11-15T04:28:44.993553+00:00", "step": "process", "when_utc": "2026-11-06T07:30:00+00:00", "ok": false, "reason": "no_aoi_pixels", "study_rows": 0, "seconds": 32.2}
