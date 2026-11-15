@@ -136,8 +136,6 @@ async function loadStatus() {
     note.textContent =
       "A square observed on Monday and Tuesday counts twice, once for each day. The value measures activity frequency; it is not the percentage of land burned or a count of separate fires.";
   }
-  const researchMetric = document.querySelector("#metric-research");
-  if (researchMetric) researchMetric.textContent = payload.metric;
   const keyBanner = document.querySelector("#firms-key-banner");
   if (keyBanner) {
     if (payload.firms_configured) {
@@ -587,10 +585,6 @@ function renderLandCheck(payload) {
     });
     syncForecastMarkerVisibility();
   }
-  const researchPerf = document.querySelector("#research-performance");
-  if (researchPerf) {
-    researchPerf.textContent = `Harmonization validation: ${(forecast.performance || payload.forecast?.performance || {}).text || "Pending verification."}`;
-  }
 
   const heat = payload.heat || {};
   document.querySelector("#heat-block").hidden = false;
@@ -618,7 +612,7 @@ function renderLandCheck(payload) {
     combined: { coverage: heat.coverage || "unknown" },
     feeds: heat.feeds || [],
   };
-  // Individuals and research use detections retained inside the polygon only.
+  // Individual readings use detections retained inside the polygon only.
   const byPlatform = {};
   (heat.inside || []).forEach((spot) => {
     const platform = spot.platform || "Unrecognized";
@@ -649,10 +643,8 @@ function renderLandCheck(payload) {
   const publicResult = document.querySelector("#public-result");
   if (publicResult) publicResult.hidden = false;
   renderPublicResult(synthetic);
-  renderStatuses(synthetic.results || []);
   renderAreas(synthetic.hotspot_areas);
   renderIndividuals(synthetic);
-  renderResearch(synthetic);
   const center = payload.center || {};
   if (center.lat != null && center.lon != null) {
     beginPlaceLookup({ mode: "center", lat: center.lat, lon: center.lon });
@@ -691,20 +683,6 @@ function renderHeatGroup(title, rows, nearby = false) {
     }).join("")}</ul>`;
 }
 
-function renderStatuses(results) {
-  const node = document.querySelector("#statuses");
-  if (!node) return;
-  node.innerHTML = "";
-  results.forEach((result) => {
-    const card = document.createElement("article");
-    card.className = `badge ${result.status}`;
-    const platform = result.platform || "Request";
-    card.innerHTML = `<strong>${platform}: ${STATUS_TEXT[result.status] || result.status}</strong>
-      <small>${result.count || 0} detections · coverage ${result.coverage || "unknown"}${result.product ? ` · ${result.product}` : ""}</small>
-      ${result.message ? `<p>${escapeHtml(result.message)}</p>` : ""}`;
-    node.append(card);
-  });
-}
 
 document.querySelector("#search-form").addEventListener("submit", (event) => {
   event.preventDefault();

@@ -428,10 +428,6 @@ function applyWeatherOutlook(payload) {
   }
   document.querySelector("#weather-location").textContent = locationText;
   renderOutlook(payload, weatherSelectors());
-  const researchPerf = document.querySelector("#research-performance");
-  if (researchPerf) {
-    researchPerf.textContent = `Harmonization validation: ${(payload.performance || {}).text || "Pending verification."}`;
-  }
 }
 
 document.querySelector("#toggle-forecast-point")?.addEventListener("change", (event) => {

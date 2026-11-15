@@ -33,7 +33,6 @@ const state = {
   weeks: [],
   selectedWeek: null,
   revealed: new Map(),
-  traces: null,
   forecast: null,
   selectedArea: null,
   detailRequestId: 0,
@@ -69,7 +68,6 @@ const state = {
   historyError: false,
   checkedDays: new Map(),
   checkingDay: null,
-  traceOutline: null,
   // Land summary widget
   cutoutToken: 0,
   // A clicked square shown in the summary card instead of the whole land.
@@ -100,15 +98,6 @@ const CELL_STROKE = "#58b9ad";
 const READING_FILL = "#e8ebe1";
 const DOT_EDGE = "#0c1311";
 
-const STATUS_TEXT = {
-  ok: "Detections returned",
-  no_hotspots: "No hotspots returned",
-  product_unavailable: "Unavailable for this date",
-  request_failed: "Request failed",
-  not_configured: "Map key needed",
-  area_too_large: "Area too large",
-  none_selected: "Select a platform",
-};
 
 // The globe is the only map. These scripts never touch Cesium directly; see globe.js.
 const globe = VelaGlobe.create("map", { creditContainer: document.querySelector("#globe-credits") });

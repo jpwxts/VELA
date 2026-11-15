@@ -865,9 +865,3 @@ document.querySelector("#export").addEventListener("click", (event) => {
   const [west, south, east, north] = state.box;
   event.currentTarget.href = `/api/export.csv?west=${west}&south=${south}&east=${east}&north=${north}&year=${year}`;
 });
-
-document.querySelector("#week-detail")?.addEventListener("click", (event) => {
-  const choice = event.target.closest(".trace-choice");
-  if (!choice) return;
-  renderTrace(choice.dataset.outcome);
-});

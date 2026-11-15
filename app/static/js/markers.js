@@ -243,10 +243,8 @@ function renderHotspots(payload) {
   const publicResult = document.querySelector("#public-result");
   if (publicResult) publicResult.hidden = false;
   renderPublicResult(payload);
-  renderStatuses(payload.results || []);
   renderAreas(payload.hotspot_areas);
   renderIndividuals(payload);
-  renderResearch(payload);
 }
 
 function applyAreaFilter(multiOnly) {

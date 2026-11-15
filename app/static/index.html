@@ -48,10 +48,6 @@
           <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.200"/><path d="M10 2.500v2M10 15.500v2M2.500 10h2M15.500 10h2M4.700 4.700l1.400 1.400M13.900 13.900l1.400 1.400M4.700 15.300l1.400-1.400M13.900 6.100l1.400-1.400"/></svg>
           <span>Weather outlook</span>
         </button>
-        <button type="button" class="panel-tab" role="tab" id="tab-research" data-panel-tab="research" data-tip="Research" aria-selected="false" aria-controls="pane-research" tabindex="-1">
-          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 5.500h12M4 10h12M4 14.500h8"/></svg>
-          <span>Research</span>
-        </button>
       </div>
       <button type="button" id="legend-toggle" class="rail-button" aria-expanded="false" aria-controls="legend-panel" data-tip="Map legend">
         <svg viewBox="0 0 20 20" aria-hidden="true"><circle class="solid" cx="4.500" cy="5.500" r="1.500"/><circle class="solid" cx="4.500" cy="10" r="1.500"/><circle class="solid" cx="4.500" cy="14.500" r="1.500"/><path d="M8.500 5.500h8M8.500 10h8M8.500 14.500h8"/></svg>
@@ -477,62 +473,6 @@
             </section>
           </section>
 
-          <!-- Research -->
-          <section id="pane-research" class="panel-pane" role="tabpanel" aria-labelledby="tab-research" hidden>
-            <h3 class="pane-title">Research</h3>
-            <div class="research-pane">
-              <p id="research-summary" class="lede">Check your land or select a hotspot to load the records behind this view.</p>
-              <p id="research-performance" class="stamp">Harmonization validation: waiting for a land check.</p>
-
-              <details class="research-q" open>
-                <summary>What did the satellite see?</summary>
-                <p id="research-q-see">Satellites report heat detections when their sensors see a hot pixel during a pass. Those readings are evidence of heat, not a wildfire count.</p>
-                <details class="tech-details">
-                  <summary>Technical details</summary>
-                  <div id="research-feeds"></div>
-                  <div id="statuses"></div>
-                  <p class="quiet">Vela keeps each satellite’s readings identifiable, then groups nearby detections into 5 km observation areas so you can compare what more than one spacecraft saw.</p>
-                </details>
-              </details>
-
-              <details class="research-q">
-                <summary>How is fire danger calculated?</summary>
-                <p id="research-q-combine">Fire danger here is a published weather-based index for the forecast day, separate from satellite heat detections. It is not a wildfire probability.</p>
-                <details class="tech-details">
-                  <summary>Technical details</summary>
-                  <p id="research-q-fwi" class="quiet">Vela reads the Copernicus GWIS ECMWF Fire Weather Index at the forecast point when the WMS layer returns a number. For Southeast Asia, the ASMC / Malaysian Meteorological Department Fire Weather Index map is linked as a regional reference only; Vela never infers a rating from map colors.</p>
-                  <p id="metric-research" class="quiet"></p>
-                </details>
-              </details>
-
-              <details class="research-q">
-                <summary>What would confirm a wildfire?</summary>
-                <p id="research-q-weekly">An official wildfire or fire report, on-the-ground confirmation, or a responsible agency bulletin confirms a wildfire. Satellite heat and fire-danger ratings alone do not.</p>
-                <p id="research-onset-note" class="quiet">The 24-hour wildfire-onset forecast is a separate product from heat detections, fire weather, and MODIS–VIIRS harmonization. Vela publishes an onset percentage only when verified Mindanao onset labels and reporting coverage exist.</p>
-                <details class="tech-details">
-                  <summary>Technical details</summary>
-                  <p id="research-q-test" class="quiet">Weekly activity estimates measure how often grid squares showed burning activity on days with usable observations or model estimates. Development validation compares those estimates with held-out satellite observations; independent final testing is recorded separately when completed.</p>
-                  <p id="research-validation" class="quiet">Validation status loads with the model report.</p>
-                </details>
-              </details>
-
-              <details class="research-q" id="hotspot-analytics-block" open>
-                <summary>Model performance · Chance of satellite-detected heat</summary>
-                <p id="hotspot-analytics-summary" class="quiet">Loading Maguindanao hotspot-forecast model performance…</p>
-                <div id="hotspot-model-board" class="quiet" aria-label="Six-model validation board"></div>
-                <div id="hotspot-analytics-v2" class="quiet"></div>
-                <div id="hotspot-analytics-v1" class="quiet"></div>
-                <div id="hotspot-analytics-replay" class="quiet"></div>
-              </details>
-
-              <section class="pane-block">
-                <h4>Explore one grid square</h4>
-                <p class="quiet">Walk through a real cell: what each satellite observed, which estimate contributed, and how it affected the weekly result.</p>
-                <button type="button" id="trace" class="filter-button">Explore one grid square</button>
-                <article id="trace-detail" class="week-detail" hidden></article>
-              </section>
-            </div>
-          </section>
         </div>
       </article>
     </main>
@@ -553,7 +493,6 @@
   <script src="/static/js/history.js"></script>
   <script src="/static/js/summary.js"></script>
   <script src="/static/js/picture.js"></script>
-  <script src="/static/js/research.js"></script>
   <script src="/static/js/examples.js"></script>
   <script src="/static/js/main.js"></script>
 </body>

@@ -519,7 +519,7 @@ function renderFindingsPanel(matched, findings) {
   const modelNote = document.querySelector("#area-model-note");
   if (modelNote) {
     if (model.status === "estimated_suomi" && model.model_probability != null) {
-      modelNote.textContent = `${model.label}: ${(model.model_probability * 100).toFixed(1)}% Aqua-comparable probability for this square-day. Details stay in Research.`;
+      modelNote.textContent = `${model.label}: ${(model.model_probability * 100).toFixed(1)}% Aqua-comparable probability for this square-day.`;
     } else if (model.status === "observed_aqua") {
       modelNote.textContent = `${model.label}: ${model.observed_result}.`;
     } else if (model.status === "area_aggregate" && model.activity_rate != null) {
@@ -530,9 +530,6 @@ function renderFindingsPanel(matched, findings) {
       modelNote.textContent = model.explanation
         || "Only FIRMS heat readings are available here; the coverage or model inputs for an Aqua-comparable estimate are missing.";
     }
-  }
-  if (typeof renderResearchModel === "function") {
-    renderResearchModel(model);
   }
   if (matched.cell_id) {
     loadHotspotForecast(matched.cell_id, matched.observation_day || dayInput.value);

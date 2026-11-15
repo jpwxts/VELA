@@ -8,7 +8,7 @@ function setLegend(open) {
 
 function switchView(name) {
   // Legacy alias: weather fixtures used to leave the map page.
-  const tab = name === "hotspots" ? "where" : name === "weekly" ? "weekly" : name === "research" ? "research" : "weather";
+  const tab = name === "hotspots" ? "where" : name === "weekly" ? "weekly" : "weather";
   openLandPanel({ tab });
 }
 
@@ -30,7 +30,6 @@ function switchPanelTab(name) {
   document.querySelector(".card-body")?.scrollTo({ top: 0 });
   if (tabName === "weather") loadWeatherOutlook();
   if (tabName === "weekly") setHistoryView(state.historyView);
-  if (tabName === "research") renderResearch(state.lastPayload);
 }
 
 function openLandPanel(options = {}) {

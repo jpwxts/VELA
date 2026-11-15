@@ -942,7 +942,8 @@ def test_page_keeps_every_hotspot_marker_and_the_combined_summary():
     assert "Combined observations" in page
     assert "flatMap((result) => result.hotspots || [])" in script
     assert "calibration pending" in script
-    assert "supplied this cell-day" in script or "supplied_by" in script
+    # Each week's detail in History says which satellites supplied observations or estimates.
+    assert "supplied observations or model estimates" in script
 
 
 def test_missing_product_does_not_pretend_the_area_was_clear(tmp_path):
