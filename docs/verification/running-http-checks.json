@@ -1,0 +1,563 @@
+{
+  "page_status": 200,
+  "chart_picker_served": true,
+  "2393:174": {
+    "status": "unavailable",
+    "probability_percent": null,
+    "reason": "Chance of satellite-detected heat is not published (state=publication_suspended_calibration_audit). Calibration is not validated for representative covered square-days. The >=90% holdout band contains 32 August positives and no negatives; November is outside the evaluated seasonal distribution. Observed satellite heat remains available."
+  },
+  "2397:180": {
+    "status": "unavailable",
+    "probability_percent": null,
+    "reason": "Chance of satellite-detected heat is not published (state=publication_suspended_calibration_audit). Calibration is not validated for representative covered square-days. The >=90% holdout band contains 32 August positives and no negatives; November is outside the evaluated seasonal distribution. Observed satellite heat remains available."
+  },
+  "2100:200": {
+    "status": "unsupported",
+    "probability_percent": null,
+    "reason": "Outside Mindanao \u2014 hotspot-forecast percentages are not evaluated here. Satellite readings and weather remain available."
+  },
+  "snapshot": {
+    "status": 200,
+    "readings": 12,
+    "squares": 11,
+    "platforms": [
+      "NOAA-20",
+      "NOAA-21",
+      "Terra"
+    ],
+    "latest_pass_ph": "2026-11-08T01:11:00+08:00"
+  },
+  "small_plot": {
+    "status": 200,
+    "sample_ms": 69.93,
+    "readings": 2,
+    "squares": 2,
+    "inside": [
+      {
+        "lat": 6.85779,
+        "lon": 124.05852,
+        "platform": "NOAA-21",
+        "acq_date": "2026-11-07",
+        "acq_time": "04:33",
+        "acq_time_raw": "0433",
+        "confidence": "n",
+        "frp": 13.89,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.88524,
+        "lon": 124.05923,
+        "platform": "NOAA-20",
+        "acq_date": "2026-11-07",
+        "acq_time": "05:29",
+        "acq_time_raw": "0529",
+        "confidence": "n",
+        "frp": 15.49,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      }
+    ],
+    "feeds": [
+      {
+        "platform": "Aqua",
+        "status": "zero",
+        "count": 0,
+        "text": "Aqua \u00b7 0 detections inside the boundary"
+      },
+      {
+        "platform": "NOAA-20",
+        "status": "ok",
+        "count": 1,
+        "text": "NOAA-20 \u00b7 1 detection"
+      },
+      {
+        "platform": "NOAA-21",
+        "status": "ok",
+        "count": 1,
+        "text": "NOAA-21 \u00b7 1 detection"
+      },
+      {
+        "platform": "Suomi-NPP",
+        "status": "unavailable",
+        "count": 0,
+        "text": "Suomi-NPP \u00b7 unavailable for this date"
+      },
+      {
+        "platform": "Terra",
+        "status": "zero",
+        "count": 0,
+        "text": "Terra \u00b7 0 detections inside the boundary"
+      }
+    ],
+    "coverage": "unknown",
+    "activity": {
+      "date": "2026-11-07",
+      "activity_rate": null,
+      "activity_status": "not_processed",
+      "eligible_cell_days": 0,
+      "estimated_cell_days": 0,
+      "activity_denominator": null,
+      "method_counts": {
+        "observed Aqua activity": 0,
+        "raw VIIRS activity": 0,
+        "calibrated VIIRS estimate": 0,
+        "unavailable": 0
+      },
+      "clear_zero": false,
+      "status": "unavailable",
+      "missing_input": "Eligible Aqua fire-mask/geolocation or calibrated Suomi-NPP cell-day contributions",
+      "explanation": "No eligible coverage-based contribution for this boundary and Philippine date."
+    },
+    "firms_timing": {
+      "elapsed_ms": 5,
+      "utc_days": [
+        "2026-11-06",
+        "2026-11-07"
+      ],
+      "tiles": 1,
+      "jobs": 2,
+      "store_seeded": true,
+      "cache_hit_feeds": 4,
+      "points_before_ph_filter": 2,
+      "points_after_ph_filter": 2,
+      "query_box": {
+        "west": 123.90727,
+        "south": 6.73538,
+        "east": 124.15908999999999,
+        "north": 6.97485
+      }
+    }
+  },
+  "all_mindanao_ph_day": {
+    "status": 200,
+    "sample_ms": 6680.59,
+    "readings": 11,
+    "squares": 10,
+    "inside": [
+      {
+        "lat": 6.76577,
+        "lon": 125.28118,
+        "platform": "Terra",
+        "acq_date": "2026-11-07",
+        "acq_time": "00:37",
+        "acq_time_raw": "0037",
+        "confidence": "58",
+        "frp": 11.2,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.03876,
+        "lon": 124.88007,
+        "platform": "NOAA-21",
+        "acq_date": "2026-11-07",
+        "acq_time": "04:33",
+        "acq_time_raw": "0433",
+        "confidence": "n",
+        "frp": 7.83,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.03937,
+        "lon": 124.87898,
+        "platform": "NOAA-21",
+        "acq_date": "2026-11-07",
+        "acq_time": "04:33",
+        "acq_time_raw": "0433",
+        "confidence": "n",
+        "frp": 6.74,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.16643,
+        "lon": 124.99257,
+        "platform": "NOAA-21",
+        "acq_date": "2026-11-07",
+        "acq_time": "04:33",
+        "acq_time_raw": "0433",
+        "confidence": "n",
+        "frp": 3.08,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.85779,
+        "lon": 124.05852,
+        "platform": "NOAA-21",
+        "acq_date": "2026-11-07",
+        "acq_time": "04:33",
+        "acq_time_raw": "0433",
+        "confidence": "n",
+        "frp": 13.89,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 7.08782,
+        "lon": 124.25303,
+        "platform": "NOAA-21",
+        "acq_date": "2026-11-07",
+        "acq_time": "04:33",
+        "acq_time_raw": "0433",
+        "confidence": "n",
+        "frp": 8.93,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.24241,
+        "lon": 125.58055,
+        "platform": "NOAA-20",
+        "acq_date": "2026-11-07",
+        "acq_time": "05:29",
+        "acq_time_raw": "0529",
+        "confidence": "n",
+        "frp": 3.97,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.80229,
+        "lon": 124.43863,
+        "platform": "NOAA-20",
+        "acq_date": "2026-11-07",
+        "acq_time": "05:29",
+        "acq_time_raw": "0529",
+        "confidence": "n",
+        "frp": 3.28,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.81609,
+        "lon": 124.30238,
+        "platform": "NOAA-20",
+        "acq_date": "2026-11-07",
+        "acq_time": "05:29",
+        "acq_time_raw": "0529",
+        "confidence": "n",
+        "frp": 16.53,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.88524,
+        "lon": 124.05923,
+        "platform": "NOAA-20",
+        "acq_date": "2026-11-07",
+        "acq_time": "05:29",
+        "acq_time_raw": "0529",
+        "confidence": "n",
+        "frp": 15.49,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.92953,
+        "lon": 124.19762,
+        "platform": "NOAA-20",
+        "acq_date": "2026-11-07",
+        "acq_time": "05:29",
+        "acq_time_raw": "0529",
+        "confidence": "n",
+        "frp": 2.92,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      }
+    ],
+    "feeds": [
+      {
+        "platform": "Aqua",
+        "status": "zero",
+        "count": 0,
+        "text": "Aqua \u00b7 0 detections inside the boundary"
+      },
+      {
+        "platform": "NOAA-20",
+        "status": "ok",
+        "count": 5,
+        "text": "NOAA-20 \u00b7 5 detections"
+      },
+      {
+        "platform": "NOAA-21",
+        "status": "ok",
+        "count": 5,
+        "text": "NOAA-21 \u00b7 5 detections"
+      },
+      {
+        "platform": "Suomi-NPP",
+        "status": "unavailable",
+        "count": 0,
+        "text": "Suomi-NPP \u00b7 unavailable for this date"
+      },
+      {
+        "platform": "Terra",
+        "status": "ok",
+        "count": 1,
+        "text": "Terra \u00b7 1 detection"
+      }
+    ],
+    "coverage": "unknown",
+    "activity": {
+      "date": "2026-11-07",
+      "activity_rate": null,
+      "activity_status": "not_processed",
+      "eligible_cell_days": 0,
+      "estimated_cell_days": 0,
+      "activity_denominator": null,
+      "method_counts": {
+        "observed Aqua activity": 0,
+        "raw VIIRS activity": 0,
+        "calibrated VIIRS estimate": 0,
+        "unavailable": 0
+      },
+      "clear_zero": false,
+      "status": "unavailable",
+      "missing_input": "Eligible Aqua fire-mask/geolocation or calibrated Suomi-NPP cell-day contributions",
+      "explanation": "No eligible coverage-based contribution for this boundary and Philippine date."
+    },
+    "firms_timing": {
+      "elapsed_ms": 6493,
+      "utc_days": [
+        "2026-11-06",
+        "2026-11-07"
+      ],
+      "tiles": 1,
+      "jobs": 2,
+      "store_seeded": true,
+      "cache_hit_feeds": 0,
+      "points_before_ph_filter": 39,
+      "points_after_ph_filter": 17,
+      "query_box": {
+        "west": 119.4664277,
+        "south": 4.6106050000000005,
+        "east": 126.7898821,
+        "north": 10.6561357
+      }
+    }
+  },
+  "all_mindanao_full_preset": {
+    "status": 200,
+    "sample_ms": 6555.89,
+    "bbox": {
+      "west": 117.9666667,
+      "south": 4.4523355,
+      "east": 126.7409926,
+      "north": 10.6061357
+    },
+    "readings": 11,
+    "squares": 10,
+    "inside": [
+      {
+        "lat": 6.76577,
+        "lon": 125.28118,
+        "platform": "Terra",
+        "acq_date": "2026-11-07",
+        "acq_time": "00:37",
+        "acq_time_raw": "0037",
+        "confidence": "58",
+        "frp": 11.2,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.03876,
+        "lon": 124.88007,
+        "platform": "NOAA-21",
+        "acq_date": "2026-11-07",
+        "acq_time": "04:33",
+        "acq_time_raw": "0433",
+        "confidence": "n",
+        "frp": 7.83,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.03937,
+        "lon": 124.87898,
+        "platform": "NOAA-21",
+        "acq_date": "2026-11-07",
+        "acq_time": "04:33",
+        "acq_time_raw": "0433",
+        "confidence": "n",
+        "frp": 6.74,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.16643,
+        "lon": 124.99257,
+        "platform": "NOAA-21",
+        "acq_date": "2026-11-07",
+        "acq_time": "04:33",
+        "acq_time_raw": "0433",
+        "confidence": "n",
+        "frp": 3.08,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.85779,
+        "lon": 124.05852,
+        "platform": "NOAA-21",
+        "acq_date": "2026-11-07",
+        "acq_time": "04:33",
+        "acq_time_raw": "0433",
+        "confidence": "n",
+        "frp": 13.89,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 7.08782,
+        "lon": 124.25303,
+        "platform": "NOAA-21",
+        "acq_date": "2026-11-07",
+        "acq_time": "04:33",
+        "acq_time_raw": "0433",
+        "confidence": "n",
+        "frp": 8.93,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.24241,
+        "lon": 125.58055,
+        "platform": "NOAA-20",
+        "acq_date": "2026-11-07",
+        "acq_time": "05:29",
+        "acq_time_raw": "0529",
+        "confidence": "n",
+        "frp": 3.97,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.80229,
+        "lon": 124.43863,
+        "platform": "NOAA-20",
+        "acq_date": "2026-11-07",
+        "acq_time": "05:29",
+        "acq_time_raw": "0529",
+        "confidence": "n",
+        "frp": 3.28,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.81609,
+        "lon": 124.30238,
+        "platform": "NOAA-20",
+        "acq_date": "2026-11-07",
+        "acq_time": "05:29",
+        "acq_time_raw": "0529",
+        "confidence": "n",
+        "frp": 16.53,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.88524,
+        "lon": 124.05923,
+        "platform": "NOAA-20",
+        "acq_date": "2026-11-07",
+        "acq_time": "05:29",
+        "acq_time_raw": "0529",
+        "confidence": "n",
+        "frp": 15.49,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.92953,
+        "lon": 124.19762,
+        "platform": "NOAA-20",
+        "acq_date": "2026-11-07",
+        "acq_time": "05:29",
+        "acq_time_raw": "0529",
+        "confidence": "n",
+        "frp": 2.92,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      }
+    ],
+    "firms_timing": {
+      "elapsed_ms": 6190,
+      "utc_days": [
+        "2026-11-06",
+        "2026-11-07"
+      ],
+      "tiles": 2,
+      "jobs": 4,
+      "store_seeded": true,
+      "cache_hit_feeds": 0,
+      "points_before_ph_filter": 39,
+      "points_after_ph_filter": 17,
+      "query_box": {
+        "west": 117.91666670000001,
+        "south": 4.4023355,
+        "east": 126.7909926,
+        "north": 10.6561357
+      }
+    },
+    "feeds": [
+      {
+        "platform": "Aqua",
+        "status": "zero",
+        "count": 0,
+        "text": "Aqua \u00b7 0 detections inside the boundary"
+      },
+      {
+        "platform": "NOAA-20",
+        "status": "ok",
+        "count": 5,
+        "text": "NOAA-20 \u00b7 5 detections"
+      },
+      {
+        "platform": "NOAA-21",
+        "status": "ok",
+        "count": 5,
+        "text": "NOAA-21 \u00b7 5 detections"
+      },
+      {
+        "platform": "Suomi-NPP",
+        "status": "unavailable",
+        "count": 0,
+        "text": "Suomi-NPP \u00b7 unavailable for this date"
+      },
+      {
+        "platform": "Terra",
+        "status": "ok",
+        "count": 1,
+        "text": "Terra \u00b7 1 detection"
+      }
+    ]
+  }
+}

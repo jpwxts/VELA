@@ -576,13 +576,16 @@ def feed_breakdown(hotspot_payload: dict, inside_rows: list[dict]) -> list[dict]
                     "text": f"{platform} · request failed",
                 }
             )
+        elif status not in {"ok", "no_hotspots"}:
+            lines.append({"platform": platform, "status": "unavailable", "count": 0,
+                          "text": f"{platform} · feed unavailable ({status})"})
         elif count == 0:
             lines.append(
                 {
                     "platform": platform,
                     "status": "zero",
                     "count": 0,
-                    "text": f"{platform} · 0 detections inside the boundary",
+                    "text": f"{platform} · no readings returned inside the boundary",
                 }
             )
         else:
@@ -676,28 +679,41 @@ def classify_detections(
     else:
         coverage = "observed"
 
+    succeeded = [row for row in results if row.get("status") in {"ok", "no_hotspots"}]
+    failed = [row for row in results if row.get("status") not in {"ok", "no_hotspots"}]
+    latest_pass_ph = None
     if inside:
-        lead = (
-            f"Satellites detected heat inside your boundary "
-            f"({len(inside)} reading{'s' if len(inside) != 1 else ''})."
-        )
+        from zoneinfo import ZoneInfo
+        latest = inside[-1]
+        try:
+            time_text = str(latest['acq_time'])
+            if ':' not in time_text:
+                digits = time_text.zfill(4)
+                time_text = f"{digits[:2]}:{digits[2:]}"
+            stamp = datetime.fromisoformat(f"{latest['acq_date']}T{time_text}:00+00:00")
+            latest_pass_ph = stamp.astimezone(ZoneInfo("Asia/Manila")).isoformat()
+        except (ValueError, KeyError):
+            pass
+        satellite_count = len({row["platform"] for row in inside})
+        square_count = int((areas or {}).get("area_count") or 0)
+        lead = (f"{len(inside)} satellite heat readings in {square_count} squares "
+                f"from {satellite_count} satellites.")
+        if latest_pass_ph:
+            lead += f" Latest Philippine-time pass: {latest_pass_ph}."
+        if failed:
+            lead += " Some feeds failed or are unavailable; see feed details."
         status = "inside"
-    elif nearby:
-        lead = (
-            f"No heat was detected inside your boundary. "
-            f"{len(nearby)} reading{'s' if len(nearby) != 1 else ''} "
-            f"{'were' if len(nearby) != 1 else 'was'} reported nearby (within {nearby_km:.0f} km)."
-        )
-        status = "nearby_only"
-    elif coverage == "unknown":
-        lead = (
-            "No recent heat detections were returned for this plot. "
-            "Satellite coverage is unverified."
-        )
-        status = "none_unknown"
+    elif not succeeded:
+        lead = "Satellite heat search unavailable: no feed completed successfully. Clear-view coverage is unknown."
+        status = "unavailable"
     else:
-        lead = "No recent heat detections were returned for this plot."
-        status = "none"
+        lead = "No satellite heat readings returned for this search inside your boundary. "
+        lead += "Clear-view coverage is unknown." if coverage == "unknown" else f"Clear-view coverage: {coverage}."
+        if nearby:
+            lead += f" {len(nearby)} readings returned nearby, outside the boundary."
+        if failed:
+            lead += " Some feeds failed or are unavailable; see feed details."
+        status = "nearby_only" if nearby else ("none_unknown" if coverage == "unknown" else "none")
 
     platforms_inside = sorted({row["platform"] for row in inside})
     platforms_nearby = sorted({row["platform"] for row in nearby})
@@ -705,6 +721,9 @@ def classify_detections(
         "status": status,
         "lead": lead,
         "inside_count": len(inside),
+        "search_complete": bool(succeeded) and not failed,
+        "latest_pass_ph": latest_pass_ph,
+        "failed_feeds": [row.get("platform") for row in failed],
         "nearby_count": len(nearby),
         "nearby_buffer_km": nearby_km,
         "inside": inside,
@@ -727,11 +746,13 @@ def build_land_check(
     label: str | None = None,
     observation_date: str | None = None,
     fixture: dict | None = None,
+    geometry: dict | None = None,
+    include_activity: bool = True,
 ) -> dict:
     closed = normalize_ring(ring)
     west, south, east, north = polygon_bbox(closed)
     annotated = annotate_forecast_days(forecast)
-    heat = classify_detections(hotspot_payload, closed)
+    heat = classify_detections(hotspot_payload, closed, geometry=geometry)
     area_km2 = polygon_area_km2(closed)
     wildfire = lookup_wildfire_report(
         west=west,
@@ -752,9 +773,22 @@ def build_land_check(
 
     center_lat, center_lon = forecast_point(west, south, east, north)
     # Harmonized weekly activity + reliability for the land summary card.
-    from vela.findings import model_for_drawn_area, reliability_block
+    from vela.findings import reliability_block
 
-    activity = model_for_drawn_area(west, south, east, north, observation_date or date.today().isoformat())
+    from vela.history import build_monthly_history
+    from vela.observation_store import philippine_today
+
+    selected_day = date.fromisoformat(observation_date or philippine_today().isoformat())
+    if include_activity:
+        history = build_monthly_history(closed, selected_day.year, selected_day.month, today=philippine_today(), geometry=geometry)
+        activity = next((row for row in history["days"] if row["date"] == selected_day.isoformat()), {})
+        if activity.get("activity_rate") is None:
+            activity = {**activity, "status": "unavailable",
+                        "missing_input": "Eligible Aqua fire-mask/geolocation or calibrated Suomi-NPP cell-day contributions",
+                        "explanation": "No eligible coverage-based contribution for this boundary and Philippine date."}
+    else:
+        activity = {"status": "loading", "activity_rate": None, "activity_status": "loading",
+                    "explanation": "Coverage-based activity is checked independently."}
     reliability = reliability_block()
     return {
         "ok": True,

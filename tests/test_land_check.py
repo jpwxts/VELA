@@ -84,7 +84,7 @@ def test_unknown_empty_heat_copy():
     )
     assert heat["status"] == "none_unknown"
     assert heat["lead"] == (
-        "No recent heat detections were returned for this plot. Satellite coverage is unverified."
+        "No satellite heat readings returned for this search inside your boundary. Clear-view coverage is unknown."
     )
 
 
@@ -131,7 +131,7 @@ def test_peak_headline_and_no_combined_score():
     )
     assert "not combined into a score" in payload["separation_note"]
     assert "highest forecast fire danger" in payload["questions"]["forecast_danger"]
-    assert "Satellite coverage is unverified" in payload["questions"]["satellite_heat"]
+    assert "no feed completed successfully" in payload["questions"]["satellite_heat"]
 
 
 def test_zero_rain_and_missing_values_are_distinct():

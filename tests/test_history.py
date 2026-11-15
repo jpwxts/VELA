@@ -130,7 +130,7 @@ def test_history_endpoint_validates_dates_and_normalizes_the_boundary(monkeypatc
     from app import main
 
     calls = []
-    monkeypatch.setattr(main, "build_monthly_history", lambda *args: calls.append(args) or {"status": "ok"})
+    monkeypatch.setattr(main, "build_monthly_history", lambda *args, **kwargs: calls.append(args) or {"status": "ok"})
     client = TestClient(main.app)
     payload = {"coordinates": RING[:-1], "year": 1990, "month": 1}
     assert client.post("/api/history/month", json=payload).status_code == 200

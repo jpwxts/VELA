@@ -565,403 +565,82 @@ def _coverage_days_cached() -> set[str]:
     return _COVERAGE_DAYS_CACHE
 
 
+def _timely_selected_issue(payload: dict | None, selection: dict, day: str) -> bool:
+    """An issue must precede its target window and match the approved candidate."""
+    if not payload or payload.get("historical_simulation"):
+        return False
+    if payload.get("model_hash") != selection.get("model_hash"):
+        return False
+    if payload.get("model_version") != selection.get("chosen_model"):
+        return False
+    try:
+        created = datetime.fromisoformat(str(payload["issued_at_utc"]).replace("Z", "+00:00"))
+        cutoff = issue_datetime_manila(day)
+        probability = float(payload["probability"])
+        return created <= cutoff and 0 <= probability <= 1
+    except (KeyError, TypeError, ValueError):
+        return False
+
+
 def forecast_for_cell(
-    *,
-    cell_id: str,
-    issue_date_ph: str | None = None,
-    historical_simulation: bool = False,
-    availability_delay_hours: float = 0.0,
+    *, cell_id: str, issue_date_ph: str | None = None,
+    historical_simulation: bool = False, availability_delay_hours: float = 0.0,
     store: HotspotForecastStore | None = None,
-    observation_store: ObservationStore | None = None,
-    ph_today: str | None = None,
+    observation_store: ObservationStore | None = None, ph_today: str | None = None,
 ) -> dict[str, Any]:
+    """Read-only public serving. Research scores never become issued forecasts here."""
     day = str(issue_date_ph or philippine_today())[:10]
     today = str(ph_today or philippine_today())[:10]
-    selection = load_selection()
-    obs = observation_store or ObservationStore()
-    archive = store or HotspotForecastStore()
-    archive.delete_issues_after(today)
-
-    detections = load_study_detections(obs)
-    support = _support_metadata(
-        cell_id=cell_id,
-        issue_date_ph=day,
-        detections=detections,
-        observation_store=obs,
-    )
+    selection = load_selection() or {}
+    support = {"geographic_support": {
+        "in_study_region": cell_id in _study_set(),
+        "percentage_supported": cell_id in _eval_set(),
+        "study": STUDY, "percentage_zone": MAGUINDANAO_EVALUATED, "cell_id": cell_id,
+    }}
     eligibility = forecast_eligibility(
-        cell_id=cell_id,
-        issue_date_ph=day,
-        ph_today=today,
-        selection=selection,
-        support=support,
-        observation_store=obs,
-        allow_historical_reconstruction=historical_simulation,
+        cell_id=cell_id, issue_date_ph=day, ph_today=today, selection=selection,
+        support=support, observation_store=observation_store,
     )
+    state = eligibility["calendar_state"]
     base = {
-        "product": PRODUCT,
-        "public_label": PUBLIC_LABEL,
-        "question": (
-            "For this 5 km square, what is the estimated chance that MODIS or VIIRS "
-            "will detect heat in the next 24 hours?"
-        ),
-        "cell_id": cell_id,
-        "issue_date_ph": day,
-        "issue_time_manila": issue_datetime_manila(day).isoformat(),
-        "valid_interval": valid_interval(day),
-        "study": STUDY,
-        "historical_simulation": historical_simulation,
-        "support": support,
-        "availability_delay_hours": float(availability_delay_hours),
-        "ph_today": today,
-        "eligibility": eligibility,
+        "product": PRODUCT, "public_label": PUBLIC_LABEL, "cell_id": cell_id,
+        "issue_date_ph": day, "issue_time_manila": None, "valid_interval": valid_interval(day),
+        "study": MAGUINDANAO_EVALUATED, "support": support, "eligibility": eligibility,
+        "ph_today": today, "probability": None, "probability_percent": None,
+        "calendar_state": state, "issuance_kind": None, "historical_simulation": False,
+        "reason": eligibility["reason"],
     }
-
-    # Never serve or re-issue future Manila dates (even if a stale archive row existed).
-    if eligibility["calendar_state"] == "upcoming":
-        return {
-            **base,
-            "status": "upcoming",
-            "probability": None,
-            "probability_percent": None,
-            "reason": eligibility["reason"],
-            "calendar_state": "upcoming",
-            "issuance_kind": None,
-        }
-    if eligibility["calendar_state"] == "unsupported_location":
-        return {
-            **base,
-            "status": "unsupported",
-            "probability": None,
-            "probability_percent": None,
-            "reason": eligibility["reason"],
-            "calendar_state": "unsupported_location",
-            "issuance_kind": None,
-            "firms_refresh": load_firms_refresh_status(),
-        }
-    if eligibility["calendar_state"] == "coverage_status_only":
-        return {
-            **base,
-            "status": "coverage_status_only",
-            "probability": None,
-            "probability_percent": None,
-            "reason": eligibility["reason"],
-            "calendar_state": "coverage_status_only",
-            "issuance_kind": None,
-            "evaluation": evaluation_context(selection),
-            "firms_refresh": load_firms_refresh_status(),
-        }
-
-    existing = archive.get(cell_id, day)
-    if existing is not None and availability_delay_hours == 0 and day <= today:
-        existing = dict(existing)
-        existing["support"] = support
-        existing["public_label"] = PUBLIC_LABEL
-        existing["ph_today"] = today
-        existing["eligibility"] = eligibility
-        existing["outcome"] = archive.outcome(cell_id, day) or {
-            "status": "awaiting_observation",
-            "label": "Outcome awaiting observation",
-        }
-        existing["issuance_kind"] = "preserved_archive"
-        existing["feature_cutoff_manila"] = support.get("input_cutoff_manila")
-        existing["feature_cutoff_utc"] = support.get("input_cutoff_utc")
-        existing["calendar_state"] = "forecast_available"
-        existing["firms_refresh"] = load_firms_refresh_status()
-        feats = existing.get("features") or {}
-        prob = existing.get("probability")
-        if prob is not None:
-            _decorate_score(
-                existing,
-                float(prob),
-                feats if isinstance(feats, dict) else {},
-                day,
-                selection=selection,
-                include_board=True,
-            )
-        if historical_simulation:
-            existing["historical_simulation"] = False
-            existing["label_note"] = (
-                "Preserved forecast as originally issued — not a fresh historical reconstruction."
-            )
-        return existing
-
     if not eligibility["eligible"]:
-        return {
-            **base,
-            "status": "unavailable",
-            "probability": None,
-            "probability_percent": None,
-            "reason": eligibility["reason"],
-            "calendar_state": eligibility["calendar_state"],
-            "issuance_kind": None,
-            "firms_refresh": load_firms_refresh_status(),
-        }
-
-    coverage_days = _coverage_days_cached()
-    features = build_feature_row(
-        cell_id=cell_id,
-        issue_date_ph=day,
-        detections=detections,
-        coverage_days=coverage_days,
-        availability_delay_hours=availability_delay_hours,
-    )
-    bundle = _load_model_bundle(selection or {})
-    if bundle is None:
-        return {
-            **base,
-            "status": "unavailable",
-            "probability": None,
-            "probability_percent": None,
-            "reason": "Model artifact unavailable",
-            "calendar_state": "insufficient_inputs",
-        }
-    probability = _predict_probability(bundle, features)
-    percent = int(round(max(0.0, min(1.0, probability)) * 100))
-    payload = {
-        **base,
-        "status": "issued",
-        "probability": probability,
-        "probability_percent": percent,
-        "model_version": selection.get("chosen_model"),
-        "model_hash": selection.get("model_hash"),
-        "features": features,
-        "calendar_state": "forecast_available",
-        "reason": None,
-        "feature_cutoff_manila": support.get("input_cutoff_manila"),
-        "feature_cutoff_utc": support.get("input_cutoff_utc"),
-        "firms_refresh": load_firms_refresh_status(),
-    }
-    _decorate_score(
-        payload, probability, features, day, selection=selection, include_board=True
-    )
-    if historical_simulation:
-        payload["historical_simulation"] = True
-        payload["issuance_kind"] = "historical_reconstruction"
-        payload["label_note"] = (
-            "Historical reconstruction — not an originally issued Vela forecast unless a preserved "
-            "issue archive entry exists for this square and date."
-        )
-        return payload
-    # Live issue only for today (or past when explicitly requested without simulation).
-    if day > today:
-        payload["status"] = "upcoming"
-        payload["probability"] = None
-        payload["probability_percent"] = None
-        payload["calendar_state"] = "upcoming"
-        payload["issuance_kind"] = None
-        payload.pop("model_board", None)
-        return payload
-    already = archive.get(cell_id, day)
-    stored = archive.put_if_absent(payload)
-    stored = dict(stored)
-    stored["outcome"] = archive.outcome(cell_id, day) or {
-        "status": "awaiting_observation",
-        "label": "Outcome awaiting observation",
-    }
-    stored["support"] = support
-    stored["public_label"] = PUBLIC_LABEL
-    stored["ph_today"] = today
-    stored["feature_cutoff_manila"] = support.get("input_cutoff_manila")
-    stored["feature_cutoff_utc"] = support.get("input_cutoff_utc")
-    stored["issuance_kind"] = "preserved_archive" if already is not None else "newly_issued"
-    stored["firms_refresh"] = load_firms_refresh_status()
-    _decorate_score(
-        stored,
-        float(stored.get("probability") or probability),
-        features,
-        day,
-        selection=selection,
-        include_board=True,
-    )
-    if already is None:
-        stored["issued_at_utc"] = stored.get("issued_at_utc") or datetime.now(timezone.utc).isoformat()
-    return stored
+        status = {"upcoming": "upcoming", "unsupported_location": "unsupported",
+                  "coverage_status_only": "coverage_status_only"}.get(state, "unavailable")
+        return {**base, "status": status}
+    existing = (store or HotspotForecastStore()).get(cell_id, day)
+    if not _timely_selected_issue(existing, selection, day):
+        return {**base, "status": "unavailable", "calendar_state": "not_issued",
+                "reason": "No timely issued forecast from the approved model is archived for this square-day."}
+    return {**base, **existing, "status": "issued", "calendar_state": "forecast_available",
+            "issuance_kind": "preserved_archive", "reason": None,
+            "probability_percent": round(float(existing["probability"]) * 100),
+            "model_board": None,
+            "meaning": "Among comparable covered square-days assigned this percentage, this fraction should have satellite-detected heat within the stated window. It is not a wildfire probability."}
 
 
-def month_forecasts_for_cell(
-    cell_id: str,
-    year_month: str,
-    *,
-    ph_today: str | None = None,
-) -> dict[str, Any]:
-    """Daily hotspot-forecast states for one square and YYYY-MM (calendar agreement)."""
-
-    year_month = str(year_month)[:7]
-    year, month = [int(part) for part in year_month.split("-")]
+def month_forecasts_for_cell(cell_id: str, year_month: str, *, ph_today: str | None = None) -> dict[str, Any]:
+    """Only genuine issues; never synthesize a month by replaying today's model."""
     from calendar import monthrange
-
+    year, month = map(int, str(year_month)[:7].split("-"))
     today = str(ph_today or philippine_today())[:10]
-    days = monthrange(year, month)[1]
-    archive = HotspotForecastStore()
-    archive.delete_issues_after(today)
-    selection = load_selection()
-    obs = ObservationStore()
-    detections = load_study_detections(obs)
-    coverage_days = _coverage_days_cached()
-    bundle = _load_model_bundle(selection or {}) if selection else None
-    in_study = cell_id in _study_set()
-    percentage_ok = cell_id in _eval_set()
-    eval_ctx = evaluation_context(selection)
-
     rows = []
-    for day_num in range(1, days + 1):
-        day = f"{year:04d}-{month:02d}-{day_num:02d}"
-        support = {
-            "geographic_support": {
-                "in_study_region": in_study,
-                "percentage_supported": percentage_ok,
-                "study": STUDY,
-                "percentage_zone": MAGUINDANAO_EVALUATED,
-                "cell_id": cell_id,
-            }
-        }
-        eligibility = forecast_eligibility(
-            cell_id=cell_id,
-            issue_date_ph=day,
-            ph_today=today,
-            selection=selection,
-            support=support,
-            observation_store=obs,
-            allow_historical_reconstruction=True,
-        )
-        if eligibility["calendar_state"] == "upcoming":
-            rows.append(
-                {
-                    "date": day,
-                    "probability_percent": None,
-                    "probability": None,
-                    "model_version": None,
-                    "calendar_state": "upcoming",
-                    "issuance_kind": None,
-                    "issue_time_manila": issue_datetime_manila(day).isoformat(),
-                    "historical_simulation": False,
-                    "reason": eligibility["reason"],
-                    "label": "Upcoming",
-                }
-            )
-            continue
-        if eligibility["calendar_state"] == "unsupported_location":
-            rows.append(
-                {
-                    "date": day,
-                    "probability_percent": None,
-                    "model_version": None,
-                    "calendar_state": "unsupported_location",
-                    "issuance_kind": None,
-                    "issue_time_manila": issue_datetime_manila(day).isoformat(),
-                    "reason": eligibility["reason"],
-                }
-            )
-            continue
-        if eligibility["calendar_state"] == "coverage_status_only":
-            rows.append(
-                {
-                    "date": day,
-                    "probability_percent": None,
-                    "model_version": None,
-                    "calendar_state": "coverage_status_only",
-                    "issuance_kind": None,
-                    "issue_time_manila": issue_datetime_manila(day).isoformat(),
-                    "reason": eligibility["reason"],
-                    "label": "Coverage only",
-                }
-            )
-            continue
-
-        existing = archive.get(cell_id, day) if day <= today else None
-        if existing is not None:
-            feats = existing.get("features") or {}
-            exp = experimental_score_meta(
-                float(existing.get("probability") or 0.0),
-                day,
-                feats if isinstance(feats, dict) else {},
-            )
-            board = (
-                build_model_board(feats, selection=selection)
-                if isinstance(feats, dict) and feats
-                else None
-            )
-            rows.append(
-                {
-                    "date": day,
-                    "probability_percent": existing.get("probability_percent"),
-                    "probability": existing.get("probability"),
-                    "model_version": existing.get("model_version"),
-                    "calendar_state": "forecast_available",
-                    "issuance_kind": "preserved_archive",
-                    "issue_time_manila": existing.get("issue_time_manila"),
-                    "issued_at_utc": existing.get("issued_at_utc"),
-                    "feature_cutoff_manila": existing.get("feature_cutoff_manila")
-                    or existing.get("issue_time_manila"),
-                    "historical_simulation": False,
-                    "model_board": board,
-                    "evaluation": eval_ctx,
-                    **exp,
-                }
-            )
-            continue
-
-        if not eligibility["eligible"] or bundle is None:
-            rows.append(
-                {
-                    "date": day,
-                    "probability_percent": None,
-                    "model_version": None,
-                    "calendar_state": "insufficient_inputs",
-                    "issuance_kind": None,
-                    "issue_time_manila": issue_datetime_manila(day).isoformat(),
-                    "historical_simulation": True,
-                    "reason": eligibility.get("reason") or "Model unavailable",
-                }
-            )
-            continue
-
-        features = build_feature_row(
-            cell_id=cell_id,
-            issue_date_ph=day,
-            detections=detections,
-            coverage_days=coverage_days,
-        )
-        probability = _predict_probability(bundle, features)
-        percent = int(round(max(0.0, min(1.0, probability)) * 100))
-        exp = experimental_score_meta(probability, day, features)
-        board = build_model_board(features, selection=selection)
-        rows.append(
-            {
-                "date": day,
-                "probability_percent": percent,
-                "probability": probability,
-                "model_version": selection.get("chosen_model") if selection else None,
-                "calendar_state": "forecast_available",
-                "issuance_kind": "historical_reconstruction",
-                "issue_time_manila": issue_datetime_manila(day).isoformat(),
-                "feature_cutoff_manila": issue_datetime_manila(day).isoformat(),
-                "historical_simulation": True,
-                "model_board": board,
-                "evaluation": eval_ctx,
-                **exp,
-            }
-        )
-    return {
-        "cell_id": cell_id,
-        "year_month": year_month,
-        "ph_today": today,
-        "public_label": PUBLIC_LABEL,
-        "study": STUDY,
-        "percentage_supported": percentage_ok,
-        "evaluation": eval_ctx,
-        "firms_refresh": load_firms_refresh_status(),
-        "days": rows,
-        "note": (
-            "Issued archive rows for past/today Manila dates; labeled historical reconstructions "
-            "for eligible past days without an archive; Upcoming for dates after Philippine today. "
-            "Past/today days include model_board (all classifiers + baselines) with evaluation context."
-        ),
-    }
+    for number in range(1, monthrange(year, month)[1] + 1):
+        day = f"{year:04d}-{month:02d}-{number:02d}"
+        issue = forecast_for_cell(cell_id=cell_id, issue_date_ph=day, ph_today=today)
+        rows.append({**issue, "date": day})
+    return {"cell_id": cell_id, "year_month": str(year_month)[:7], "ph_today": today,
+            "public_label": PUBLIC_LABEL, "study": STUDY, "days": rows,
+            "percentage_supported": not forecast_unavailable_reason(),
+            "note": "Only approved, matching, timely archived issues are shown; missing issues are gaps. No historical reconstruction is published as a forecast."}
 
 
-@lru_cache(maxsize=None)
 def _overlay_cell(cell_id: str) -> dict[str, Any]:
     """A square's grid position, centre and bounds. Cached: the grid never moves;
     callers copy the dict and never change it."""
@@ -1099,51 +778,20 @@ def probability_overlay(
             "extent": None,
             "highest_square": None,
         }
-    bundle = _load_model_bundle(selection or {})
-    if bundle is None:
-        return {
-            **base,
-            "status": "unavailable",
-            "reason": "Model artifact unavailable",
-            "extent": None,
-            "highest_square": None,
-        }
-
-    detections = load_study_detections(obs)
-    coverage_days = _coverage_days_cached()
+    rows = []
     archive = store or HotspotForecastStore()
     archived = archive.for_day(day)
-    rows = []
     for cell in selected_cells:
         preserved = archived.get(cell["cell_id"])
-        if preserved is not None and preserved.get("probability") is not None:
-            probability = float(preserved["probability"])
-            experimental = experimental_score_meta(
-                probability,
-                day,
-                preserved.get("features") or {},
-            )
-            issuance_kind = "preserved_archive"
-        else:
-            features = build_feature_row(
-                cell_id=cell["cell_id"],
-                issue_date_ph=day,
-                detections=detections,
-                coverage_days=coverage_days,
-            )
-            probability = _predict_probability(bundle, features)
-            experimental = experimental_score_meta(probability, day, features)
-            issuance_kind = "historical_reconstruction" if day < today else "live_map_prediction"
-        probability = max(0.0, min(1.0, float(probability)))
-        rows.append(
-            {
-                **cell,
-                "probability": probability,
-                "probability_percent": int(round(probability * 100)),
-                "issuance_kind": issuance_kind,
-                "experimental": bool(experimental.get("experimental")),
-            }
-        )
+        if not _timely_selected_issue(preserved, selection or {}, day):
+            continue
+        probability = float(preserved["probability"])
+        rows.append({**cell, "probability": probability,
+                     "probability_percent": round(probability * 100),
+                     "issuance_kind": "preserved_archive", "experimental": False})
+    if not rows:
+        return {**base, "status": "unavailable", "extent": None, "highest_square": None,
+                "reason": "No timely issued forecasts from the approved model are archived here."}
 
     extent = {
         "west": min(row["bounds"]["west"] for row in rows),

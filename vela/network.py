@@ -1,11 +1,11 @@
 """Vela's read-only provider requests: one shared connection pool, bounded retries,
-and a small in-memory cache for answers that can be reused for a few minutes."""
+and a short pause for providers that cannot be reached at all."""
 
 from __future__ import annotations
 
 import threading
 import time
-from collections.abc import Callable, Hashable
+from collections.abc import Callable
 from typing import Any
 
 import httpx
@@ -59,66 +59,6 @@ def _split_timeout(timeout: float | httpx.Timeout) -> httpx.Timeout:
     if isinstance(timeout, httpx.Timeout):
         return timeout
     return httpx.Timeout(float(timeout), connect=min(float(timeout), CONNECT_TIMEOUT_SECONDS))
-
-
-class TtlCache:
-    """Keeps loaded values for a short time. Simultaneous callers of one key share one load."""
-
-    def __init__(self, max_items: int = 512, clock: Callable[[], float] = time.monotonic):
-        self._max_items = max_items
-        self._clock = clock
-        self._items: dict[Hashable, tuple[float, Any]] = {}
-        self._loading: dict[Hashable, threading.Lock] = {}
-        self._guard = threading.Lock()
-
-    def __len__(self) -> int:
-        return len(self._items)
-
-    def _fresh(self, key: Hashable):
-        hit = self._items.get(key)
-        if hit is not None and hit[0] > self._clock():
-            return hit
-        return None
-
-    def get_or_load(
-        self,
-        key: Hashable,
-        ttl_seconds: float,
-        load: Callable[[], Any],
-        keep: Callable[[Any], bool] = lambda _value: True,
-    ) -> Any:
-        """Return a fresh stored value, or load one. Only values `keep` accepts are stored."""
-
-        with self._guard:
-            hit = self._fresh(key)
-            if hit is not None:
-                return hit[1]
-            loading = self._loading.setdefault(key, threading.Lock())
-        with loading:
-            with self._guard:
-                hit = self._fresh(key)
-            if hit is not None:
-                return hit[1]
-            try:
-                value = load()
-                if keep(value):
-                    with self._guard:
-                        self._store(key, ttl_seconds, value)
-                return value
-            finally:
-                # Released only after the value is stored, so a waiting caller finds it.
-                with self._guard:
-                    if self._loading.get(key) is loading:
-                        del self._loading[key]
-
-    def _store(self, key: Hashable, ttl_seconds: float, value: Any) -> None:
-        if len(self._items) >= self._max_items:
-            now = self._clock()
-            for stale in [k for k, (expires, _) in self._items.items() if expires <= now]:
-                del self._items[stale]
-        while len(self._items) >= self._max_items:
-            del self._items[next(iter(self._items))]
-        self._items[key] = (self._clock() + ttl_seconds, value)
 
 
 def _retry_delay(response: httpx.Response | None, attempt: int) -> float:

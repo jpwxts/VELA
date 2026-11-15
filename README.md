@@ -13,6 +13,40 @@ You draw or search for a plot of land, pick a date, and explore four questions i
 
 Vela keeps **satellite heat**, **fire-danger weather**, **weekly activity estimates**, and **official wildfire reports** as separate answers. It never turns FWI, hotspot counts, MODIS confidence, or the harmonization model into a wildfire probability.
 
+## Current national experimental forecast — 15 November 2026
+
+The selected-land panel leads with **Satellite heat in the next 24 hours**, followed by observed 5 km areas, satellite reading counts, contributing satellites, and the latest Philippine-time observation. A small **dated** fire-weather badge provides separate context. **How is this estimated?** identifies the actual displayed model, input provenance, missing inputs, scope, and that model’s measured F1. Weather is never substituted for the heat probability.
+
+**All Philippine land squares can receive an experimental estimate.** The frozen HGB is considered only with seven days of measured local fire-mask/geolocation coverage, compatible February/March/August seasonality, and complete finite frozen features. When those inputs are missing, Vela uses the existing historical-rate artifact: **119 qualifying positive training square-days / 589 eligible training square-days = 20.2037%** (displayed **20.2%**). This fallback is a transferred covered-day base rate: it does **not** distinguish local risk and is **not nationally calibrated**. It invents no local detections, weather, or clear-view coverage. All national outputs are labeled **Experimental estimate**; countries outside the Philippine boundary remain unsupported.
+
+| Audited model / evaluation run | Validation F1 / n | Full-test F1 / n | Classification threshold |
+| --- | ---: | ---: | ---: |
+| HGB research winner `hist_gradient_boosting`, hash `3c1e4896964db152`, run `84ea3804575e7d36` | 0.606222 / 1,001 | 0.589008 / 1,808 | 0.1 |
+| Displayed missing-input fallback `regional_seasonal_detection_rate`, hash `c09197a5c9d9819e`, run `ph_national_prior_audit_v1` | 0.000000 / 1,001 | 0.000000 / 1,808 | 0.5 |
+
+The fallback’s constant probability predicts no positives at threshold 0.5, hence F1=0. It must never borrow the HGB score. Both targets concern **at least one qualifying MODIS/VIIRS satellite heat detection in a 5 km square during 24 hours**, with negatives supported by measured coverage. Neither is a wildfire-onset model. The full-test figures above are recorded audit figures on existing, already-inspected splits, **not** new national validation or promotion claims. The HGB’s original 524-row “claimable” subset has different metrics and is kept separately in Research.
+
+**The 1% versus 99% issue was mixed model generations plus unsupported extrapolation.** The old 1% used flawed-negative v1 Extra Trees; 99% used v2.1 HGB. Both nominal Nov 7 issues were actually created Nov 14. November is outside the evaluated seasonal distribution; high August bands lack negative examples. Those research archives are preserved and excluded from the new national issued-forecast archive. The calibrated/public-production approval gate remains false.
+
+**Polygon summary:** the headline gives the range of individual square estimates. Outlined markers open each square’s percentage, actual issue time, rolling 24-hour window, observations, satellites, and methods. The separate sum, Σp, is an **expected count of heat-positive squares in the displayed set**, never the chance of any heat or wildfire anywhere in the polygon. Large selections show at most 256 spatially sampled squares and explicitly report the partial denominator; draw a smaller boundary for every square. No polygon event probability is published.
+
+**History has three views:** observed heat areas by Philippine day (solid coral), genuinely issued next-24-hour estimates (outlined teal), and coverage-backed burning activity (eligible numerator / square-day denominator). Unknown observations are gaps/dashed marks; zero requires usable coverage. Future days cannot be observed activity. Historical/month requests read actual archived issues and never generate retrospective forecasts.
+
+**Independent loading:** the browser requests heat with `include_weather:false, include_activity:false`, while weather, forecasts, and coverage run separately. Superseded requests are aborted or ignored. Successful weather is cached ≤1h with valid-date keys; failed results are not cached. Forecast issues are immutable within an hour and keyed to the observation-store watermark plus artifact hashes, so new observations invalidate reuse. Recent FIRMS dates retain short refreshable caches; no incomplete day is frozen as final.
+
+Measured API samples (n=5, existing provider/store caches retained): heat **6.616s first / 20.81ms warm median**; square forecast **4.485s first / 4.47ms warm median**; nine-square layer **33.88ms / 8.19ms**. Manila’s first request after the model was warm took **15.20ms**, then **3.57ms**. Weather varied **33.56s first / 8.11s repeat median**, illustrating why it must not gate heat. These are local API timings, not browser paint or population latency percentiles. See [verification and limits](docs/verification/national-prediction.md) and [raw timings](docs/verification/national-prediction-timings.json).
+
+```bash
+python -m pytest -q
+node --test tests/test_public_ui.cjs
+python -m scripts.evaluate_national_prior
+python -m scripts.measure_public_experience --samples 5 --output /tmp/vela-timings.json
+```
+
+Browser entry points: `/?example=mindanao` (saved Nov 7 UTC snapshot), `/?example=maguindanao-plot` (selected historical polygon), and `/?example=manila` (live selected land outside evaluated geography). Saved UTC snapshots display their actual PH pass dates; they are not live observations. The Nov 7 Mindanao snapshot contains **12 readings / 11 areas / 3 satellites**, including one observation at Nov 8 01:11 PH. The Maguindanao polygon contains **2 readings / 2 areas**. The headline prediction always has its own **current actual issue time**, independent of the selected historical observation day.
+
+The development notes below preserve earlier experiments. Their geography restrictions, midnight issue protocol, and old experimental percentages describe those historical research versions; the current national experimental path is `vela/ph_prediction.py`. No classifier was retrained, held-out labels were not used for tuning, and no new national accuracy or calibration is claimed.
+
 ### Live is the default (Philippines)
 
 The map opens in **Live**. Drawing land in Mindanao or elsewhere in the Philippines automatically uses today’s **Asia/Manila** calendar day (`GET /api/live/today`). Modes:
@@ -39,7 +73,7 @@ Requires `FIRMS_MAP_KEY` in `.env`. Persistent store: `data/observations/philipp
 ### Land-check data flow (hotspots)
 
 1. Visitor draws a polygon (or opens **All Mindanao** / a saved example).
-2. `POST /api/check-land` loads **weather** and **FIRMS** concurrently.
+2. `POST /api/check-land` returns **FIRMS heat** with weather and activity disabled; independent browser requests fill weather, forecasts, and coverage.
 3. Philippine plots query the **smallest padded bbox**, split into ≤8° tiles when needed, for the two UTC dates that cover Asia/Manila today.
 4. Supported MODIS/VIIRS products fetch **concurrently** (bounded workers), with ResponseCache by product+UTC day+tile and reuse of `data/observations/philippines.sqlite` when rows already exist.
 5. Points are filtered to the Manila calendar day, then clipped to the **actual polygon** (inside vs nearby). Distinct satellite pixels/passes are kept; exact duplicates are dropped.
@@ -96,7 +130,7 @@ This product is **separate** from Aqua–Suomi harmonization and from the Philip
 | Flawed v1 archive | `data/metrics/philippines_hotspot_model_comparison_v1_flawed_negatives.json` |
 | API | `GET /api/hotspot-forecast`, `/replay`, `/metrics`, `/month` |
 
-**Eligibility (square, month, map, replay).** Study geography = all Mindanao land. **Percentages** only inside Maguindanao v2.1 evaluated box; other Mindanao cells → coverage/readings only; outside Mindanao → unsupported. Philippine issue date ≤ today (else **Upcoming**, no percent). Past/today responses include `model_board` (all classifiers + baselines) plus claimable holdout Acc/Brier as evaluation context — never as that day’s accuracy. Scores ≥90% or OOD months are labeled **experimental**. History never puts a forecast percent under “Month's activity.”
+**Historical v2.1 research eligibility (superseded for the national experimental UI).** Study geography = all Mindanao land. **Percentages** only inside Maguindanao v2.1 evaluated box; other Mindanao cells → coverage/readings only; outside Mindanao → unsupported. Philippine issue date ≤ today (else **Upcoming**, no percent). Past/today responses include `model_board` (all classifiers + baselines) plus claimable holdout Acc/Brier as evaluation context — never as that day’s accuracy. Scores ≥90% or OOD months are labeled **experimental**. History never puts a forecast percent under “Month's activity.”
 
 **4-hour Mindanao FIRMS.** `python -m scripts.refresh_mindanao_firms --once` or `--loop --interval-minutes 240`. Install: `scripts/install_mindanao_firms_refresh.sh`. Status stamp appears on metrics + square UI.
 
@@ -118,7 +152,7 @@ This product is **separate** from Aqua–Suomi harmonization and from the Philip
 
 **Analytics.** Research tab shows v2.1 six-model board, high-% experimental limitations, and **“Archived experiment — coverage labels revised”** for the six v1 models. Preserved `2393:174` 1% replay keeps v1 `extra_trees` and distinguishes recorded creation time from the Manila midnight issue slot.
 
-**Tamatalon calendar fix.** Cell `2399:175` on 2026-11-14 can still show a high Live % (OOD November seasonality; see diagnosis JSON) marked experimental; **15–30 Nov show Upcoming**, not issued percents. June contrast for the same sparse cell is ~3%.
+**Historical Tamatalon diagnosis (not current public percentages).** Cell `2399:175` on 2026-11-14 can still show a high Live % (OOD November seasonality; see diagnosis JSON) marked experimental; **15–30 Nov show Upcoming**, not issued percents. June contrast for the same sparse cell is ~3%.
 
 ```bash
 conda activate vela

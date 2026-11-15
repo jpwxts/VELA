@@ -1,0 +1,30 @@
+{
+  "run_id": "ph_national_prior_audit_v1",
+  "model_name": "regional_seasonal_detection_rate",
+  "artifact": "data/models/philippines_hotspot_models/baseline_regional_seasonal_detection_rate.joblib",
+  "model_hash": "c09197a5c9d9819e",
+  "protocol": "Persisted global_rate fallback for an unseen season. Fixed artifact, no fitting or tuning. Existing already-inspected validation/test rows; not a fresh independent national holdout.",
+  "probability": 0.20203735144312393,
+  "numerator": 119,
+  "denominator": 589,
+  "threshold": 0.5,
+  "target": "At least one qualifying MODIS/VIIRS heat detection in a 5 km square during 24 hours; eligible negative labels require measured fire-mask coverage.",
+  "splits": {
+    "validation": {
+      "n": 1001,
+      "positives": 415,
+      "f1": 0.0,
+      "recall": 0.0,
+      "brier": 0.28788102774399366,
+      "pr_auc": 0.4145854145854146
+    },
+    "test": {
+      "n": 1808,
+      "positives": 653,
+      "f1": 0.0,
+      "recall": 0.0,
+      "brier": 0.256050960302533,
+      "pr_auc": 0.36117256637168144
+    }
+  }
+}

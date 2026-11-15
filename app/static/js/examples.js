@@ -112,11 +112,12 @@ async function loadPhilippinesPublicExample(options = {}) {
     if (individuals) individuals.checked = true;
     // Keep snapshot metadata through renderLandCheck so region filters stay on.
     state.publicSnapshot = { day, region };
+    state.boundaryPreset = payload.region_id;
     renderLandCheck(payload);
     syncPhilippinesRegionFilters(region);
     const counts = payload.counts || {};
     document.querySelector("#area-label").textContent =
-      `Saved snapshot · ${payload.region_label || payload.label || "Philippines"} · ${formatObservationDay(day)} · `
+      `Saved snapshot · ${payload.region_label || payload.label || "Philippines"} · ${day} UTC snapshot (Philippine pass dates shown below) · `
       + `${counts.detections ?? "—"} detections`
       + (counts.areas != null ? ` · ${counts.areas} areas` : "")
       + " · no FIRMS key required.";

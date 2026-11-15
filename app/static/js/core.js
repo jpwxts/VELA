@@ -12,10 +12,8 @@ const state = {
   polygonLayer: null,
   draftLayer: null,
   forecastMarker: null,
-  showForecastPoint: true,
+  showForecastPoint: false,
   areaLayers: [],
-  // Hotspot-chance shading: off until the visitor turns it on in the legend.
-  showProbability: false,
   probabilityLayer: null,
   probabilityOverlay: null,
   probabilityRequestId: 0,
@@ -97,7 +95,7 @@ const HEAT_FILL = "#ee6540";
 
 const LAND_STROKE = "#e8ebe1";
 const CELL_STROKE = "#58b9ad";
-const READING_FILL = "#e8ebe1";
+const READING_FILL = "#ee6540";
 const DOT_EDGE = "#0c1311";
 
 const STATUS_TEXT = {

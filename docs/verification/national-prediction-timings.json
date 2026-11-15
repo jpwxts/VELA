@@ -1,0 +1,185 @@
+{
+  "note": "Sample measurements through TestClient; first call process-cold, existing provider/store caches retained. Inspect feed statuses; failed external calls are not successful live benchmarks.",
+  "samples": {
+    "land": {
+      "ms": [
+        6616.18,
+        24.42,
+        19.44,
+        18.67,
+        22.18
+      ],
+      "first_ms": 6616.18,
+      "warm_median_ms": 20.810000000000002,
+      "p50_ms": 22.18,
+      "p95_ms": 5297.8279999999995
+    },
+    "weather": {
+      "ms": [
+        33562.44,
+        12527.43,
+        13873.31,
+        3684.25,
+        18.78
+      ],
+      "first_ms": 33562.44,
+      "warm_median_ms": 8105.84,
+      "p50_ms": 12527.43,
+      "p95_ms": 29624.613999999998
+    },
+    "forecast": {
+      "ms": [
+        4485.2,
+        4.47,
+        3.91,
+        8.58,
+        4.46
+      ],
+      "first_ms": 4485.2,
+      "warm_median_ms": 4.465,
+      "p50_ms": 4.47,
+      "p95_ms": 3589.8759999999993
+    },
+    "forecast_manila": {
+      "ms": [
+        15.2,
+        3.18,
+        3.59,
+        3.85,
+        3.54
+      ],
+      "first_ms": 15.2,
+      "warm_median_ms": 3.565,
+      "p50_ms": 3.59,
+      "p95_ms": 12.929999999999998
+    },
+    "forecast_layer": {
+      "ms": [
+        33.88,
+        17.96,
+        7.23,
+        8.87,
+        7.51
+      ],
+      "first_ms": 33.88,
+      "warm_median_ms": 8.19,
+      "p50_ms": 8.87,
+      "p95_ms": 30.695999999999998
+    },
+    "history": {
+      "ms": [
+        101.31,
+        77.07,
+        75.91,
+        50.78,
+        49.33
+      ],
+      "first_ms": 101.31,
+      "warm_median_ms": 63.345,
+      "p50_ms": 75.91,
+      "p95_ms": 96.46199999999999
+    },
+    "chart": {
+      "ms": [
+        65.73,
+        56.74,
+        55.93,
+        49.99,
+        50.41
+      ],
+      "first_ms": 65.73,
+      "warm_median_ms": 53.17,
+      "p50_ms": 55.93,
+      "p95_ms": 63.932
+    }
+  },
+  "feed_statuses": {
+    "Aqua": "zero",
+    "NOAA-20": "ok",
+    "NOAA-21": "ok",
+    "Suomi-NPP": "unavailable"
+  },
+  "firms_ms": [
+    6544,
+    7,
+    5,
+    4,
+    6
+  ],
+  "observed_readings": 2,
+  "observed_areas": 2,
+  "weather_ok": true,
+  "weather_headline": "Low throughout the available forecast",
+  "forecasts": {
+    "forecast": {
+      "status": "issued",
+      "model_version": "regional_seasonal_detection_rate",
+      "model_hash": "c09197a5c9d9819e",
+      "probability_percent": 20.2,
+      "evaluation": {
+        "run_id": "ph_national_prior_audit_v1",
+        "validation": {
+          "n": 1001,
+          "positives": 415,
+          "f1": 0.0,
+          "recall": 0.0,
+          "brier": 0.28788102774399366,
+          "pr_auc": 0.4145854145854146
+        },
+        "test": {
+          "n": 1808,
+          "positives": 653,
+          "f1": 0.0,
+          "recall": 0.0,
+          "brier": 0.256050960302533,
+          "pr_auc": 0.36117256637168144
+        },
+        "threshold": 0.5
+      },
+      "summary": null
+    },
+    "forecast_manila": {
+      "status": "issued",
+      "model_version": "regional_seasonal_detection_rate",
+      "model_hash": "c09197a5c9d9819e",
+      "probability_percent": 20.2,
+      "evaluation": {
+        "run_id": "ph_national_prior_audit_v1",
+        "validation": {
+          "n": 1001,
+          "positives": 415,
+          "f1": 0.0,
+          "recall": 0.0,
+          "brier": 0.28788102774399366,
+          "pr_auc": 0.4145854145854146
+        },
+        "test": {
+          "n": 1808,
+          "positives": 653,
+          "f1": 0.0,
+          "recall": 0.0,
+          "brier": 0.256050960302533,
+          "pr_auc": 0.36117256637168144
+        },
+        "threshold": 0.5
+      },
+      "summary": null
+    },
+    "forecast_layer": {
+      "status": "ok",
+      "model_version": null,
+      "model_hash": null,
+      "probability_percent": null,
+      "evaluation": null,
+      "summary": {
+        "forecast_squares": 9,
+        "eligible_land_squares": 9,
+        "partial": false,
+        "min_percent": 20.203735144312393,
+        "max_percent": 20.203735144312393,
+        "expected_heat_squares": 1.8183361629881154,
+        "calculation": "Sum of per-square estimates for the displayed squares only; expected count, not probability of any fire or heat event anywhere in the polygon."
+      }
+    }
+  }
+}

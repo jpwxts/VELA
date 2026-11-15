@@ -980,9 +980,13 @@ def test_request_failure_is_redacted_and_dateline_makes_two_calls(tmp_path):
 
     _client(tmp_path, dated).hotspots(170, -20, -170, -10, "2019-08-20", ["Suomi-NPP"])
     area_calls = [url for url in calls if "/api/area/" in url]
-    assert len(area_calls) == 2
-    assert any("170.0" in url and "180.0" in url for url in area_calls)
-    assert any("-180.0" in url and "-170.0" in url for url in area_calls)
+    assert len(area_calls) == 8
+    assert all("/1/2019-08-20" in url for url in area_calls)
+    boxes = [list(map(float, url.split("/")[-3].split(","))) for url in area_calls]
+    assert min(box[0] for box in boxes) == -180
+    assert max(box[2] for box in boxes) == 180
+    assert all(0 < box[2] - box[0] <= 5 and box[3] - box[1] <= 5 for box in boxes)
+    assert sum((box[2] - box[0]) * (box[3] - box[1]) for box in boxes) == 200
 
 
 def test_oversized_area_is_not_sent(tmp_path):

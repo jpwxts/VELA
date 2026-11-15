@@ -2,16 +2,19 @@
 
 from __future__ import annotations
 
+import base64
+import hashlib
 import json
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
+from threading import Lock
 from urllib.parse import urlsplit
 
 from vela.forecast_store import ForecastArchive
 from vela.geotiff import read_center_value
-from vela.network import TtlCache, retrying_get
+from vela.network import retrying_get
 from vela.settings import DATA_DIR
 
 OPEN_METEO = "https://api.open-meteo.com/v1/forecast"
@@ -565,36 +568,38 @@ def regional_fwi_reference(west: float, south: float, east: float, north: float)
     return None
 
 
-# Answers that can be reused for a short while, by provider host: the page asks for the
-# same weather several times within one look at a place, and GWIS layers change daily.
-_RESPONSES = TtlCache(max_items=512)
-_REUSE_SECONDS = {
-    urlsplit(OPEN_METEO).netloc: 5 * 60.0,
-    urlsplit(GWIS_WMS).netloc: 60 * 60.0,
-}
+# GWIS can answer 200 with an error document instead of a map; only a real GeoTIFF
+# is kept, so one bad answer is not reused for an hour.
 _GWIS_HOST = urlsplit(GWIS_WMS).netloc
 _TIFF_MAGIC = (b"II*\x00", b"MM\x00*")
 
 
+def _worth_keeping(url: str, status: int, body: bytes) -> bool:
+    if status != 200:
+        return False
+    return urlsplit(url).netloc != _GWIS_HOST or body[:4] in _TIFF_MAGIC
+
+
+# Fixed lock stripes bound memory while deduplicating concurrent identical provider reads.
+_WEATHER_LOCKS = [Lock() for _ in range(32)]
+
+
 def request_bytes(url: str, params: dict | None = None) -> tuple[int, bytes]:
-    def load() -> tuple[int, bytes]:
-        response = retrying_get(url, params=params, timeout=40.0)
+    from app.db import ResponseCache
+
+    key = hashlib.sha256(json.dumps([url, params, datetime.now(timezone.utc).date().isoformat()], sort_keys=True).encode()).hexdigest()
+    cache = ResponseCache(DATA_DIR / "cache" / "weather.sqlite")
+    with _WEATHER_LOCKS[int(key[:8], 16) % len(_WEATHER_LOCKS)]:
+        saved = cache.get(key, max_age_hours=1)
+        if saved is not None:
+            return 200, base64.b64decode(json.loads(saved)["body"])
+        response = retrying_get(url, params=params, timeout=8.0, attempts=1)
+        if _worth_keeping(url, response.status_code, response.content):
+            cache.put(key, "weather", json.dumps({
+                "body": base64.b64encode(response.content).decode(),
+                "retrieved_at_utc": datetime.now(timezone.utc).isoformat(),
+            }))
         return response.status_code, response.content
-
-    host = urlsplit(url).netloc
-    reuse_seconds = _REUSE_SECONDS.get(host)
-    if reuse_seconds is None:
-        return load()
-
-    def worth_keeping(result: tuple[int, bytes]) -> bool:
-        status, body = result
-        if status != 200:
-            return False
-        # GWIS can answer 200 with an error document; only a real GeoTIFF is reused.
-        return host != _GWIS_HOST or body[:4] in _TIFF_MAGIC
-
-    key = (url, tuple(sorted((str(name), str(value)) for name, value in (params or {}).items())))
-    return _RESPONSES.get_or_load(key, reuse_seconds, load, keep=worth_keeping)
 
 
 def _measure(label: str, field: dict, unit: str, quiet_zero: bool = False) -> str:

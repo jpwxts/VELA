@@ -295,9 +295,13 @@ function setHistoryMonth(value) {
   const maximum = todayIso().slice(0, 7);
   state.calendarMonth = value < "1990-01" ? "1990-01" : value > maximum ? maximum : value;
   state.historyDay = dayInput.value.startsWith(state.calendarMonth) ? dayInput.value : `${state.calendarMonth}-01`;
+  state.hotspotMonthRequestId = (state.hotspotMonthRequestId || 0) + 1;
+  state.hotspotMonth = null;
+  state.hotspotMonthPendingKey = null;
   renderObservationCalendar();
   renderDaySummary();
   loadMonthlyHistory();
+  if (state.hotspotMonthCellId) loadHotspotMonthForSquare(state.hotspotMonthCellId, state.calendarMonth);
 }
 
 function chooseHistoryMonth() {
@@ -334,7 +338,8 @@ function historyStatusWords(status, day) {
 
 function currentMonthHistory() {
   const payload = state.monthHistory;
-  return payload && `${payload.year}-${String(payload.month).padStart(2, "0")}` === state.calendarMonth ? payload : null;
+  const expected = JSON.stringify([summaryTarget().ring, state.calendarMonth, state.summarySquare ? null : state.boundaryPreset || null]);
+  return payload && state.historyKey === expected && `${payload.year}-${String(payload.month).padStart(2, "0")}` === state.calendarMonth ? payload : null;
 }
 
 async function loadMonthlyHistory(options = {}) {
@@ -344,11 +349,17 @@ async function loadMonthlyHistory(options = {}) {
     return;
   }
   const month = state.calendarMonth || dayInput.value.slice(0, 7);
-  const key = JSON.stringify([state.polygon, month]);
+  const ring = summaryTarget().ring;
+  const key = JSON.stringify([ring, month, state.summarySquare ? null : state.boundaryPreset || null]);
   if (!options.retry && state.historyKey === key && state.monthHistory) {
-    renderObservationCalendar();
-    renderDaySummary();
-    return;
+    try {
+      const version=await (await fetch("/api/activity/version")).json();
+      const current=JSON.stringify([summaryTarget().ring,state.calendarMonth,state.summarySquare?null:state.boundaryPreset||null]);
+      if (current!==key) return;
+      if (version.data_version===state.monthHistory.data_version) {
+        renderObservationCalendar();renderDaySummary();return;
+      }
+    } catch (_error) { /* Retry the authoritative history request below. */ }
   }
   const requestId = ++state.historyRequestId;
   state.historyLoading = true;
@@ -359,21 +370,24 @@ async function loadMonthlyHistory(options = {}) {
   renderDaySummary();
   try {
     const [year, number] = month.split("-").map(Number);
-    const heatDays = [...state.checkedDays.entries()]
+    const heatDays = [...(state.summarySquare ? new Map() : state.checkedDays).entries()]
       .filter(([, row]) => row && (row.detection_count > 0 || row.status === "heat"))
       .map(([day, row]) => ({
         date: day,
         detection_count: row.detection_count || 0,
+        area_count: row.total,
         platforms: row.platforms || [],
+        coverage: row.coverage || "unknown",
       }));
     const response = await fetch("/api/history/month", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        coordinates: state.polygon,
+        coordinates: ring,
+        boundary_preset: state.summarySquare ? null : state.boundaryPreset || null,
         year,
         month: number,
         heat_days: heatDays,
-        checked_days: [...state.checkedDays.keys()],
+        checked_days: state.summarySquare ? [] : [...state.checkedDays.keys()],
       }),
     });
     if (!response.ok) throw new Error("history failed");
@@ -394,6 +408,9 @@ async function loadMonthlyHistory(options = {}) {
 
 async function loadHotspotMonthForSquare(cellId, yearMonth) {
   if (!cellId || !yearMonth) return;
+  const key = `${cellId}|${yearMonth}`;
+  if (state.hotspotMonthPendingKey === key || (state.hotspotMonthKey === key && state.hotspotMonth?.year_month === yearMonth)) return;
+  state.hotspotMonthPendingKey = key;
   const requestId = (state.hotspotMonthRequestId = (state.hotspotMonthRequestId || 0) + 1);
   state.hotspotMonthCellId = cellId;
   state.hotspotMonthKey = `${cellId}|${yearMonth}`;
@@ -408,6 +425,8 @@ async function loadHotspotMonthForSquare(cellId, yearMonth) {
   } catch (_error) {
     if (requestId !== state.hotspotMonthRequestId) return;
     state.hotspotMonth = null;
+  } finally {
+    if (requestId === state.hotspotMonthRequestId) state.hotspotMonthPendingKey = null;
   }
 }
 
@@ -468,34 +487,9 @@ function renderObservationCalendar() {
       classes.push("partial");
       notes.push("partial estimate");
     }
-    let rateText = available
-      ? historyPercent(rate)
-      : (record?.heat_status === "readings" ? String(record.heat_count || "·") : "—");
-    if (forecastMode && hotspot) {
-      classes.push("forecast");
-      if (hotspot.calendar_state === "upcoming" || iso > today) {
-        classes.push("forecast-upcoming");
-        rateText = "Upcoming";
-        notes.push("Upcoming — no issued percentage yet");
-      } else if (hotspot.probability_percent != null) {
-        classes.push(hotspot.issuance_kind === "historical_reconstruction" ? "forecast-reconstructed" : "forecast-issued");
-        rateText = `${hotspot.probability_percent}%`;
-        notes.push(
-          `${hotspot.probability_percent}% chance satellites record a hotspot (${hotspot.issuance_kind || "forecast"})`
-        );
-      } else if (hotspot.calendar_state === "insufficient_inputs") {
-        classes.push("forecast-insufficient");
-        rateText = "—";
-        notes.push(hotspot.reason || "hotspot forecast insufficient inputs");
-      } else if (hotspot.calendar_state === "coverage_status_only") {
-        classes.push("forecast-insufficient");
-        rateText = "Cov";
-        notes.push(hotspot.reason || "Mindanao coverage/readings only — percentage not evaluated here yet");
-      } else if (hotspot.calendar_state === "unsupported_location") {
-        rateText = "—";
-        notes.push(hotspot.reason || "outside Mindanao study area");
-      }
-    }
+    const evidence = calendarEvidence(record, hotspot, iso > today);
+    notes.push(`Observed heat: ${evidence.heat}`, `Issued forecast: ${evidence.forecast}`, `Coverage-based activity: ${evidence.activity}`);
+    if (evidence.forecast !== "—") classes.push("forecast", "forecast-issued");
     if (iso === today) {
       classes.push("today");
       notes.push("today");
@@ -509,7 +503,7 @@ function renderObservationCalendar() {
     cells.push(
       `<button type="button" class="${classes.join(" ")}" data-day="${iso}" aria-label="${escapeHtml(label)}"`
       + ` aria-pressed="${iso === selected}" style="--activity-strength:${available ? 10 + Math.min(1, Math.max(0, rate)) * 28 : 0}%"`
-      + `${disabled ? " disabled" : ""}><span>${day}</span><span class="cal-day-rate">${rateText}</span></button>`
+      + `${disabled ? " disabled" : ""}><span>${day}</span><span class="cal-evidence observed">Heat ${evidence.heat}</span><span class="cal-evidence predicted">Next ${evidence.forecast}</span><span class="cal-evidence ${evidence.activity === "—" ? "missing" : ""}">Activity ${evidence.activity}</span></button>`
     );
   }
   grid.innerHTML = cells.join("");
@@ -519,8 +513,8 @@ function renderObservationCalendar() {
   const upcomingCount = (state.hotspotMonth?.days || []).filter((day) => day.calendar_state === "upcoming").length;
   const activityKey = document.querySelector("#history-activity-key");
   const forecastKey = document.querySelector("#history-forecast-key");
-  if (activityKey) activityKey.hidden = forecastMode;
-  if (forecastKey) forecastKey.hidden = !forecastMode;
+  if (activityKey) activityKey.hidden = false;
+  if (forecastKey) forecastKey.hidden = false;
   const daysLabel = document.querySelector("#history-days-label");
   if (daysLabel) {
     daysLabel.textContent = forecastMode ? "Days with forecasts" : "Days with activity estimates";
@@ -532,7 +526,7 @@ function renderObservationCalendar() {
     : forecastMode
       ? `${hotspotPublished} days with hotspot forecasts for square ${state.hotspotMonthCellId}`
         + (upcomingCount ? ` · ${upcomingCount} upcoming` : "")
-        + `. Chart plots hotspot chance when burning activity is unprocessed`
+        + `. Observations, issued forecasts and coverage-based activity stay separate`
         + ` (activity estimates: ${published} / ${daysInMonth}).`
     : !state.box ? "Select land to see its burning history."
     : published ? `${published} of ${daysInMonth} days have usable estimates. Select a day for details.`
@@ -571,7 +565,7 @@ function chooseHistoryChartItem(event) {
   const day = event.target.closest("[data-history-day]");
   const month = event.target.closest("[data-history-month]");
   if (day) chooseCalendarDay(day.dataset.historyDay);
-  else if (month) setHistoryMonth(month.dataset.historyMonth);
+  else if (month) {setHistoryMonth(month.dataset.historyMonth);chooseCalendarDay(`${month.dataset.historyMonth}-01`);}
 }
 
 function historyHotspotForDay(iso) {
@@ -579,52 +573,31 @@ function historyHotspotForDay(iso) {
 }
 
 function historyChartSeries(rows, annual) {
-  const hasActivity = rows.some((row) => typeof row.activity_rate === "number" && Number.isFinite(row.activity_rate));
-  if (hasActivity) {
-    return {
-      kind: "activity",
-      title: "Burning activity history",
-      valueOf: (row) => (Number.isFinite(row.activity_rate) ? row.activity_rate : null),
-      format: (value) => historyPercent(value),
-      empty: "No burning-activity estimates for this period",
-    };
-  }
-  const forecastMode = !annual && Boolean(state.hotspotMonthCellId && state.hotspotMonth?.days?.length);
-  const hasForecast = forecastMode && rows.some((row) => {
-    const hotspot = historyHotspotForDay(row.date);
-    return hotspot && hotspot.probability_percent != null;
-  });
-  if (hasForecast) {
-    return {
-      kind: "hotspot",
-      title: "Hotspot chance history",
-      valueOf: (row) => {
-        const hotspot = historyHotspotForDay(row.date);
-        return hotspot?.probability_percent != null ? hotspot.probability_percent / 100 : null;
-      },
-      format: (value) => `${Math.round(value * 100)}%`,
-      empty: "No hotspot forecasts for this period",
-    };
-  }
-  const hasHeat = !annual && rows.some((row) => row.heat_status === "readings" && (row.heat_count || 0) > 0);
-  if (hasHeat) {
-    const peak = Math.max(1, ...rows.map((row) => Number(row.heat_count) || 0));
-    return {
-      kind: "heat",
-      title: "Satellite heat readings",
-      valueOf: (row) => (row.heat_status === "readings" ? (Number(row.heat_count) || 0) / peak : null),
-      format: (value) => `${Math.round(value * peak)}`,
-      empty: "No heat readings for this period",
-      axisIsCount: true,
-      axisPeak: peak,
-    };
-  }
+  const metric = document.querySelector("#history-chart-metric")?.value || "activity";
+  if (metric === "activity") return {
+    kind: "activity", title: "Estimated burning activity",
+    valueOf: row => (["complete", "partial"].includes(row.activity_status) && Number.isFinite(row.activity_rate) ? row.activity_rate : null),
+    format: historyPercent, empty: "Coverage inputs missing",
+  };
+  if (metric === "hotspot") return {
+    kind: "hotspot", title: "Next-24-hour satellite heat forecast",
+    valueOf: row => {
+      if (annual || !state.hotspotMonthCellId) return null;
+      const issue = historyHotspotForDay(row.date);
+      return issue?.issuance_kind === "preserved_archive" && !issue.historical_simulation && issue.probability_percent != null
+        ? issue.probability_percent / 100 : null;
+    },
+    format: value => `${Math.round(value * 100)}%`,
+    empty: "No issued forecasts for this square",
+  };
+  const peak = Math.max(1, ...rows.map(row => Number(row.heat_area_count) || 0));
   return {
-    kind: "empty",
-    title: "Burning activity history",
-    valueOf: () => null,
-    format: () => "—",
-    empty: state.historyLoading ? "Loading history…" : state.historyError ? "Could not load history" : "No estimates for this period",
+    kind: "heat", title: "Observed heat — areas by Philippine day",
+    valueOf: row => !annual && (row.heat_status === "readings" || (row.heat_status === "checked_empty" && row.heat_coverage === "observed"))
+      ? (Number(row.heat_area_count) || 0) / peak : null,
+    format: value => `${Math.round(value * peak)}`,
+    empty: annual ? "Choose Month for Philippine-day reading counts" : "No completed heat checks for this period",
+    axisIsCount: true, axisPeak: peak,
   };
 }
 
@@ -633,29 +606,31 @@ function renderHistoryChart() {
   if (!svg) return;
   const payload = currentMonthHistory();
   const annual = document.querySelector("#history-chart-range").value === "year";
+  const weekly = document.querySelector("#history-chart-range").value === "week";
   const selectedMonth = state.calendarMonth || todayIso().slice(0, 7);
   const [year, month] = selectedMonth.split("-").map(Number);
-  const rows = annual
+  const rows = weekly ? payload?.weeks || [] : annual
     ? payload?.months || Array.from({ length: 12 }, (_, index) => ({ month: `${year}-${String(index + 1).padStart(2, "0")}` }))
     : payload?.days || Array.from({ length: new Date(Date.UTC(year, month, 0)).getUTCDate() }, (_, index) => ({ date: `${selectedMonth}-${String(index + 1).padStart(2, "0")}` }));
   const monthName = new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })
     .format(new Date(Date.UTC(year, month - 1, 1)));
-  const series = historyChartSeries(rows, annual);
+  const series = historyChartSeries(rows, annual || weekly);
   const titleNode = document.querySelector("#history-chart-title");
   if (titleNode) titleNode.textContent = series.title;
-  document.querySelector("#history-chart-caption").textContent = annual
-    ? `Monthly burning activity in ${year}. Select a bar to open that month.`
+  document.querySelector("#history-chart-caption").textContent = weekly
+    ? `Weekly burning activity · ${year} · Monday–Sunday, clipped at year boundaries. Philippine dates.`
+    : annual ? `Monthly burning activity · ${year} · Philippine dates. Select a month to view its first day.`
     : series.kind === "hotspot"
-      ? `Daily hotspot chance for square ${state.hotspotMonthCellId} in ${monthName}. Not burning activity.`
+      ? `Issued next-24-hour estimates for square ${state.hotspotMonthCellId} · ${monthName} · Philippine dates.`
       : series.kind === "heat"
-        ? `Daily satellite heat readings in ${monthName}. Burning-activity estimates are not processed for these days.`
+        ? `Daily 5 km areas with satellite detections · ${monthName} · Philippine dates.`
         : `Daily burning activity in ${monthName}. Select a bar to see that day.`;
   const description = document.querySelector("#history-chart-description");
   if (description) {
     description.textContent = series.kind === "hotspot"
-      ? "Bars are the chance satellites record a hotspot. Burning activity is a separate metric and stays blank until processed."
+      ? "Outlined bars are genuinely issued estimates, grouped by Philippine issue day. Gaps mean no archived issue."
       : series.kind === "heat"
-        ? "Bars are heat-reading counts. Empty activity cells mean the estimate pipeline has not processed this land/date yet."
+        ? "Solid coral bars count areas with detections. Dashed marks indicate unavailable observations; zero requires usable coverage."
         : "Percentages use observed grid squares with usable estimates. Empty periods have no estimate.";
   }
   const left = 34;
@@ -664,7 +639,8 @@ function renderHistoryChart() {
   const width = 292;
   const band = width / rows.length;
   const highest = Math.max(0, ...rows.map((row) => {
-    const value = series.valueOf(row);
+    const future = weekly ? row.period_start > todayIso() : annual ? row.month > todayIso().slice(0,7) : row.date > todayIso();
+    const value = future && series.kind !== "hotspot" ? null : series.valueOf(row);
     return value == null ? 0 : value;
   }));
   const axisMaximum = series.axisIsCount
@@ -680,28 +656,28 @@ function renderHistoryChart() {
       + `<text class="history-chart-axis" x="28" y="${y + 3}" text-anchor="end">${axisLabel}</text>`);
   }
   rows.forEach((row, index) => {
-    const key = annual ? row.month : row.date;
+    const key = weekly ? row.period_start : annual ? row.month : row.date;
     const future = annual ? key > todayIso().slice(0, 7) : key > todayIso();
-    const value = series.valueOf(row);
+    const value = future && series.kind !== "hotspot" ? null : series.valueOf(row);
     const available = typeof value === "number" && Number.isFinite(value);
     const x = left + index * band;
     const barWidth = Math.max(3, band - (annual ? 7 : 3));
     const barHeight = available ? Math.max(2, Math.min(1, Math.max(0, value) / axisMaximum) * height) : 0;
     const selected = annual ? key === selectedMonth : key === (state.historyDay || dayInput.value);
-    const label = annual ? new Intl.DateTimeFormat("en-GB", { month: "short", timeZone: "UTC" })
+    const label = weekly ? `${Number(key.slice(5,7))}/${Number(key.slice(8,10))}` : annual ? new Intl.DateTimeFormat("en-GB", { month: "short", timeZone: "UTC" })
       .format(new Date(`${key}-01T00:00:00Z`)) : String(index + 1);
     const hotspot = annual ? null : historyHotspotForDay(key);
     const words = available
-      ? series.format(value)
-      : historyStatusWords(row.activity_status, row);
-    const descriptionText = `${annual ? monthLabel(`${key}-01`) : formatObservationDay(key)}: ${words}`;
+      ? series.format(value) + (series.kind === "activity" ? ` · ${Number(row.activity_numerator ?? row.activity_rate*row.activity_denominator).toFixed(2)} / ${row.activity_denominator} usable square-days · ${row.usable_days || 1} usable day(s) · Aqua ${row.aqua_contributions ?? row.method_counts?.["observed Aqua activity"] ?? 0}, calibrated Suomi ${row.suomi_contributions ?? row.method_counts?.["calibrated VIIRS estimate"] ?? 0}` : "") + (series.kind === "hotspot" && hotspot ? ` · issued ${philippinePass(hotspot.issue_time_manila)} · until ${philippinePass(hotspot.valid_interval?.end_manila)} · ${hotspot.model_version}` : "")
+      : future ? "Not yet observed" : series.empty;
+    const descriptionText = `${weekly ? `${formatObservationDay(key)}–${formatObservationDay(row.period_end)}` : annual ? monthLabel(`${key}-01`) : formatObservationDay(key)}: ${words}`;
     const attributes = future ? "" : `role="button" tabindex="0" data-history-${annual ? "month" : "day"}="${key}" aria-label="${escapeHtml(descriptionText)}"`;
     parts.push(`<g class="history-chart-bar${selected ? " selected" : ""}${row.activity_status === "partial" ? " partial" : ""}${series.kind === "hotspot" ? " forecast" : ""}" ${attributes}>
       <title>${escapeHtml(descriptionText)}</title>
       <rect class="history-chart-hit" x="${x}" y="20" width="${band}" height="138"/>
       ${available ? `<rect class="history-chart-value${value === 0 ? " zero" : ""}${series.kind === "hotspot" ? " hotspot" : ""}${series.kind === "heat" ? " heat" : ""}" x="${x + (band - barWidth) / 2}" y="${bottom - barHeight}" width="${barWidth}" height="${barHeight}" rx="1"/>`
-        : ""}
-      ${annual || index === 0 || (index + 1) % 5 === 0 || index === rows.length - 1 ? `<text class="history-chart-axis" x="${x + band / 2}" y="172" text-anchor="middle">${label}</text>` : ""}
+        : `<rect class="history-chart-missing" x="${x + (band - barWidth) / 2}" y="149" width="${barWidth}" height="5"/>`}
+      ${index === 0 || (index + 1) % (weekly?8:5) === 0 || annual || index === rows.length - 1 ? `<text class="history-chart-axis" x="${x + band / 2}" y="172" text-anchor="middle">${label}</text>` : ""}
     </g>`);
   });
   if (!rows.some((row) => series.valueOf(row) != null)) {
@@ -713,7 +689,7 @@ function renderHistoryChart() {
     <thead><tr>
       <th>${annual ? "Month" : "Day"}</th>
       <th>Burning activity</th>
-      <th>Heat readings</th>
+      <th>Heat areas / readings</th><th>Activity numerator / eligible square-days</th><th>Contributions</th>
       ${showForecastCols ? "<th>Hotspot chance</th><th>Models</th>" : ""}
       <th>Status</th>
     </tr></thead>
@@ -721,22 +697,25 @@ function renderHistoryChart() {
       const iso = annual ? null : row.date;
       const hotspot = iso ? historyHotspotForDay(iso) : null;
       const heatText = row.heat_status === "readings"
-        ? String(row.heat_count || 0)
-        : row.heat_status === "checked_empty" ? "0" : "—";
+        ? `${row.heat_area_count ?? "—"} / ${row.heat_count || 0}`
+        : row.heat_status === "checked_empty" ? (row.heat_coverage === "observed" ? "0" : "No returns") : "—";
       const chanceText = hotspot?.probability_percent != null
         ? `${hotspot.probability_percent}%`
         : (hotspot?.calendar_state === "upcoming" ? "Upcoming" : "—");
-      const models = (hotspot?.model_board?.models || [])
+      const models = hotspot?.model_version || (hotspot?.model_board?.models || [])
         .map((model) => `${model.name} ${model.probability_percent}%`)
         .join(" · ") || "—";
       return `<tr>
-        <td>${annual ? escapeHtml(monthLabel(`${row.month}-01`)) : index + 1}</td>
+        <td>${weekly ? escapeHtml(row.week_start) : annual ? escapeHtml(monthLabel(`${row.month}-01`)) : index + 1}</td>
         <td>${historyPercent(row.activity_rate)}</td>
         <td>${heatText}</td>
+        <td>${row.activity_rate != null && row.activity_denominator != null ? `${(row.activity_rate * row.activity_denominator).toFixed(2)} / ${row.activity_denominator}` : "—"}</td>
+        <td>${escapeHtml(Object.entries(row.method_counts || {}).map(([name, count]) => `${name}: ${count}`).join("; ") || "—")}</td>
         ${showForecastCols ? `<td>${chanceText}</td><td>${escapeHtml(models)}</td>` : ""}
         <td>${escapeHtml(historyStatusWords(row.activity_status, row))}</td>
       </tr>`;
     }).join("")}</tbody></table>`;
+  if (typeof renderHeatCompanion === "function") renderHeatCompanion(payload);
 }
 
 function openForecastDay(iso) {
@@ -871,3 +850,5 @@ document.querySelector("#week-detail")?.addEventListener("click", (event) => {
   if (!choice) return;
   renderTrace(choice.dataset.outcome);
 });
+
+document.querySelector("#history-chart-metric")?.addEventListener("change", renderHistoryChart);

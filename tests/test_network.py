@@ -97,75 +97,8 @@ def test_requests_reuse_the_shared_client_and_fail_fast_on_connecting(monkeypatc
     assert seen[1][1].read == 60.0
 
 
-def test_ttl_cache_reuses_fresh_values_and_reloads_expired_ones():
-    from vela.network import TtlCache
-
-    now = [0.0]
-    loads = []
-    cache = TtlCache(clock=lambda: now[0])
-
-    def load():
-        loads.append(1)
-        return len(loads)
-
-    assert cache.get_or_load("key", 10, load) == 1
-    assert cache.get_or_load("key", 10, load) == 1
-    now[0] = 11
-    assert cache.get_or_load("key", 10, load) == 2
 
 
-def test_ttl_cache_does_not_keep_rejected_values():
-    from vela.network import TtlCache
-
-    loads = []
-    cache = TtlCache()
-
-    def load():
-        loads.append(1)
-        return "failed"
-
-    cache.get_or_load("key", 60, load, keep=lambda value: value != "failed")
-    cache.get_or_load("key", 60, load, keep=lambda value: value != "failed")
-    assert len(loads) == 2
-
-
-def test_ttl_cache_runs_one_load_for_simultaneous_callers():
-    import threading
-    import time
-
-    from vela.network import TtlCache
-
-    loads = []
-    cache = TtlCache()
-    start = threading.Barrier(4)
-    results = []
-
-    def load():
-        loads.append(1)
-        time.sleep(0.05)
-        return "answer"
-
-    def caller():
-        start.wait()
-        results.append(cache.get_or_load("key", 60, load))
-
-    threads = [threading.Thread(target=caller) for _ in range(4)]
-    for thread in threads:
-        thread.start()
-    for thread in threads:
-        thread.join()
-
-    assert results == ["answer"] * 4
-    assert len(loads) == 1
-
-
-def test_ttl_cache_stays_within_its_size():
-    from vela.network import TtlCache
-
-    cache = TtlCache(max_items=2)
-    for key in ("a", "b", "c"):
-        cache.get_or_load(key, 60, lambda: key)
-    assert len(cache) <= 2
 
 
 def _unreachable_client(calls):

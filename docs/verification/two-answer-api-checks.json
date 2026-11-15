@@ -1,0 +1,322 @@
+{
+  "2393:174": {
+    "status": "unavailable",
+    "probability_percent": null,
+    "calendar_state": "insufficient_inputs",
+    "reason": "Chance of satellite-detected heat is not published (state=publication_suspended_calibration_audit). Calibration is not validated for representative covered square-days. The >=90% holdout band contains 32 August positives and no negatives; November is outside the evaluated seasonal distribution. Observed satellite heat remains available."
+  },
+  "2397:180": {
+    "status": "unavailable",
+    "probability_percent": null,
+    "calendar_state": "insufficient_inputs",
+    "reason": "Chance of satellite-detected heat is not published (state=publication_suspended_calibration_audit). Calibration is not validated for representative covered square-days. The >=90% holdout band contains 32 August positives and no negatives; November is outside the evaluated seasonal distribution. Observed satellite heat remains available."
+  },
+  "2100:200": {
+    "status": "unsupported",
+    "probability_percent": null,
+    "calendar_state": "unsupported_location",
+    "reason": "Outside Mindanao \u2014 hotspot-forecast percentages are not evaluated here. Satellite readings and weather remain available."
+  },
+  "future": {
+    "status": "upcoming",
+    "probability_percent": null,
+    "calendar_state": "upcoming"
+  },
+  "maguindanao_plot": {
+    "readings": 2,
+    "squares": 2,
+    "inside": [
+      {
+        "lat": 6.85779,
+        "lon": 124.05852,
+        "platform": "NOAA-21",
+        "acq_date": "2026-11-07",
+        "acq_time": "04:33",
+        "acq_time_raw": "0433",
+        "confidence": "n",
+        "frp": 13.89,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      },
+      {
+        "lat": 6.88524,
+        "lon": 124.05923,
+        "platform": "NOAA-20",
+        "acq_date": "2026-11-07",
+        "acq_time": "05:29",
+        "acq_time_raw": "0529",
+        "confidence": "n",
+        "frp": 15.49,
+        "source": "public_snapshot",
+        "distance_km": 0.0,
+        "relation": "inside"
+      }
+    ],
+    "activity_status": "loading",
+    "weather_status": "loading"
+  },
+  "plot_calendar": [
+    {
+      "date": "2026-11-01",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "not_processed"
+    },
+    {
+      "date": "2026-11-02",
+      "heat_count": 1,
+      "heat_status": "readings",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "not_processed"
+    },
+    {
+      "date": "2026-11-03",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "not_processed"
+    },
+    {
+      "date": "2026-11-04",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "not_processed"
+    },
+    {
+      "date": "2026-11-05",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "not_processed"
+    },
+    {
+      "date": "2026-11-06",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "not_processed"
+    },
+    {
+      "date": "2026-11-07",
+      "heat_count": 2,
+      "heat_status": "readings",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "not_processed"
+    },
+    {
+      "date": "2026-11-08",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "not_processed"
+    },
+    {
+      "date": "2026-11-09",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "not_processed"
+    },
+    {
+      "date": "2026-11-10",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "not_processed"
+    },
+    {
+      "date": "2026-11-11",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "not_processed"
+    },
+    {
+      "date": "2026-11-12",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "not_processed"
+    },
+    {
+      "date": "2026-11-13",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "not_processed"
+    },
+    {
+      "date": "2026-11-14",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "not_processed"
+    },
+    {
+      "date": "2026-11-15",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "not_processed"
+    },
+    {
+      "date": "2026-11-16",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "future"
+    },
+    {
+      "date": "2026-11-17",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "future"
+    },
+    {
+      "date": "2026-11-18",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "future"
+    },
+    {
+      "date": "2026-11-19",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "future"
+    },
+    {
+      "date": "2026-11-20",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "future"
+    },
+    {
+      "date": "2026-11-21",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "future"
+    },
+    {
+      "date": "2026-11-22",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "future"
+    },
+    {
+      "date": "2026-11-23",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "future"
+    },
+    {
+      "date": "2026-11-24",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "future"
+    },
+    {
+      "date": "2026-11-25",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "future"
+    },
+    {
+      "date": "2026-11-26",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "future"
+    },
+    {
+      "date": "2026-11-27",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "future"
+    },
+    {
+      "date": "2026-11-28",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "future"
+    },
+    {
+      "date": "2026-11-29",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "future"
+    },
+    {
+      "date": "2026-11-30",
+      "heat_count": 0,
+      "heat_status": "not_checked",
+      "heat_coverage": "unknown",
+      "activity_rate": null,
+      "activity_status": "future"
+    }
+  ],
+  "prediction_policy": {
+    "wildfire_validated": false,
+    "wildfire_reason": "No independently verified Philippine wildfire-onset/non-event labels and holdout evaluation are available.",
+    "target": "Satellite-detected heat within 24 hours in one 5 km square",
+    "calibrated": false,
+    "approved": false,
+    "model_version": "hist_gradient_boosting",
+    "model_hash": "3c1e4896964db152",
+    "scope": {
+      "id": "mindanao_maguindanao_compact_v1",
+      "label": "Compact Maguindanao / western Mindanao (v2.1 evaluated)",
+      "bbox": {
+        "west": 123.6,
+        "south": 6.3,
+        "east": 124.7,
+        "north": 7.4
+      },
+      "clip_preset": "mindanao"
+    },
+    "limit": "Seasonal coverage and probability calibration are not validated for public forecasts."
+  }
+}

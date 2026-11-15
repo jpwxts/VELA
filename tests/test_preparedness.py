@@ -314,50 +314,33 @@ def test_a_forecast_already_issued_for_this_window_skips_the_fire_danger_request
     assert second["days"][0]["fire_danger"]["fwi"] == 12.5
 
 
-def test_recent_weather_and_fire_danger_answers_are_reused(monkeypatch):
+def test_fire_danger_error_documents_are_not_kept_in_the_weather_cache(monkeypatch, tmp_path):
     import httpx
 
     from vela import preparedness
-    from vela.network import TtlCache
 
+    monkeypatch.setattr(preparedness, "DATA_DIR", tmp_path)
     calls = []
     replies = {}
 
-    def fake_get(url, *, params=None, **_kwargs):
-        calls.append((url, dict(params or {})))
-        status, body = replies[url]
-        return httpx.Response(status, content=body, request=httpx.Request("GET", url))
+    def fake_get(url, **_kwargs):
+        calls.append(url)
+        return httpx.Response(200, content=replies[url], request=httpx.Request("GET", url))
 
     monkeypatch.setattr(preparedness, "retrying_get", fake_get)
-    monkeypatch.setattr(preparedness, "_RESPONSES", TtlCache())
-    weather, gwis, other = preparedness.OPEN_METEO, preparedness.GWIS_WMS, "https://provider.example/data"
+    gwis = preparedness.GWIS_WMS
 
-    replies[weather] = (200, b"{}")
-    assert preparedness.request_bytes(weather, {"latitude": 1}) == (200, b"{}")
-    assert preparedness.request_bytes(weather, {"latitude": 1}) == (200, b"{}")
+    # A real GeoTIFF is kept and reused.
+    replies[gwis] = _geotiff(3.0)
+    preparedness.request_bytes(gwis, {"TIME": "2026-11-10"})
+    preparedness.request_bytes(gwis, {"TIME": "2026-11-10"})
     assert len(calls) == 1
-    preparedness.request_bytes(weather, {"latitude": 2})
-    assert len(calls) == 2
 
-    # A fire-danger answer is reused only when it is a real GeoTIFF.
-    replies[gwis] = (200, _geotiff(3.0))
-    preparedness.request_bytes(gwis, {"TIME": "2026-11-10"})
-    preparedness.request_bytes(gwis, {"TIME": "2026-11-10"})
+    # GWIS answering 200 with an error document is asked again next time.
+    replies[gwis] = b"<ServiceException>busy</ServiceException>"
+    preparedness.request_bytes(gwis, {"TIME": "2026-11-11"})
+    preparedness.request_bytes(gwis, {"TIME": "2026-11-11"})
     assert len(calls) == 3
-    replies[gwis] = (200, b"<ServiceException>busy</ServiceException>")
-    preparedness.request_bytes(gwis, {"TIME": "2026-11-11"})
-    preparedness.request_bytes(gwis, {"TIME": "2026-11-11"})
-    assert len(calls) == 5
-
-    # Failures and other providers are always asked again.
-    replies[weather] = (503, b"")
-    preparedness.request_bytes(weather, {"latitude": 3})
-    preparedness.request_bytes(weather, {"latitude": 3})
-    assert len(calls) == 7
-    replies[other] = (200, b"x")
-    preparedness.request_bytes(other)
-    preparedness.request_bytes(other)
-    assert len(calls) == 9
 
 
 def test_land_check_reads_weather_and_satellite_heat_at_the_same_time(tmp_path, monkeypatch):

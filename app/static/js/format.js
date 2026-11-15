@@ -92,5 +92,5 @@ function monthLabel(weekStart) {
 }
 
 function todayIso() {
-  return new Date().toISOString().slice(0, 10);
+  return manilaTodayIso();
 }

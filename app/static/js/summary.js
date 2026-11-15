@@ -10,6 +10,12 @@ function refreshLandSummary() {
   const section = document.querySelector("#land-summary");
   const hasLand = Boolean(state.polygon && state.polygon.length >= 4);
   state.summarySquare = null;
+  state.hotspotForecastRequestId = (state.hotspotForecastRequestId || 0) + 1;
+  state.hotspotMonthCellId = null;
+  state.hotspotMonthKey = null;
+  state.hotspotMonthPendingKey = null;
+  state.hotspotMonth = null;
+  state.hotspotMonthRequestId = (state.hotspotMonthRequestId || 0) + 1;
   document.querySelector("#cell-back").hidden = true;
   document.querySelector("#satellite-picker").hidden = false;
   setSquareHeat(null);
@@ -18,13 +24,16 @@ function refreshLandSummary() {
   state.outlookRequestId += 1;
   clearHotspotDetailSearches();
   section.hidden = !hasLand;
-  document.querySelector("#land-secondary-content").hidden = hasLand;
+  document.querySelector("#land-secondary-content").hidden = false;
   syncLandPicture();
+  renderPolygonPrediction(state.probabilityOverlay);
   if (!hasLand) return;
   drawLandCutout(state.lastLandCheck?.heat?.hotspot_areas?.areas || []);
-  if (state.lastLandCheck) applyLandSummaryFromCheck(state.lastLandCheck);
-  else trackHotspotSearch("activity", loadWeeklyActivity);
-  trackHotspotSearch("outlook", loadDayOutlook);
+  if (state.lastLandCheck) {
+    renderObservedAnswer(state.lastLandCheck.heat, {saved: Boolean(state.lastLandCheck.saved), date: state.lastLandCheck.observation_date});
+
+  }
+  trackHotspotSearch("activity", loadWeeklyActivity);
 }
 
 // Plain outline of the land, drawn at once so the frame is never empty while
@@ -62,6 +71,9 @@ function drawLandOutline(ring, canvas) {
 }
 
 async function drawLandCutout(areas) {
+  state.pictureAreas = areas;
+  const preview = document.querySelector(".selection-preview");
+  if (preview && !preview.open) return;
   const canvas = document.querySelector("#land-cutout");
   const target = summaryTarget();
   const ring = target.ring;
@@ -113,96 +125,62 @@ async function drawLandCutout(areas) {
 // processed; everywhere else the widget says so instead of showing a number.
 // Keep the compact card while accepting activity from the current land check.
 function setLandSummaryLoading() {
-  document.querySelector("#activity-label").textContent = "Burning activity";
+  document.querySelector("#activity-label").textContent = "Estimated burning activity";
   const value = document.querySelector("#activity-value");
   value.textContent = "Loading…";
   value.classList.add("is-words");
   document.querySelector("#activity-note").hidden = true;
+  document.querySelector("#activity-ratio").textContent = "";
+  document.querySelector("#activity-provenance").textContent = "";
 }
 
 function applyLandActivity(activity) {
-  const target = summaryTarget();
-  const label = document.querySelector("#activity-label");
   const value = document.querySelector("#activity-value");
-  const note = document.querySelector("#activity-note");
-  const published = activity?.activity_rate != null
-    && (activity.activity_status === "complete" || activity.activity_status === "partial");
-  label.textContent = "Burning activity";
+  const published = activity?.activity_rate != null && ["complete", "partial"].includes(activity.activity_status);
+  document.querySelector("#activity-label").textContent = `${activity?.date || dayInput.value} · Philippine date${published ? " · partial coverage" : ""}`;
   value.classList.toggle("is-words", !published);
-  note.hidden = !published;
-  note.textContent = "";
-  if (published) {
-    const weekly = activity.week_start && activity.week_end;
-    label.textContent += `${target.noun === "square" ? " in this square" : ""}`
-      + (weekly ? ` · ${formatWeekRange(activity.week_start, activity.week_end)}` : "");
-    value.textContent = `${(activity.activity_rate * 100).toFixed(1)}%`;
-    note.textContent =
-      (activity.activity_status === "partial" ? "Partial estimate: some observations lacked usable coverage. " : "")
-      + `How often this ${target.noun}’s grid squares showed burning activity `
-      + (weekly ? "that week" : `on ${formatObservationDay(dayInput.value)}`)
-      + ". It is not a wildfire probability.";
-  } else if (activity?.status === "request_failed") {
-    value.textContent = "Unavailable";
-    note.hidden = false;
-    note.textContent = activity.explanation;
-  } else {
-    value.textContent = "No estimate yet";
-  }
-}
-
-function applyLandSummaryFromCheck(payload) {
-  if (!payload || state.summarySquare) return;
-  state.activityRequestId += 1;
-  clearHotspotSearches("activity");
-  applyLandActivity(payload.activity);
+  value.textContent = published ? `${(activity.activity_rate * 100).toFixed(1)}%` : "Activity estimate unavailable";
+  const numerator = activity?.activity_numerator ?? (activity?.activity_rate * activity?.activity_denominator);
+  document.querySelector("#activity-ratio").textContent = published
+    ? `${Number(numerator).toLocaleString("en-PH", {maximumFractionDigits:2})} estimated active square-days / ${activity.activity_denominator.toLocaleString("en-PH")} usable square-days` : "";
+  const note = document.querySelector("#activity-note");
+  note.hidden = false;
+  note.textContent = published ? "Coverage is partial. Missing squares are excluded from this denominator."
+    : activity?.reason || activity?.explanation || "No eligible Aqua fire-mask/geolocation or calibrated Suomi-NPP cell-days are processed for this land and date. Heat points cannot establish coverage.";
+  const times = activity?.observation_times_utc || [];
+  document.querySelector("#activity-provenance").textContent = published
+    ? `${(activity.satellites || Object.keys(activity.method_counts || {})).join(", ")}${times.length ? ` · latest supplying pass ${philippinePass(times.at(-1))}` : ""}` : "";
+  document.querySelector("#activity-retry").hidden = published;
+  const methods = document.querySelector("#activity-methods");
+  if (methods) methods.textContent = "Each usable square-day contributes once. Eligible Aqua supplies observed 0 or 1; otherwise the frozen harmonization model can supply a calibrated Suomi-NPP value only with its native inputs. "
+    + `Aqua contributions: ${activity?.aqua_contributions ?? activity?.method_counts?.["observed Aqua activity"] ?? 0}; calibrated Suomi: ${activity?.suomi_contributions ?? activity?.method_counts?.["calibrated VIIRS estimate"] ?? 0}. `
+    + `Products: ${(activity?.source_products || []).join(", ") || "none available for this selection"}. This is activity on the selected date, not a wildfire probability.`;
 }
 
 async function loadWeeklyActivity() {
-  const label = document.querySelector("#activity-label");
-  const value = document.querySelector("#activity-value");
-  const note = document.querySelector("#activity-note");
   const target = summaryTarget();
-  if (!label || !target.box) return;
+  if (!target.ring) return;
   const date = dayInput.value;
-  const year = date.slice(0, 4);
   const requestId = ++state.activityRequestId;
-  const words = (text) => {
-    value.textContent = text;
-    value.classList.add("is-words");
-  };
-  label.textContent = "Burning activity";
-  words("Loading…");
-  note.hidden = false;
-  note.textContent = `Reading the weekly estimate for ${formatObservationDay(date)}.`;
-  const [west, south, east, north] = target.box;
-  let payload;
+  state.activityAbort?.abort();
+  state.activityAbort = new AbortController();
+  setLandSummaryLoading();
   try {
-    const response = await fetch(`/api/calendar?west=${west}&south=${south}&east=${east}&north=${north}&year=${year}`);
-    if (!response.ok) throw new Error("calendar failed");
-    payload = await response.json();
+    const response = await fetch("/api/activity/selection", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      signal: AbortSignal.any([state.activityAbort.signal, AbortSignal.timeout(15000)]),
+      body: JSON.stringify({coordinates: target.ring, boundary_preset: state.summarySquare ? null : state.boundaryPreset || null, date}),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.detail || "Activity request failed");
+    if (requestId !== state.activityRequestId || date !== dayInput.value) return;
+    state.currentActivity = payload;
+    applyLandActivity(payload);
+    renderActivityMap(payload);
   } catch (_error) {
     if (requestId !== state.activityRequestId) return;
-    words("Unavailable");
-    note.textContent = "The weekly history request failed. Check your connection, then change the date or redraw to try again.";
-    return;
+    applyLandActivity({status: "request_failed", reason: "Activity request failed or timed out. Retry activity to read the processed cell-day store again."});
   }
-  if (requestId !== state.activityRequestId) return;
-  const weeks = payload.weeks || [];
-  const published = (week) =>
-    week.activity_rate != null && (week.activity_status === "complete" || week.activity_status === "partial");
-  const week = weeks.find((item) => item.week_start <= date && date <= item.week_end);
-  if (week && published(week)) {
-    label.textContent = `Burning activity${target.noun === "square" ? " in this square" : ""} · ${formatWeekRange(week.week_start, week.week_end)}`;
-    value.textContent = `${(week.activity_rate * 100).toFixed(1)}%`;
-    value.classList.remove("is-words");
-    note.textContent =
-      (week.activity_status === "partial" ? "Partial estimate: some days that week lacked usable coverage. " : "")
-      + `How often this ${target.noun}’s grid squares showed burning activity that week. It is not a wildfire probability.`;
-    return;
-  }
-  words("No estimate yet");
-  note.textContent = "";
-  note.hidden = true;
 }
 
 // Open-Meteo weather codes (WMO) reduced to seven drawn conditions.
@@ -333,3 +311,7 @@ if (window.ResizeObserver && document.querySelector("#hours-strip")) {
     stripWidth = width;
   }).observe(document.querySelector("#hours-strip"));
 }
+
+document.querySelector(".selection-preview")?.addEventListener("toggle", event => {
+  if (event.target.open) drawLandCutout(state.pictureAreas || []);
+});

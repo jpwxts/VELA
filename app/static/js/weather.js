@@ -1,3 +1,22 @@
+function renderWeatherSummary(forecast) {
+  const value = document.querySelector("#land-weather-value");
+  if (!value) return;
+  const day = (forecast?.days || []).find(row => row.valid_date === dayInput.value) || forecast?.days?.[0];
+  value.textContent = day
+    ? `${day.danger_level || "Unavailable"} · valid ${day.valid_date} · near the land boundary’s center`
+    : forecast?.status === "loading" ? "Loading dated fire-weather danger…" : "Fire-weather danger unavailable";
+  const badge = document.getElementById("weather-badge");
+  if (badge) badge.textContent = day ? `Fire weather: ${day.danger_level || "Unavailable"} · ${day.valid_date}` : "Fire weather: unavailable";
+  const values = document.getElementById("condition-values");
+  if (values) values.innerHTML = [
+    ["Temperature", day?.temperature_max_c?.value, "°C"],
+    ["Humidity", day?.relative_humidity_min_percent?.value, "%"],
+    ["Wind", day?.wind_speed_max_m_s?.value, "m/s"],
+    ["Rain", day?.forecast_rain_mm?.value, "mm"],
+  ].map(([label, number, unit]) => `<div><dt>${label}</dt><dd>${number == null ? "Unavailable" : `${Number(number).toFixed(1)} ${unit}`}</dd></div>`).join("");
+
+}
+
 // Weather outlook tab and the forecast point on the globe.
 
 function clearWeatherOutlook() {
@@ -57,6 +76,7 @@ function dayCardSummary(day) {
 }
 
 function renderOutlook(forecast, selectors) {
+  renderWeatherSummary(forecast);
   const headline = document.querySelector(selectors.headline);
   const explanation = document.querySelector(selectors.explanation);
   const coverage = document.querySelector(selectors.coverage);
@@ -138,6 +158,14 @@ function renderOutlook(forecast, selectors) {
     }
   }
 
+  if (forecast?.status === "loading") {
+    headline.textContent = "Fire-weather danger · loading…";
+    explanation.textContent = "Weather loads independently of satellite heat and coverage estimates.";
+    status.textContent = "Waiting for the dated weather outlook.";
+    daysHost.innerHTML = "";
+    detail.innerHTML = "";
+    return;
+  }
   if (!forecast || !(forecast.days || []).length) {
     headline.textContent = "Forecast values unavailable";
     explanation.textContent = "No outlook days were returned for this location.";
