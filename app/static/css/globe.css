@@ -279,7 +279,7 @@
 }
 
 /* Solid coral is observed evidence; hollow teal is a genuinely issued forecast. */
-.forecast-marker { pointer-events: auto; cursor: pointer; border: 2px solid var(--teal); background: var(--field); color: var(--teal); border-radius: 50%; min-width: 34px; min-height: 34px; padding: 4px; font: 600 .6875rem var(--font-data); box-shadow: 0 0 0 3px var(--field); }
+.forecast-marker { pointer-events: auto; cursor: pointer; border: 2px solid var(--teal); background: var(--field); color: var(--teal); border-radius: 50%; min-width: 34px; min-height: 34px; padding: 4px; font: 600 0.75rem var(--font-data); box-shadow: 0 0 0 3px var(--field); }
 .forecast-marker:hover, .forecast-marker:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
 .forecast-marker.has-observed { background: transparent; min-width: 38px; min-height: 38px; box-shadow: none; }
 .forecast-marker.has-observed > span { position: absolute; top: calc(100% + 5px); left: 50%; transform: translateX(-50%); background: var(--field); border: 1px solid var(--teal); border-radius: 3px; padding: 2px 4px; white-space: nowrap; }

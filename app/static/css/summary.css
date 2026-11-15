@@ -165,7 +165,7 @@
 .selection-preview > summary { cursor: pointer; padding: 7px 0; }
 .selection-preview .land-picture { margin: 8px 0 14px; }
 .answer-card { min-width: 0; padding: 18px; border: 1px solid var(--line-strong); border-radius: var(--radius-card); background: var(--field); }
-.answer-kicker { font: 600 .6875rem/1.4 var(--font-data); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 8px; }
+.answer-kicker { font: 600 0.75rem/1.4 var(--font-data); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 8px; }
 .answer-card h3 { font: 500 1.55rem/1.15 var(--font-display); letter-spacing: -.015em; margin-bottom: 10px; }
 .observed-answer { border-top: 4px solid var(--ember); }
 .observed-total { display: flex; align-items: baseline; gap: 10px; margin: 12px 0 8px; }
@@ -184,7 +184,7 @@
 .prediction-answer h3 { font-size: 1.75rem; }
 .validation-status { display: inline-block; font-size: .8125rem; font-weight: 600; padding: 5px 8px; border: 1px dashed var(--ink-faint); border-radius: 4px; margin-bottom: 16px; }
 .prediction-target { font: 600 1rem/1.35 var(--font-ui); margin-bottom: 7px; }
-.prediction-answer .reading-label { font-size: .6875rem; letter-spacing: .025em; }
+.prediction-answer .reading-label { font-size: 0.75rem; letter-spacing: .025em; }
 .prediction-answer .reading-value { font: 500 3.25rem/1.05 var(--font-display); margin: 10px 0; }
 .prediction-answer .reading-value.is-words { font-size: 1.5rem; line-height: 1.15; }
 .prediction-answer #hotspot-forecast-meta { font-size: .8125rem; line-height: 1.45; overflow-wrap: anywhere; }
@@ -209,7 +209,7 @@
 .coverage-summary { padding-top: 8px; margin-top: 10px; font-size: .75rem; }
 .coverage-summary > summary { cursor: pointer; color: var(--ink-soft); }
 .coverage-summary[open] > summary { margin-bottom: 8px; }
-.evidence-note { margin-top: 8px; font-size: .6875rem; }
+.evidence-note { margin-top: 8px; font-size: 0.75rem; }
 .card-head { padding: 14px 50px 12px 20px; }
 .card-title { font-size: 1.5rem; }
 .card-head .coords { display: none; }
@@ -229,7 +229,7 @@
 .prediction-answer .observed-total strong { font: 600 1.15rem/1.3 var(--font-ui); }
 .prediction-answer .observed-total span { font-size: .875rem; }
 .prediction-answer #observed-heat-summary { font-size: .8125rem; font-weight: 400; }
-.prediction-answer .evidence-note { font-size: .6875rem; }
+.prediction-answer .evidence-note { font-size: 0.75rem; }
 .experimental-footnote { display: inline-block; font-size: .75rem; border-bottom: 1px dotted var(--ink-soft); cursor: help; color: var(--ink-soft); }
 .prediction-answer .reading-value { font-size: 4.5rem; color: var(--ink); }
 .estimate-why summary { cursor: pointer; font-size: .8125rem; font-weight: 600; }
@@ -252,4 +252,4 @@
 .activity-map-marker:focus-visible { outline: 2px solid var(--ink); }
 .heat-companion { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 18px; }
 .heat-companion h4 { font-size: .9375rem; }
-@media (max-width:600px) { .activity-answer .activity-value { font-size: 3.25rem; } .rail-button { width:44px; } .panel-tab { font-size:.6875rem; } }
+@media (max-width:600px) { .activity-answer .activity-value { font-size: 3.25rem; } .rail-button { width:44px; } .panel-tab { font-size: 0.75rem; } }
