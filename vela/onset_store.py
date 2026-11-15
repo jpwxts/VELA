@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from vela.settings import DATA_DIR
+from vela.settings import WRITABLE_DATA_DIR
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS onset_issues (
@@ -47,7 +47,7 @@ def _issue_key(scope: str, cell_id: str, issue_date_ph: str) -> str:
 
 class OnsetForecastStore:
     def __init__(self, path: Path | None = None):
-        self.path = path or (DATA_DIR / "observations" / "philippines_onset.sqlite")
+        self.path = path or (WRITABLE_DATA_DIR / "observations" / "philippines_onset.sqlite")
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self._connect() as connection:
             connection.executescript(SCHEMA)

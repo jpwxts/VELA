@@ -23,9 +23,10 @@ from vela.hotspot_forecast import DATA_DIR, FEATURE_NAMES, load_selection, MAGUI
 from vela.hotspot_forecast_serve import _load_model_bundle, _predict_probability, _eval_set
 from vela.hotspot_forecast_dataset import build_feature_row, neighbor_ids, _parse_acq_utc
 from vela.observation_store import ObservationStore, _connect
+from vela.settings import WRITABLE_DATA_DIR
 
 PH = ZoneInfo('Asia/Manila')
-ARCHIVE = DATA_DIR / 'observations' / 'philippines_experimental_forecasts.sqlite'
+ARCHIVE = WRITABLE_DATA_DIR / 'observations' / 'philippines_experimental_forecasts.sqlite'
 PRIOR_REPORT = DATA_DIR / 'metrics' / 'philippines_national_prior_audit.json'
 TARGET = 'At least one qualifying MODIS/VIIRS heat detection in this 5 km square during the next 24 hours.'
 

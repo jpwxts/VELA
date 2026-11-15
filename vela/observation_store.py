@@ -13,9 +13,9 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
-from vela.settings import DATA_DIR
+from vela.settings import WRITABLE_DATA_DIR
 
-STORE_PATH = DATA_DIR / "observations" / "philippines.sqlite"
+STORE_PATH = WRITABLE_DATA_DIR / "observations" / "philippines.sqlite"
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS detections (

@@ -15,7 +15,7 @@ from urllib.parse import urlsplit
 from vela.forecast_store import ForecastArchive
 from vela.geotiff import read_center_value
 from vela.network import retrying_get
-from vela.settings import DATA_DIR
+from vela.settings import DATA_DIR, WRITABLE_DATA_DIR
 
 OPEN_METEO = "https://api.open-meteo.com/v1/forecast"
 GWIS_WMS = "https://maps.effis.emergency.copernicus.eu/gwis"
@@ -588,7 +588,7 @@ def request_bytes(url: str, params: dict | None = None) -> tuple[int, bytes]:
     from app.db import ResponseCache
 
     key = hashlib.sha256(json.dumps([url, params, datetime.now(timezone.utc).date().isoformat()], sort_keys=True).encode()).hexdigest()
-    cache = ResponseCache(DATA_DIR / "cache" / "weather.sqlite")
+    cache = ResponseCache(WRITABLE_DATA_DIR / "cache" / "weather.sqlite")
     with _WEATHER_LOCKS[int(key[:8], 16) % len(_WEATHER_LOCKS)]:
         saved = cache.get(key, max_age_hours=1)
         if saved is not None:

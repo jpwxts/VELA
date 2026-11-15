@@ -54,7 +54,7 @@ from vela.serving import (
     reveal_week,
     week_cells,
 )
-from vela.settings import DATA_DIR, ROOT, regions, settings
+from vela.settings import DATA_DIR, ROOT, WRITABLE_DATA_DIR, regions, settings
 
 load_dotenv(ROOT / ".env")
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
@@ -80,7 +80,7 @@ def build_firms() -> FirmsClient:
     cfg = settings()
     return FirmsClient(
         os.environ.get("FIRMS_MAP_KEY", ""),
-        ResponseCache(DATA_DIR / "cache" / "firms.sqlite"),
+        ResponseCache(WRITABLE_DATA_DIR / "cache" / "firms.sqlite"),
         firms_http_get,
         max_span=float(cfg["max_request_span_degrees"]),
         day_range=1,
@@ -88,8 +88,8 @@ def build_firms() -> FirmsClient:
 
 
 FIRMS = build_firms()
-METEOMATICS = MeteomaticsClient(ResponseCache(DATA_DIR / "cache" / "meteomatics.sqlite"))
-ARCHIVE = ForecastArchive(DATA_DIR / "preparedness" / "forecasts.sqlite")
+METEOMATICS = MeteomaticsClient(ResponseCache(WRITABLE_DATA_DIR / "cache" / "meteomatics.sqlite"))
+ARCHIVE = ForecastArchive(WRITABLE_DATA_DIR / "preparedness" / "forecasts.sqlite")
 OBSERVATION_PLATFORMS = ["Aqua", "Terra", "Suomi-NPP", "NOAA-20", "NOAA-21"]
 # Seconds from the start of a land check that the weather may take before the heat is
 # answered without it. A healthy forecast (weather plus 14 fire-danger layers, side by
@@ -623,7 +623,7 @@ class PlaceRequest(BaseModel):
     members: list[dict] = Field(default_factory=list)
 
 
-PLACE_CACHE = ResponseCache(DATA_DIR / "cache" / "places.sqlite")
+PLACE_CACHE = ResponseCache(WRITABLE_DATA_DIR / "cache" / "places.sqlite")
 
 
 @app.get("/api/place")

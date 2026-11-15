@@ -16,7 +16,7 @@ from urllib.parse import quote
 
 from app.db import ResponseCache
 from vela.network import retrying_get
-from vela.settings import DATA_DIR
+from vela.settings import WRITABLE_DATA_DIR
 
 LOGGER = logging.getLogger(__name__)
 SOURCE = "Meteomatics"
@@ -244,7 +244,7 @@ class MeteomaticsClient:
         cache: ResponseCache | None = None,
         http_get: Callable[[str, tuple[str, str]], tuple[int, str]] | None = None,
     ):
-        self.cache = cache or ResponseCache(DATA_DIR / "cache" / "meteomatics.sqlite")
+        self.cache = cache or ResponseCache(WRITABLE_DATA_DIR / "cache" / "meteomatics.sqlite")
         self.http_get = http_get or self._default_get
 
     @staticmethod

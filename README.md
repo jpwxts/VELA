@@ -514,6 +514,10 @@ python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 Open [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
+### Vercel storage limitation
+
+On Vercel, Vela stores writable caches and SQLite files under `/tmp/vela`; bundled files under `data/` remain read-only. Vercel temporary storage is not durable or shared across function instances, so live observations and caches can disappear between invocations. Use a persistent external database and a separate refresh worker for production live data.
+
 ### 4. Optional: Earthdata (swath files & training)
 
 ```bash

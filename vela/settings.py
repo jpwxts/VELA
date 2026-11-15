@@ -3,12 +3,25 @@
 from __future__ import annotations
 
 import json
+import os
 from functools import lru_cache
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG_DIR = ROOT / "config"
 DATA_DIR = ROOT / "data"
+
+
+def writable_data_dir() -> Path:
+    configured = os.environ.get("VELA_WRITABLE_DATA_DIR")
+    if configured:
+        return Path(configured)
+    if os.environ.get("VERCEL"):
+        return Path("/tmp/vela")
+    return DATA_DIR
+
+
+WRITABLE_DATA_DIR = writable_data_dir()
 
 
 def _load(name: str) -> dict:

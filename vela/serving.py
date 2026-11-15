@@ -21,7 +21,7 @@ from vela.coverage import COVERAGE_RULE
 from vela.geo import box_area_deg, in_bbox, intersection_area_deg
 from vela.grid import geographic_bounds
 from vela.sample import weeks_in_year
-from vela.settings import DATA_DIR, regions, settings
+from vela.settings import DATA_DIR, WRITABLE_DATA_DIR, regions, settings
 from vela.splits import split_for_year
 
 PAIRED_PATH = DATA_DIR / "processed" / "paired_cells.parquet"
@@ -31,7 +31,7 @@ TRACES_PATH = DATA_DIR / "processed" / "cell_traces.json"
 MODEL_PATH = DATA_DIR / "models" / "vela_model.joblib"
 REPORT_PATH = DATA_DIR / "models" / "report.json"
 SELECTION_PATH = DATA_DIR / "models" / "model_selection.json"
-JOB_PATH = DATA_DIR / "jobs" / "status.json"
+JOB_PATH = WRITABLE_DATA_DIR / "jobs" / "status.json"
 
 LABELS = {
     "represented_in_training": "This box mostly overlaps a landscape window used for model development.",
